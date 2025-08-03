@@ -241,6 +241,7 @@ const onDragEnd = ({ item, x, y }) => {
     item: item,
     side: activeSide.value,
     position: { top: dropYPos, left: dropXPos },
+    properties: { y: dropYPos, x: dropXPos },
   };
 };
 
@@ -287,6 +288,42 @@ const selectedLayer = ref(null);
 const layers = ref([]);
 const displayOption = ref("both sides");
 const currentProperties = ref({});
+watch(
+  () => [activeSide.value, frontCanvas.value, backCanvas.value], // Explicit dependencies
+  ([newActiveSide, newFrontCanvas, newBackCanvas]) => {
+    // Determine the active canvas based on activeSide
+    const newElementData =
+      newActiveSide === "front" ? newFrontCanvas : newBackCanvas;
+
+    // Validate newElementData
+    if (!newElementData || !Array.isArray(newElementData)) {
+      console.warn("Invalid canvas data:", newElementData);
+      elements.value = []; // Fallback to empty array to avoid errors
+      return;
+    }
+
+    // Update elements
+    elements.value = [...newElementData]; // Create a new copy to ensure reactivity
+
+    // Optional: Handle element selection logic (uncomment if needed)
+    /*
+    const newId = newElementData.selectedId; // Adjust based on actual data structure
+    if (newId !== null && newId !== undefined) {
+      receiveSelectElement(newId);
+    } else {
+      selectedElement.value = null;
+      selectedLayer.value = null;
+      currentProperties.value = {};
+    }
+    */
+
+    // Debugging (only in development)
+    if (process.env.NODE_ENV === "development") {
+      console.log("elements.value updated:", elements.value);
+    }
+  },
+  { deep: true } // Enable deep watching if canvas data is an object/array
+);
 
 // Function to receive selected element from Canvas
 const receiveSelectElement = (elementId) => {
@@ -307,14 +344,14 @@ const receiveSelectElement = (elementId) => {
 // Computed property to get the selected element type
 const selectedElementType = computed(() => {
   if (selectedElement.value === null) return null;
-  const element = frontCanvas.value.find((e) => e.id === selectedElement.value);
+  const element = elements.value.find((e) => e.id === selectedElement.value);
   console.log("Selected Element Type:", element.type);
   return element ? element.type : null;
 });
 
 // Element types
 const elementTypeMap = {
-  text: {
+  h1: {
     properties: {
       x: 40.1,
       y: 130,
@@ -487,8 +524,8 @@ const setupInteract = (element) => {
         if (element.properties.lock) return;
         const index = elements.value.findIndex((e) => e.id === element.id);
         if (index !== -1) {
-          elements.value[index].properties.x += event.dx;
-          elements.value[index].properties.y += event.dy;
+          elements[index].properties.x += event.dx;
+          elements[index].properties.y += event.dy;
           updateProperties();
         }
       },
@@ -505,10 +542,10 @@ const setupInteract = (element) => {
         if (element.properties.lock) return;
         const index = elements.value.findIndex((e) => e.id === element.id);
         if (index !== -1) {
-          elements.value[index].properties.width = event.rect.width;
-          elements.value[index].properties.height = event.rect.height;
-          elements.value[index].properties.x += event.deltaRect.left;
-          elements.value[index].properties.y += event.deltaRect.top;
+          elements[index].properties.width = event.rect.width;
+          elements[index].properties.height = event.rect.height;
+          elements[index].properties.x += event.deltaRect.left;
+          elements[index].properties.y += event.deltaRect.top;
           updateProperties();
         }
       },
@@ -577,7 +614,7 @@ const updateProperties = (newProperties = null) => {
     }
   }
 
-  if (element.type === "h1") {
+  if (element.type === "text") {
     currentProperties.value = {
       x: element.properties.x || 40.1,
       y: element.properties.y || 130,
@@ -596,11 +633,7 @@ const updateProperties = (newProperties = null) => {
       verticalAlign: element.properties.verticalAlign || "top",
       textTransform: element.properties.textTransform || "none",
     };
-  } else if (
-    element.type === "image" ||
-    element.type === "eventlogo" ||
-    element.type === "useravatar"
-  ) {
+  } else if (element.type === "img") {
     currentProperties.value = {
       x: element.properties.x || 148.5,
       y: element.properties.y || 284,
@@ -654,8 +687,10 @@ const savePosition = () => {
   const index = elements.value.findIndex((e) => e.id === selectedElement.value);
   if (index === -1) return;
 
+  // console.log("Saving position for element:", elements.value[index].id);
+
   const element = elements.value[index];
-  if (element.type === "text") {
+  if (element.type === "h1") {
     element.properties = {
       ...element.properties,
       x: currentProperties.value.x,
@@ -729,7 +764,7 @@ const saveDesign = () => {
 };
 
 const loadDesign = (data) => {
-  elements.value = data.elements;
+  elements = data.elements;
   layers.value = data.layers;
   canvasSize.value = data.canvasSize;
   nextTick(() => elements.value.forEach(setupInteract));
@@ -777,7 +812,7 @@ const toggleLayerVisibility = (index) => {
     (e) => e.id === layers.value[index].id
   );
   if (elementIndex !== -1) {
-    elements.value[elementIndex].properties.lock = !layers.value[index].visible;
+    elements[elementIndex].properties.lock = !layers.value[index].visible;
     updateProperties();
   }
 };

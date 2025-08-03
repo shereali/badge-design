@@ -329,13 +329,20 @@ export default defineNuxtConfig({
   nitro: {
     preset: "node-server",
     prerender: {
-      crawlLinks: true,
+      crawlLinks: false,
       failOnError: false,
     },
   },
 
+  runtimeConfig: {
+    public: {
+      // apiBase: process.env.API_BASE_URL || "https://api.dressnio.com/api",
+      apiBase: process.env.API_BASE_URL || "http://localhost:8000/api",
+    },
+  },
+
   extends: ["./modules/designbadge"],
-  modules: ["@nuxtjs/tailwindcss", "@nuxt/icon", '@vueuse/nuxt'],
+  modules: ["@nuxtjs/tailwindcss", "@nuxt/icon", "@vueuse/nuxt"],
 
   build: {
     transpile: ["qrcode"],
