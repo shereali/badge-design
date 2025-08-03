@@ -1,5 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  debug: true,
+  ssr: true,
   compatibilityDate: "2025-05-15",
   devtools: { enabled: true },
 
@@ -331,6 +333,11 @@ export default defineNuxtConfig({
     prerender: {
       crawlLinks: false,
       failOnError: false,
+    },
+    esbuild: {
+      options: {
+        target: "esnext",
+      },
     },
   },
 
