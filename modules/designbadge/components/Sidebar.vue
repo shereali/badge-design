@@ -66,7 +66,7 @@
           <div
             v-for="item in group.items"
             :key="item.type"
-            draggable="true"
+            :draggable="item.type !== 'qr_code' ? true : false"
             @dragstart="(e) => startSidebarDrag(e, item)"
             @dragend="(e) => emitDragEnd(e, item)"
             class="draggable-item flex items-center p-2 bg-white rounded cursor-move hover:bg-gray-50"

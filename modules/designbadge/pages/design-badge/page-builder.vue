@@ -119,6 +119,7 @@
     />
   </div>
   <BadgeOptionsModal />
+  <qr-code-modal />
 </template>
 
 <script setup>
