@@ -73,6 +73,7 @@
         </p>
       </div>
       <template v-else>
+        <!--  <h3 class="font-bold">{{ selectedElementType }} Properties</h3> -->
         <div class="space-y-4">
           <!-- Geometry Section -->
           <div class="bg-white p-3">
@@ -82,30 +83,34 @@
                 name="solar:align-left-broken"
                 class="text-2xl p-2 m-1 hover:text-blue-600 cursor-pointer"
                 :class="{
-                  'text-blue-700': store.currentProperties.textAlign === 'left',
+                  'text-blue-700':
+                    store.currentProperties.horizontalAlign === 'left',
                 }"
                 aria-hidden="true"
               />
+
               <Icon
                 @click="store.alignHorizontal('center')"
                 name="streamline-ultimate:align-center"
                 class="text-2xl p-2 m-1 hover:text-blue-600 cursor-pointer"
                 :class="{
                   'text-blue-700':
-                    store.currentProperties.textAlign === 'center',
+                    store.currentProperties.horizontalAlign === 'center',
                 }"
                 aria-hidden="true"
               />
+
               <Icon
                 @click="store.alignHorizontal('right')"
                 name="solar:align-right-broken"
                 class="text-2xl p-2 m-1 hover:text-blue-600 cursor-pointer"
                 :class="{
                   'text-blue-700':
-                    store.currentProperties.textAlign === 'right',
+                    store.currentProperties.horizontalAlign === 'right',
                 }"
                 aria-hidden="true"
               />
+
               <Icon
                 @click="store.alignVertical('top')"
                 name="mdi:format-align-top"
@@ -116,6 +121,7 @@
                 }"
                 aria-hidden="true"
               />
+
               <Icon
                 @click="store.alignVertical('middle')"
                 name="mdi:format-align-middle"
@@ -126,6 +132,7 @@
                 }"
                 aria-hidden="true"
               />
+
               <Icon
                 @click="store.alignVertical('bottom')"
                 name="mdi:format-align-bottom"
@@ -146,11 +153,14 @@
               <span class="font-semibold">Geometry</span>
             </div>
             <div class="grid grid-cols-2 gap-4 mt-1">
+              <!-- Row 1: X and Y -->
+
               <div class="flex items-center border border-gray-300 rounded-md">
                 <span class="px-3 py-2 bg-gray-300 text-gray-700">X</span>
                 <input
                   type="number"
                   v-model.number="store.currentProperties.x"
+                  placeholder="Username"
                   class="w-full p-2 focus:outline-none"
                   @input="store.updateProperties(store.currentProperties)"
                 />
@@ -160,15 +170,18 @@
                 <input
                   type="number"
                   v-model.number="store.currentProperties.y"
+                  placeholder="Username"
                   class="w-full p-2 focus:outline-none"
                   @input="store.updateProperties(store.currentProperties)"
                 />
               </div>
+
               <div class="flex items-center border border-gray-300 rounded-md">
                 <span class="px-3 py-2 bg-gray-300 text-gray-700">W</span>
                 <input
                   type="number"
                   v-model.number="store.currentProperties.size.width"
+                  placeholder="Username"
                   class="w-full p-2 focus:outline-none"
                   @input="store.updateProperties(store.currentProperties)"
                 />
@@ -178,17 +191,20 @@
                 <input
                   type="number"
                   v-model.number="store.currentProperties.size.height"
+                  placeholder="Username"
                   class="w-full p-2 focus:outline-none"
                   @input="store.updateProperties(store.currentProperties)"
                 />
               </div>
+
               <div class="flex items-center border border-gray-300 rounded-md">
                 <span class="px-3 py-2 bg-gray-300 text-gray-700"
                   ><Icon name="ph:angle-bold" />
                 </span>
                 <input
                   type="number"
-                  v-model.number="store.currentProperties.rotation"
+                  v-model.number="store.currentProperties.r"
+                  placeholder="Username"
                   class="w-full p-2 focus:outline-none"
                   @input="store.updateProperties(store.currentProperties)"
                 />
@@ -197,9 +213,7 @@
           </div>
 
           <!-- Text Specific Properties -->
-          <template
-            v-if="selectedElementType === 'h1' || selectedElementType === 'p'"
-          >
+          <template v-if="selectedElementType === 'h1'">
             <!-- Font Section -->
             <div class="bg-white p-2 rounded shadow">
               <div class="flex items-center mb-2">
@@ -215,7 +229,7 @@
                 <select
                   v-model="store.currentProperties.font"
                   class="border p-1 w-full rounded"
-                  @change="store.updateProperties(store.currentProperties)"
+                  @change="store.applyTextStyle(store.currentProperties)"
                 >
                   <option>Roboto</option>
                   <option>Arial</option>
@@ -225,11 +239,11 @@
               <label class="block mt-2">
                 Font Size:
                 <select
-                  v-model="store.currentProperties.fontSize"
+                  v-model.number="store.currentProperties.fontSize"
                   class="border p-1 w-full rounded"
-                  @change="store.updateProperties(store.currentProperties)"
+                  @change="store.applyTextStyle(store.currentProperties)"
                 >
-                  <option>Auto</option>
+                  <option>Auto (10-50)</option>
                   <option
                     v-for="size in [10, 12, 14, 16, 18, 20, 24, 36]"
                     :key="size"
@@ -251,16 +265,25 @@
                 <span class="font-semibold">Fill</span>
               </div>
               <div class="flex items-center mb-2">
-                <input
-                  type="color"
-                  v-model="store.currentProperties.fillColor"
-                  class="border p-1 rounded"
-                  @input="updateFillColor"
-                />
+                <div class="fill-color">
+                  <color-picker
+                    v-model="store.currentProperties.fillColor"
+                    v-slot="{ color, show }"
+                    @change="console.log('New color:', $event)"
+                    @close="console.log('ColorPicker is closed')"
+                  >
+                    {{ color }}
+                    <button @click="show" class="bg-customBlue">OPEN</button>
+                  </color-picker>
+                </div>
                 <div class="transparent ml-2" @click="store.makeTransparent">
                   <span>☐</span>
                   <span>Transparent</span>
                 </div>
+              </div>
+              <!-- Color Picker Popup -->
+              <div class="color-popup" v-if="showPopup">
+                <div class="color-picker"></div>
               </div>
             </div>
 
@@ -380,13 +403,13 @@
             <div class="bg-white p-2 rounded shadow">
               <div class="flex items-center mb-2">
                 <Icon
-                  name="mdi:format-letter-case-upper"
+                  name="mdi:format-text"
                   class="w-5 h-5 mr-2 text-gray-600"
                   aria-hidden="true"
                 />
                 <span class="font-semibold">Text Transform</span>
               </div>
-              <div class="flex space-x-2">
+              <div class="grid grid-cols-3 gap-2">
                 <button
                   @click="store.applyTextTransform('uppercase')"
                   :class="{
@@ -396,7 +419,21 @@
                   class="p-2 bg-gray-200 rounded hover:bg-gray-300"
                 >
                   <Icon
-                    name="mdi:format-letter-case-upper"
+                    name="mdi:format-letter-uppercase"
+                    class="w-5 h-5"
+                    aria-hidden="true"
+                  />
+                </button>
+                <button
+                  @click="store.applyTextTransform('lowercase')"
+                  :class="{
+                    'bg-blue-500 text-white':
+                      store.currentProperties.textTransform === 'lowercase',
+                  }"
+                  class="p-2 bg-gray-200 rounded hover:bg-gray-300"
+                >
+                  <Icon
+                    name="mdi:format-letter-lowercase"
                     class="w-5 h-5"
                     aria-hidden="true"
                   />
@@ -419,6 +456,7 @@
             </div>
 
             <!-- Text Style Section -->
+            <!-- Text Style Section -->
             <div class="bg-white p-2 rounded shadow">
               <div class="flex items-center mb-2">
                 <Icon
@@ -433,7 +471,7 @@
                   @click="store.toggleTextStyle('bold')"
                   :class="{
                     'bg-blue-500 text-white':
-                      store.currentProperties.fontWeight === 'bold',
+                      store.currentProperties.fontStyle === 'Bold',
                   }"
                   class="p-2 bg-gray-200 rounded hover:bg-gray-300"
                 >
@@ -447,7 +485,7 @@
                   @click="store.toggleTextStyle('italic')"
                   :class="{
                     'bg-blue-500 text-white':
-                      store.currentProperties.fontStyle === 'italic',
+                      store.currentProperties.fontStyle === 'Italic',
                   }"
                   class="p-2 bg-gray-200 rounded hover:bg-gray-300"
                 >
@@ -477,29 +515,29 @@
                 <input
                   v-model="store.currentProperties.text"
                   class="border p-1 w-full rounded"
-                  @input="store.updateProperties(store.currentProperties)"
+                  @input="store.applyTextStyle(store.currentProperties)"
                 />
               </label>
               <div class="flex space-x-2 mt-2">
                 <input
                   type="radio"
-                  value="both sides"
-                  v-model="store.currentProperties.displayOption"
-                  @change="store.updateProperties(store.currentProperties)"
+                  :value="'both sides'"
+                  :checked="displayOption === 'both sides'"
+                  @change="store.applyDisplayOption('both sides')"
                 />
                 Both sides
                 <input
                   type="radio"
-                  value="left side only"
-                  v-model="store.currentProperties.displayOption"
-                  @change="store.updateProperties(store.currentProperties)"
+                  :value="'left side only'"
+                  :checked="displayOption === 'left side only'"
+                  @change="store.applyDisplayOption('left side only')"
                 />
                 Left side only
                 <input
                   type="radio"
-                  value="right side only"
-                  v-model="store.currentProperties.displayOption"
-                  @change="store.updateProperties(store.currentProperties)"
+                  :value="'right side only'"
+                  :checked="displayOption === 'right side only'"
+                  @change="store.applyDisplayOption('right side only')"
                 />
                 Right side only
               </div>
@@ -593,16 +631,16 @@
     <div v-if="activeTab === 'layers'" class="space-y-2">
       <ul>
         <li
-          v-for="layer in layers"
-          :key="layer.id"
-          @click="store.selectLayer(layer.id)"
+          v-for="(layer, index) in layers"
+          :key="index"
+          @click="$emit('select-layer', index)"
           class="p-2 rounded cursor-pointer hover:bg-gray-200"
-          :class="{ 'bg-blue-200': selectedLayer === layer.id }"
+          :class="{ 'bg-blue-200': selectedLayer === index }"
         >
           <div class="flex items-center justify-between">
             <span>{{ layer.name }} ({{ layer.type }})</span>
             <button
-              @click.stop="store.toggleLayerVisibility(layer.id)"
+              @click.stop="store.toggleLayerVisibility(index)"
               class="text-blue-500"
             >
               <Icon
@@ -630,7 +668,23 @@ defineProps({
   displayOption: String,
 });
 
-const emit = defineEmits(["drag-start", "drag-end"]);
+const emit = defineEmits([
+  "drag-start",
+  "drag-end",
+  "align-horizontal",
+  "align-vertical",
+  "update-properties",
+  "apply-text-style",
+  "make-transparent",
+  "apply-color",
+  "apply-text-align",
+  "apply-vertical-align",
+  "apply-text-transform",
+  "toggle-text-style",
+  "apply-display-option",
+  "select-layer",
+  "toggle-layer-visibility",
+]);
 
 const store = useCanvasStore();
 
@@ -639,14 +693,16 @@ function startSidebarDrag(event, item) {
 }
 
 function emitDragEnd(event, item) {
+  // console.log(`Drag ended for ${item}`);
+
   const x = event.clientX;
   const y = event.clientY;
-  emit("drag-end", { item, x, y });
-}
 
-function updateFillColor() {
-  store.currentProperties.fillTransparency = false;
-  store.updateProperties(store.currentProperties);
+  emit("drag-end", {
+    item: item,
+    y,
+    x,
+  });
 }
 
 const activeTab = ref("design");
@@ -658,6 +714,10 @@ const openGroups = ref({
   static_field: false,
   punching_area: false,
 });
+const showPopup = ref(false);
+const selectedColor = ref("#000000");
+const hue = ref(0);
+const isPicking = ref(false);
 
 const designGroups = [
   {
@@ -680,7 +740,11 @@ const designGroups = [
         label: "Full Name",
         icon: "streamline-flex-color:copy-2-flat",
       },
-      { type: "p", label: "EMAIL", icon: "streamline-flex-color:copy-2-flat" },
+      {
+        type: "p",
+        label: "EMAIL",
+        icon: "streamline-flex-color:copy-2-flat",
+      },
       {
         type: "p",
         label: "COMPANY NAME",
@@ -691,7 +755,11 @@ const designGroups = [
         label: "DESIGNATION",
         icon: "streamline-flex-color:copy-2-flat",
       },
-      { type: "p", label: "ROLE", icon: "streamline-flex-color:copy-2-flat" },
+      {
+        type: "p",
+        label: "ROLE",
+        icon: "streamline-flex-color:copy-2-flat",
+      },
       {
         type: "p",
         label: "USER ID",
@@ -774,6 +842,7 @@ const toggleGroup = (groupType) => {
 </script>
 
 <style scoped>
+.fill-color,
 .transparent {
   display: flex;
   align-items: center;
@@ -784,7 +853,89 @@ const toggleGroup = (groupType) => {
   margin-right: 10px;
 }
 
+.fill-color span,
 .transparent span {
   margin-left: 5px;
+}
+
+.color-preview {
+  width: 20px;
+  height: 20px;
+  border: 1px solid #000;
+}
+
+.color-popup {
+  display: block;
+  background: #fff;
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin-top: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.color-picker {
+  display: flex;
+  gap: 10px;
+}
+
+.gradient {
+  width: 100px;
+  height: 100px;
+  position: relative;
+  cursor: crosshair;
+}
+
+.slider {
+  width: 20px;
+  height: 100px;
+  background: linear-gradient(
+    to top,
+    #ff0000,
+    #ffff00,
+    #00ff00,
+    #00ffff,
+    #0000ff,
+    #ff00ff,
+    #ff0000
+  );
+  cursor: ns-resize;
+}
+
+.color-popup input {
+  margin-top: 10px;
+  padding: 5px;
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.color-popup button {
+  margin-top: 10px;
+  padding: 5px 10px;
+  margin-right: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #f0f0f0;
+}
+
+.color-popup button:hover {
+  background: #e0e0e0;
+}
+
+button {
+  transition: background-color 0.2s;
+}
+
+button:hover {
+  background-color: #e0e0e0;
+}
+
+button:active {
+  background-color: #c0c0e0;
+}
+
+Icon {
+  display: inline-block;
+  vertical-align: middle;
 }
 </style>

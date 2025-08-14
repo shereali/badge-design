@@ -21,7 +21,39 @@ export default defineNuxtConfig({
   },
 
   extends: ["./modules/designbadge"],
-  modules: ["@nuxtjs/tailwindcss", "@nuxt/icon", "@vueuse/nuxt"],
+  modules: [
+    "@nuxtjs/tailwindcss",
+    "@nuxt/icon",
+    "@vueuse/nuxt",
+    "@pinia/nuxt", // required
+    "pinia-plugin-persistedstate/nuxt",
+    "nuxt-color-picker",
+  ],
+
+  tailwindcss: {
+    config: {
+      content: [
+        "./components/**/*.{vue,js,ts}",
+        "./layouts/**/*.vue",
+        "./pages/**/*.vue",
+        "./plugins/**/*.{js,ts}",
+        "./app.vue",
+      ],
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              light: "#a7f3d0",
+              DEFAULT: "#10b981", // You can use 'brand' directly
+              dark: "#065f46",
+            },
+            customBlue: "#1e40af",
+            customGray: "#e5e7eb",
+          },
+        },
+      },
+    },
+  },
 
   build: {
     transpile: ["qrcode"],
