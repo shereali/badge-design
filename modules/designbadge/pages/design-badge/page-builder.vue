@@ -67,8 +67,8 @@
           ref="dropzone"
           class="design-page bg-white"
           :style="{
-            width: '105mm',
-            height: '148mm',
+            width: `${pageStore.presetWidth}mm`,
+            height: `${pageStore.presetHeight}mm`,
             transform: `scale(${zoomScale})`,
             transformOrigin: 'center top',
           }"
@@ -118,6 +118,7 @@
       @close="store.showImageModal = false"
     />
   </div>
+  <BadgeOptionsModal />
 </template>
 
 <script setup>

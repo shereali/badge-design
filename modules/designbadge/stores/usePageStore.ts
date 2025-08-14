@@ -18,10 +18,10 @@ export interface PageState {
 // Define the store
 export const usePageStore = defineStore("page", {
   state: (): PageState => ({
-    pageWidth: 0, // default values
-    pageHeight: 0,
-    presetWidth: 0,
-    presetHeight: 0,
+    pageWidth: 105, // default values
+    pageHeight: 148,
+    presetWidth: 105,
+    presetHeight: 148,
     showModal: false,
     badgeOrientation: "portrait",
     badgeSize: "A4",

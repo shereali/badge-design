@@ -28,13 +28,16 @@
     <div v-if="activeTab === 'design'" class="space-y-1">
       <div class="p-2 flex">
         <Icon name="quill:paper" class="text-2xl text-blue-600" />
-        <span>A6(105.00mmX148.00mm) </span
+        <span
+          >{{ pageStore.badgeSize }}({{ pageStore.presetWidth.toFixed(2) }}mmX{{
+            pageStore.presetHeight.toFixed(2)
+          }}mm) </span
         ><a
           href="#"
           class="text-blue-600 font-semibold"
           @click="pageStore.toggleModal"
         >
-          Change</a
+          &nbsp;Change</a
         >
       </div>
       <div
@@ -726,7 +729,6 @@
         </li>
       </ul>
     </div>
-    <BadgeOptionsModal />
   </div>
 </template>
 
