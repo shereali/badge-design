@@ -106,7 +106,7 @@
               class="rotate-icon"
               @mousedown.stop.prevent="startRotate(index, $event)"
             >
-              🔄
+              <Icon name="line-md:rotate-270" class="text-blue-600" />
             </div>
 
             <!-- Resizing Handles -->
@@ -123,12 +123,15 @@
             v-if="box.type !== 'img'"
             :is="box.type"
             contenteditable
-            class="flex justify-center items-center outline-none cursor-move leading-tight text-center w-full h-full"
-            :class="verticalAlignClass(box)"
+            class="focus:border focus:outline-none focus:border-blue-500 cursor-move leading-tight w-full h-full flex"
+            :class="[verticalAlignClass(box), horizontalAlignClass(box)]"
             :style="textStyles(box)"
+            :ref="(el) => setTextElementRef(box.id, el)"
             @input="updateText(box, $event)"
-            >{{ box.text }}</component
+            @click="preserveCursorPosition($event)"
           >
+            {{ box.text }}
+          </component>
 
           <img
             v-else
@@ -144,6 +147,8 @@
 
 <script setup>
 import { useCanvasStore } from "@/stores/useCanvasStore";
+import { ref, computed, watch, nextTick } from "vue";
+
 const store = useCanvasStore();
 const props = defineProps({
   modelValue: Array,
@@ -166,14 +171,21 @@ const canvasHeight = ref(0);
 let resizeDir = "";
 let dragOffset = { x: 0, y: 0 };
 let selectedBoxIndex = -1;
+const textElements = ref({}); // Store refs to contenteditable elements
 
 onMounted(() => {
   const resizeObserver = new ResizeObserver(() => {
     canvasWidth.value = canvas.value?.offsetWidth;
-    canvasHeight.value = canvas.value.offsetHeight;
+    canvasHeight.value = canvas.value?.offsetHeight;
   });
   resizeObserver.observe(canvas.value);
 });
+
+function setTextElementRef(id, el) {
+  if (el) {
+    textElements.value[id] = el;
+  }
+}
 
 function handleCanvasClick() {
   store.boxes.forEach((b) => (b.isSelected = false));
@@ -188,6 +200,13 @@ function activateElement(index, event) {
   startDrag(index, event);
   store.selectedElement = store.boxes[index].id;
   store.updateProperties();
+  // Focus text element if it's a text type
+  if (["h1", "p"].includes(store.boxes[index].type)) {
+    nextTick(() => {
+      const el = textElements.value[store.boxes[index].id];
+      if (el) el.focus();
+    });
+  }
 }
 
 function startDrag(index, event) {
@@ -287,7 +306,7 @@ function startRotate(index, event) {
     const delta = (currentAngle - startAngle) * 12;
 
     box.properties.rotation = (initialRotation + delta + 360) % 360;
-    store.currentProperties.rotation = box.properties.rotation;
+    store.currentProperties.rotation = Math.floor(box.properties.rotation);
     store.updateProperties(store.currentProperties);
   }
 
@@ -308,7 +327,6 @@ function stopActions() {
 }
 
 function preserveCursorPosition(event) {
-  // Store the current cursor position
   const selection = window.getSelection();
   if (selection && selection.rangeCount > 0) {
     const range = selection.getRangeAt(0);
@@ -319,25 +337,39 @@ function preserveCursorPosition(event) {
   }
 }
 
-function handleKeydown(event) {
-  // Prevent default cursor jumping behavior
-  if (store.cursorPosition) {
-    event.preventDefault();
-    const selection = window.getSelection();
-    const range = document.createRange();
-    range.setStart(store.cursorPosition.node, store.cursorPosition.offset);
-    range.collapse(true);
-    selection.removeAllRanges();
-    selection.addRange(range);
-  }
-}
-
-// Update the updateText function to sync with the store
 function updateText(box, event) {
-  const newText = event.target.innerText;
-  store.updateElementText(box.id, newText); // Call store action to update text
-  store.currentProperties.text = newText; // Update current properties
+  const el = event.target;
+  const selection = window.getSelection();
+  let cursorOffset = 0;
+  let cursorNode = null;
+
+  // Preserve cursor position
+  if (selection && selection.rangeCount > 0) {
+    const range = selection.getRangeAt(0);
+    cursorNode = range.startContainer;
+    cursorOffset = range.startOffset;
+  }
+
+  // Update text in store
+  const newText = el.innerText;
+  store.updateElementText(box.id, newText);
+  store.currentProperties.text = newText;
   store.updateProperties(store.currentProperties);
+
+  // Restore cursor position
+  if (cursorNode && cursorOffset !== null) {
+    nextTick(() => {
+      const range = document.createRange();
+      try {
+        range.setStart(cursorNode, cursorOffset);
+        range.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      } catch (e) {
+        console.warn("Failed to restore cursor position:", e);
+      }
+    });
+  }
 }
 
 function handleImageError(event) {
@@ -367,16 +399,56 @@ function textStyles(box) {
     textDecoration: box.properties.textDecoration || "none",
     textTransform: box.properties.textTransform || "none",
     color: box.properties.color || "black",
-    textAlign: box.properties.textAlign || "center",
+    // textAlign: box.properties.textAlign || "center",
+    direction: box.properties.direction || "ltr", // Apply direction
   };
 }
 
+function horizontalAlignClass(box) {
+  console.log("box", box);
+
+  let align = "justify-center";
+  if (box.properties.horizontalAlign === "left") align = "justify-start";
+  if (box.properties.horizontalAlign === "center") align = "justify-center";
+  if (box.properties.horizontalAlign === "right") align = "justify-end";
+  return [align];
+}
+
 function verticalAlignClass(box) {
+  // console.log("box", box);
+
   let align = "items-center";
   if (box.properties.verticalAlign === "top") align = "items-start";
+  if (box.properties.verticalAlign === "middle") align = "items-center";
   if (box.properties.verticalAlign === "bottom") align = "items-end";
-  return ["flex", align];
+
+  return [align];
 }
+
+// Watch for layer selection to focus text elements
+watch(
+  () => store.selectedElement,
+  (newId) => {
+    if (newId) {
+      const box = store.boxes.find((b) => b.id === newId);
+      if (box && ["h1", "p"].includes(box.type)) {
+        nextTick(() => {
+          const el = textElements.value[newId];
+          if (el) {
+            el.focus();
+            // Set cursor to end of text
+            const range = document.createRange();
+            const selection = window.getSelection();
+            range.selectNodeContents(el);
+            range.collapse(false);
+            selection.removeAllRanges();
+            selection.addRange(range);
+          }
+        });
+      }
+    }
+  }
+);
 </script>
 
 <style scoped>
@@ -387,7 +459,6 @@ function verticalAlignClass(box) {
   border: 1px solid blue;
   position: absolute;
   z-index: 10;
-  direction: ltr;
 }
 
 .top-left {
@@ -443,5 +514,14 @@ function verticalAlignClass(box) {
   cursor: grab;
   font-size: 18px;
   user-select: none;
+}
+
+/* Ensure contenteditable respects alignment */
+[contenteditable] {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 </style>

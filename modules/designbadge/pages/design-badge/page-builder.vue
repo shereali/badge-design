@@ -1,20 +1,19 @@
-<!-- page-builder.vue (Main Page) -->
 <template>
   <div class="flex h-screen bg-gray-100 overflow-hidden">
     <!-- Design Area -->
     <div class="flex-1 flex flex-col items-center p-4">
       <!-- Top Controls -->
-      <div class="flex flex-col items-center w-full mb-4">
+      <div class="flex flex-col items-center w-full">
         <!-- Side Tabs -->
-        <div class="mb-4 max-w-xs w-full">
+        <div class="max-w-xs w-full">
           <div class="flex border border-gray-300 rounded-md overflow-hidden">
             <button
-              class="flex-1 px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400"
+              class="flex-1 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400"
               :class="{
                 'bg-blue-500 text-white': store.activeSide === 'front',
                 'bg-gray-200 text-gray-700 hover:bg-gray-300':
                   store.activeSide !== 'front',
-                'rounded-l-md': true,
+                'rounded-l-sm': true,
               }"
               @click="switchSideTab('front')"
               :disabled="isFlipping"
@@ -22,12 +21,12 @@
               Front Side
             </button>
             <button
-              class="flex-1 px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400"
+              class="flex-1 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400"
               :class="{
                 'bg-blue-500 text-white': store.activeSide === 'back',
                 'bg-gray-200 text-gray-700 hover:bg-gray-300':
                   store.activeSide !== 'back',
-                'rounded-r-md': true,
+                'rounded-r-sm': true,
               }"
               @click="switchSideTab('back')"
               :disabled="isFlipping"
@@ -68,8 +67,8 @@
           ref="dropzone"
           class="design-page bg-white"
           :style="{
-            width: '794px',
-            height: '1123px',
+            width: '105mm',
+            height: '148mm',
             transform: `scale(${zoomScale})`,
             transformOrigin: 'center top',
           }"
@@ -123,7 +122,9 @@
 
 <script setup>
 import { useCanvasStore } from "@/stores/useCanvasStore";
+import { usePageStore } from "@/stores/usePageStore";
 
+const pageStore = usePageStore();
 const store = useCanvasStore();
 const dropzone = ref(null);
 const zoomLevel = ref(100);
@@ -133,6 +134,8 @@ const zoomScale = computed(() => zoomLevel.value / 100);
 const selectedLayer = ref(null);
 const layers = ref([]);
 const displayOption = ref("both sides");
+//pageStore.saveBadgeConfig();
+console.log("show modal", pageStore.showModal);
 
 onMounted(() => {
   store.dropzone = dropzone.value;
@@ -185,6 +188,7 @@ watch(
       type: box.type,
       visible: box.visible ?? true,
     }));
+    selectedLayer.value = store.selectedElement;
   },
   { deep: true }
 );
@@ -222,8 +226,7 @@ watch(
   content: "";
   position: absolute;
   inset: 0;
-  background-image: 
-    /* Minor grid lines (light gray, every 20px) */ repeating-linear-gradient(
+  background-image: repeating-linear-gradient(
       to right,
       rgba(156, 163, 175, 0.2) 0px,
       rgba(156, 163, 175, 0.2) 1px,
@@ -237,14 +240,13 @@ watch(
       transparent 1px,
       transparent 20px
     ),
-    /* Major grid lines (darker gray, every 100px) */
-      repeating-linear-gradient(
-        to right,
-        rgba(100, 100, 100, 0.5) 0px,
-        rgba(100, 100, 100, 0.5) 1px,
-        transparent 1px,
-        transparent 100px
-      ),
+    repeating-linear-gradient(
+      to right,
+      rgba(100, 100, 100, 0.5) 0px,
+      rgba(100, 100, 100, 0.5) 1px,
+      transparent 1px,
+      transparent 100px
+    ),
     repeating-linear-gradient(
       to bottom,
       rgba(100, 100, 100, 0.5) 0px,

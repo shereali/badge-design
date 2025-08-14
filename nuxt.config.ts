@@ -24,10 +24,11 @@ export default defineNuxtConfig({
   modules: [
     "@nuxtjs/tailwindcss",
     "@nuxt/icon",
-    "@vueuse/nuxt",
-    "@pinia/nuxt", // required
+    "@vueuse/nuxt", // required
+    "@pinia/nuxt",
     "pinia-plugin-persistedstate/nuxt",
     "nuxt-color-picker",
+    "@nuxtjs/google-fonts",
   ],
 
   tailwindcss: {
@@ -53,6 +54,32 @@ export default defineNuxtConfig({
         },
       },
     },
+  },
+
+  googleFonts: {
+    families: {
+      Roboto: true,
+      "Open+Sans": true,
+      Lato: true,
+      Montserrat: true,
+      Oswald: true,
+      "Source+Sans+Pro": true,
+      Raleway: true,
+      Poppins: true,
+      "Noto+Sans": true,
+      Ubuntu: true,
+      Merriweather: true,
+      "PT+Sans": true,
+      "Roboto+Condensed": true,
+      "Playfair+Display": true,
+      Nunito: true,
+      Mukta: true,
+      Inconsolata: true,
+      Quicksand: true,
+      "Fira+Sans": true,
+      Assistant: true,
+    },
+    display: "swap",
   },
 
   build: {

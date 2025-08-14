@@ -23,6 +23,7 @@ interface ElementProperties {
   color: string;
   textAlign: string;
   verticalAlign: string;
+  horizontalAlign: string;
   textTransform: string;
   src: string;
   strokeColor: string;
@@ -91,9 +92,11 @@ export const useCanvasStore = defineStore("canvasStore", {
           fillTransparency: false,
           textDecoration: "none",
           color: "black",
-          textAlign: item.type === "h1" || item.type === "p" ? "center" : "", // Center text by default
+          textAlign: item.type === "h1" || item.type === "p" ? "center" : "",
           verticalAlign:
-            item.type === "h1" || item.type === "p" ? "middle" : "", // Middle align by default
+            item.type === "h1" || item.type === "p" ? "middle" : "",
+          horizontalAlign:
+            item.type === "h1" || item.type === "p" ? "center" : "",
           textTransform: "none",
           src: "",
           strokeColor: "",
@@ -104,16 +107,16 @@ export const useCanvasStore = defineStore("canvasStore", {
           y: position.top,
           text: item.label || "Sample Text",
           displayOption: "both sides",
-          direction: "ltr",
+          direction: "ltr", // Ensure default direction is LTR
         },
-        isSelected: true, // Select the new element by default
+        isSelected: true,
         isDragging: false,
         visible: true,
       };
 
       this.addElement(newElement);
-      this.selectedElement = newElement.id; // Set as selected
-      this.updateProperties(); // Update properties panel
+      this.selectedElement = newElement.id;
+      this.updateProperties();
     },
 
     addElement(element: CanvasElement) {
@@ -143,10 +146,11 @@ export const useCanvasStore = defineStore("canvasStore", {
             fillTransparency: false,
             textDecoration: "",
             color: "#000000",
-            textAlign: "center",
+            textAlign: "",
             verticalAlign: "",
+            horizontalAlign: "",
             textTransform: "",
-            src: dataUrl, // This is correct
+            src: dataUrl,
             strokeColor: "",
             strokeWidth: 0,
             associatedData: "",
@@ -155,8 +159,9 @@ export const useCanvasStore = defineStore("canvasStore", {
             y: this.pendingImagePosition.top,
             text: "",
             displayOption: "both sides",
+            direction: "ltr",
           },
-          isSelected: true, // Select the image by default
+          isSelected: true,
           isDragging: false,
           visible: true,
         };
@@ -167,8 +172,8 @@ export const useCanvasStore = defineStore("canvasStore", {
         }
         this.pendingImagePosition = null;
         this.pendingImageSide = null;
-        this.selectedElement = newElement.id; // Ensure the image is selected
-        this.updateProperties(); // Update properties panel
+        this.selectedElement = newElement.id;
+        this.updateProperties();
       }
     },
 
@@ -185,32 +190,33 @@ export const useCanvasStore = defineStore("canvasStore", {
         element.position.top = newProperties.y ?? element.position.top;
         element.properties = { ...element.properties, ...newProperties };
         element.text = newProperties.text ?? element.text;
-      } else {
-        this.currentProperties = {
-          x: element.position.left,
-          y: element.position.top,
-          size: { ...element.properties.size },
-          rotation: element.properties.rotation,
-          font: element.properties.font,
-          fontWeight: element.properties.fontWeight,
-          fontStyle: element.properties.fontStyle,
-          fontSize: element.properties.fontSize,
-          fillColor: element.properties.fillColor,
-          fillTransparency: element.properties.fillTransparency,
-          textDecoration: element.properties.textDecoration,
-          color: element.properties.color,
-          textAlign: element.properties.textAlign,
-          verticalAlign: element.properties.verticalAlign,
-          textTransform: element.properties.textTransform,
-          src: element.properties.src,
-          strokeColor: element.properties.strokeColor,
-          strokeWidth: element.properties.strokeWidth,
-          associatedData: element.properties.associatedData,
-          content: element.properties.content,
-          text: element.text,
-          displayOption: element.properties.displayOption,
-        };
       }
+      this.currentProperties = {
+        x: element.position.left,
+        y: element.position.top,
+        size: { ...element.properties.size },
+        rotation: element.properties.rotation,
+        font: element.properties.font,
+        fontWeight: element.properties.fontWeight,
+        fontStyle: element.properties.fontStyle,
+        fontSize: element.properties.fontSize,
+        fillColor: element.properties.fillColor,
+        fillTransparency: element.properties.fillTransparency,
+        textDecoration: element.properties.textDecoration,
+        color: element.properties.color,
+        textAlign: element.properties.textAlign,
+        verticalAlign: element.properties.verticalAlign,
+        horizontalAlign: element.properties.horizontalAlign,
+        textTransform: element.properties.textTransform,
+        src: element.properties.src,
+        strokeColor: element.properties.strokeColor,
+        strokeWidth: element.properties.strokeWidth,
+        associatedData: element.properties.associatedData,
+        content: element.properties.content,
+        text: element.text,
+        displayOption: element.properties.displayOption,
+        direction: element.properties.direction,
+      };
     },
 
     updateElementText(id: string | number, newText: string) {
@@ -232,16 +238,23 @@ export const useCanvasStore = defineStore("canvasStore", {
       switch (alignment) {
         case "left":
           element.position.left = 0;
+          element.properties.textAlign = "left";
+          element.properties.horizontalAlign = "left";
           break;
         case "center":
           element.position.left = (canvasRect.width - elementWidth) / 2;
+          element.properties.textAlign = "center";
+          element.properties.horizontalAlign = "center";
           break;
         case "right":
           element.position.left = canvasRect.width - elementWidth;
+          element.properties.textAlign = "right";
+          element.properties.horizontalAlign = "right";
           break;
       }
       this.currentProperties.x = element.position.left;
       this.currentProperties.textAlign = alignment;
+      this.currentProperties.horizontalAlign = alignment;
       this.updateProperties(this.currentProperties);
     },
 
@@ -254,35 +267,53 @@ export const useCanvasStore = defineStore("canvasStore", {
       switch (alignment) {
         case "top":
           element.position.top = 0;
+          element.properties.verticalAlign = "top"; // Ensure verticalAlign is updated
           break;
         case "middle":
           element.position.top = (canvasRect.height - elementHeight) / 2;
+          element.properties.verticalAlign = "middle";
           break;
         case "bottom":
           element.position.top = canvasRect.height - elementHeight;
+          element.properties.verticalAlign = "bottom";
           break;
       }
       this.currentProperties.y = element.position.top;
       this.currentProperties.verticalAlign = alignment;
       this.updateProperties(this.currentProperties);
     },
+
     makeTransparent() {
       this.currentProperties.fillTransparency = true;
-      this.currentProperties.fillColor = "";
+      this.currentProperties.fillColor = "transparent";
       this.updateProperties(this.currentProperties);
     },
+
     applyTextAlign(align: string) {
       this.currentProperties.textAlign = align;
+      this.currentProperties.horizontalAlign = align;
+      const element = this.boxes.find((e) => e.id === this.selectedElement);
+      if (element) {
+        element.properties.textAlign = align;
+        element.properties.horizontalAlign = align;
+      }
       this.updateProperties(this.currentProperties);
     },
+
     applyVerticalAlign(align: string) {
       this.currentProperties.verticalAlign = align;
+      const element = this.boxes.find((e) => e.id === this.selectedElement);
+      if (element) {
+        element.properties.verticalAlign = align; // Ensure element's verticalAlign is updated
+      }
       this.updateProperties(this.currentProperties);
     },
+
     applyTextTransform(transform: string) {
       this.currentProperties.textTransform = transform;
       this.updateProperties(this.currentProperties);
     },
+
     toggleTextStyle(style: "bold" | "italic" | "underline") {
       if (style === "bold") {
         this.currentProperties.fontWeight =
@@ -298,15 +329,26 @@ export const useCanvasStore = defineStore("canvasStore", {
       }
       this.updateProperties(this.currentProperties);
     },
+
     toggleLayerVisibility(id: string | number) {
       const boxes =
         this.activeSide === "front" ? this.frontBoxes : this.backBoxes;
       const el = boxes.find((e) => e.id === id);
       if (el) el.visible = !el.visible;
     },
+
     selectLayer(id: string | number) {
       this.selectedElement = id;
       this.updateProperties();
+    },
+
+    setTextDirection(id: string | number, direction: "ltr" | "rtl") {
+      const element = this.boxes.find((e) => e.id === id);
+      if (element) {
+        element.properties.direction = direction;
+        this.currentProperties.direction = direction;
+        this.updateProperties(this.currentProperties);
+      }
     },
   },
   persist: true,
