@@ -3,7 +3,7 @@
     <Navbar />
 
     <!-- Full width content without max-w and centered padding -->
-    <main class="flex-1 w-full py-4">
+    <main class="flex-1 w-full">
       <NuxtPage />
     </main>
   </div>

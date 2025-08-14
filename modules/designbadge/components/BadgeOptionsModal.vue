@@ -1,7 +1,7 @@
 <template>
   <transition name="flip">
     <div
-      v-if="show"
+      v-if="pageStore.showModal"
       class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
     >
       <div class="bg-white rounded-xl shadow-lg p-6 w-full max-w-4xl">
@@ -9,7 +9,7 @@
         <div class="flex justify-between items-center border-b pb-2">
           <h3 class="text-lg font-semibold text-gray-900">Badge Options</h3>
           <button
-            @click="emit('close')"
+            @click="pageStore.toggleModal"
             class="text-gray-500 hover:text-gray-700"
           >
             <span class="text-xl">×</span>
@@ -30,7 +30,7 @@
                 <div class="flex items-center gap-6">
                   <label class="flex items-center">
                     <input
-                      v-model="localBadgeSizePreset"
+                      v-model="pageStore.badgeSizePreset"
                       type="radio"
                       value="preset"
                       class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-600"
@@ -39,7 +39,7 @@
                   </label>
                   <label class="flex items-center">
                     <input
-                      v-model="localBadgeSizePreset"
+                      v-model="pageStore.badgeSizePreset"
                       type="radio"
                       value="custom"
                       class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-600"
@@ -50,8 +50,8 @@
 
                 <!-- Preset Options -->
                 <select
-                  v-if="localBadgeSizePreset === 'preset'"
-                  v-model="localBadgeSize"
+                  v-if="pageStore.badgeSizePreset === 'preset'"
+                  v-model="pageStore.badgeSize"
                   class="mt-2 block w-full border border-gray-300 rounded-md p-2 focus:ring-indigo-600 focus:border-indigo-600"
                 >
                   <option value="A4">A4 (210×297mm)</option>
@@ -61,7 +61,7 @@
 
                 <!-- Custom Inputs -->
                 <div
-                  v-if="localBadgeSizePreset === 'custom'"
+                  v-if="pageStore.badgeSizePreset === 'custom'"
                   class="mt-2 space-y-2"
                 >
                   <div>
@@ -69,7 +69,7 @@
                       >Width (mm)</label
                     >
                     <input
-                      v-model.number="localCustomWidth"
+                      v-model.number="pageStore.customWidth"
                       type="number"
                       min="50"
                       max="300"
@@ -81,7 +81,7 @@
                       >Height (mm)</label
                     >
                     <input
-                      v-model.number="localCustomHeight"
+                      v-model.number="pageStore.customHeight"
                       type="number"
                       min="50"
                       max="300"
@@ -93,14 +93,14 @@
             </div>
 
             <!-- Orientation Inline -->
-            <div v-if="localBadgeSizePreset === 'preset'" class="mb-4">
+            <div v-if="pageStore.badgeSizePreset === 'preset'" class="mb-4">
               <label class="block text-sm font-medium text-gray-700"
                 >Orientation</label
               >
               <div class="flex items-center gap-6 mt-2">
                 <label class="flex items-center">
                   <input
-                    v-model="localBadgeOrientation"
+                    v-model="pageStore.badgeOrientation"
                     type="radio"
                     value="portrait"
                     class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-600"
@@ -109,7 +109,7 @@
                 </label>
                 <label class="flex items-center">
                   <input
-                    v-model="localBadgeOrientation"
+                    v-model="pageStore.badgeOrientation"
                     type="radio"
                     value="landscape"
                     class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-600"
@@ -124,20 +124,20 @@
           <div class="border-l pl-6 flex flex-col items-center">
             <h4 class="text-sm font-medium text-gray-700 mb-1">Preview</h4>
             <div class="text-sm text-gray-500 mb-2">
-              Badge Size - {{ localBadgeSize }}
+              Badge Size - {{ pageStore.badgeSize }}
             </div>
 
             <!-- Transition Wrapper -->
             <transition name="fade-scale" mode="out-in">
               <div
-                :key="localBadgeOrientation"
+                :key="pageStore.badgeOrientation"
                 class="relative transition-all duration-300"
               >
                 <!-- Badge Box -->
                 <div
                   class="rounded-md border border-gray-300 relative bg-white"
                   style="width: 150px; height: 210px"
-                  v-if="localBadgeOrientation === 'portrait'"
+                  v-if="pageStore.badgeOrientation === 'portrait'"
                 >
                   <div class="flex flex-col justify-between h-full p-4">
                     <!-- Top Icon -->
@@ -168,25 +168,25 @@
                     class="absolute -bottom-6 left-0 right-0 text-center text-xs text-gray-500"
                   >
                     {{
-                      localBadgeSizePreset === "custom"
-                        ? `${localCustomWidth}.0mm`
-                        : getWidthLabel()
+                      pageStore.badgeSizePreset === "custom"
+                        ? `${pageStore.customWidth}.0mm`
+                        : pageStore.getWidthLabel()
                     }}
                   </div>
                   <div
                     class="absolute -right-6 top-0 bottom-0 flex items-center text-xs text-gray-500 writing-mode-vertical-rl"
                   >
                     {{
-                      localBadgeSizePreset === "custom"
-                        ? `${localCustomHeight}.0mm`
-                        : getHeightLabel()
+                      pageStore.badgeSizePreset === "custom"
+                        ? `${pageStore.customHeight}.0mm`
+                        : pageStore.getHeightLabel()
                     }}
                   </div>
                 </div>
                 <div
                   class="rounded-md border border-gray-300 relative bg-white"
                   style="width: 210px; height: 150px"
-                  v-if="localBadgeOrientation === 'landscape'"
+                  v-if="pageStore.badgeOrientation === 'landscape'"
                 >
                   <div class="flex flex-col justify-between h-full p-4">
                     <!-- Top Icon -->
@@ -217,18 +217,18 @@
                     class="absolute -bottom-6 left-0 right-0 text-center text-xs text-gray-500"
                   >
                     {{
-                      localBadgeSizePreset === "custom"
-                        ? `${localCustomHeight}.0mm`
-                        : getHeightLabel()
+                      pageStore.badgeSizePreset === "custom"
+                        ? `${pageStore.customHeight}.0mm`
+                        : pageStore.getHeightLabel()
                     }}
                   </div>
                   <div
                     class="absolute -right-6 top-0 bottom-0 flex items-center text-xs text-gray-500 writing-mode-vertical-rl"
                   >
                     {{
-                      localBadgeSizePreset === "custom"
-                        ? `${localCustomWidth}.0mm`
-                        : getWidthLabel()
+                      pageStore.badgeSizePreset === "custom"
+                        ? `${pageStore.customWidth}.0mm`
+                        : pageStore.getWidthLabel()
                     }}
                   </div>
                 </div>
@@ -240,13 +240,13 @@
         <!-- Modal Footer -->
         <div class="mt-6 flex justify-end space-x-3 border-t pt-4">
           <button
-            @click="emit('close')"
+            @click="pageStore.toggleModal"
             class="px-4 py-2 text-gray-700 rounded-md hover:bg-gray-100"
           >
             Cancel
           </button>
           <button
-            @click="save"
+            @click="pageStore.saveBadgeConfig"
             class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
           >
             OK
@@ -258,101 +258,102 @@
 </template>
 
 <script setup>
-import { ref, watch } from "vue";
+import { usePageStore } from "@/stores/usePageStore";
+const pageStore = usePageStore();
 
-const props = defineProps({
-  show: Boolean,
-  badgeSizePreset: String,
-  badgeSize: String,
-  badgeOrientation: String,
-  customWidth: Number,
-  customHeight: Number,
-});
+// const props = defineProps({
+//   show: Boolean,
+//   badgeSizePreset: String,
+//   badgeSize: String,
+//   badgeOrientation: String,
+//   customWidth: Number,
+//   customHeight: Number,
+// });
 
-const emit = defineEmits([
-  "update:badgeSizePreset",
-  "update:badgeSize",
-  "update:badgeOrientation",
-  "update:customWidth",
-  "update:customHeight",
-  "close",
-  "save",
-]);
+// const emit = defineEmits([
+//   "update:badgeSizePreset",
+//   "update:badgeSize",
+//   "update:badgeOrientation",
+//   "update:customWidth",
+//   "update:customHeight",
+//   "close",
+//   "save",
+// ]);
 
-const localBadgeSizePreset = ref(props.badgeSizePreset);
-const localBadgeSize = ref(props.badgeSize);
-const localBadgeOrientation = ref(props.badgeOrientation);
-const localCustomWidth = ref(props.customWidth);
-const localCustomHeight = ref(props.customHeight);
+// const pageStore.badgeSizePreset = ref(props.badgeSizePreset);
+// const pageStore.badgeSize = ref(props.badgeSize);
+// const pageStore.badgeOrientation = ref(props.badgeOrientation);
+// const pageStore.customWidth = ref(props.customWidth);
+// const pageStore.customHeight = ref(props.customHeight);
 
-const getWidthLabel = () => {
-  if (localBadgeSizePreset.value === "preset") {
-    switch (localBadgeSize.value) {
-      case "A7":
-        return localBadgeOrientation.value === "landscape"
-          ? "105.0mm"
-          : "74.0mm";
-      case "A6":
-        return localBadgeOrientation.value === "landscape"
-          ? "148.0mm"
-          : "105.0mm";
-      case "A4":
-      default:
-        return localBadgeOrientation.value === "landscape"
-          ? "297.0mm"
-          : "210.0mm";
-    }
-  }
-  return "0.0mm"; // Default case for custom
-};
+// const getWidthLabel = () => {
+//   if (pageStore.badgeSizePreset === "preset") {
+//     switch (pageStore.badgeSize) {
+//       case "A7":
+//         return pageStore.badgeOrientation === "landscape"
+//           ? "105.0mm"
+//           : "74.0mm";
+//       case "A6":
+//         return pageStore.badgeOrientation === "landscape"
+//           ? "148.0mm"
+//           : "105.0mm";
+//       case "A4":
+//       default:
+//         return pageStore.badgeOrientation === "landscape"
+//           ? "297.0mm"
+//           : "210.0mm";
+//     }
+//   }
+//   return "0.0mm"; // Default case for custom
+// };
 
-const getHeightLabel = () => {
-  if (localBadgeSizePreset.value === "preset") {
-    switch (localBadgeSize.value) {
-      case "A7":
-        return localBadgeOrientation.value === "landscape"
-          ? "74.0mm"
-          : "105.0mm";
-      case "A6":
-        return localBadgeOrientation.value === "landscape"
-          ? "105.0mm"
-          : "148.0mm";
-      case "A4":
-      default:
-        return localBadgeOrientation.value === "landscape"
-          ? "210.0mm"
-          : "297.0mm";
-    }
-  }
-  return "0.0mm"; // Default case for custom
-};
+// const getHeightLabel = () => {
+//   if (pageStore.badgeSizePreset === "preset") {
+//     switch (pageStore.badgeSize) {
+//       case "A7":
+//         return pageStore.badgeOrientation === "landscape"
+//           ? "74.0mm"
+//           : "105.0mm";
+//       case "A6":
+//         return pageStore.badgeOrientation === "landscape"
+//           ? "105.0mm"
+//           : "148.0mm";
+//       case "A4":
+//       default:
+//         return pageStore.badgeOrientation === "landscape"
+//           ? "210.0mm"
+//           : "297.0mm";
+//     }
+//   }
+//   return "0.0mm"; // Default case for custom
+// };
 
-watch(
-  () => props.badgeSizePreset,
-  (val) => (localBadgeSizePreset.value = val)
-);
-watch(
-  () => props.badgeSize,
-  (val) => (localBadgeSize.value = val)
-);
-watch(
-  () => props.badgeOrientation,
-  (val) => (localBadgeOrientation.value = val)
-);
-watch(
-  () => props.customWidth,
-  (val) => (localCustomWidth.value = val)
-);
-watch(
-  () => props.customHeight,
-  (val) => (localCustomHeight.value = val)
-);
+// watch(
+//   () => props.badgeSizePreset,
+//   (val) => (pageStore.badgeSizePreset = val)
+// );
+// watch(
+//   () => props.badgeSize,
+//   (val) => (pageStore.badgeSize = val)
+// );
+// watch(
+//   () => props.badgeOrientation,
+//   (val) => (pageStore.badgeOrientation = val)
+// );
+// watch(
+//   () => props.customWidth,
+//   (val) => (pageStore.customWidth.value = val)
+// );
+// watch(
+//   () => props.customHeight,
+//   (val) => (pageStore.customHeight.value = val)
+// );
 
-watch(localBadgeSizePreset, (val) => emit("update:badgeSizePreset", val));
-watch(localBadgeSize, (val) => emit("update:badgeSize", val));
-watch(localBadgeOrientation, (val) => emit("update:badgeOrientation", val));
-watch(localCustomWidth, (val) => emit("update:customWidth", val));
-watch(localCustomHeight, (val) => emit("update:customHeight", val));
+// watch(pageStore.badgeSizePreset, (val) => emit("update:badgeSizePreset", val));
+// watch(pageStore.badgeSize, (val) => emit("update:badgeSize", val));
+// watch(pageStore.badgeOrientation, (val) => emit("update:badgeOrientation", val));
+// watch(pageStore.customWidth, (val) => emit("update:customWidth", val));
+// watch(pageStore.customHeight, (val) => emit("update:customHeight", val));
 
 const save = () => {
   emit("save");

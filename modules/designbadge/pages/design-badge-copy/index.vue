@@ -83,7 +83,7 @@
           <!-- Badge Preview -->
           <div
             class="w-32 h-48 border border-gray-300 rounded-md bg-white flex flex-col items-center justify-between p-4 relative"
-            :class="{ 'w-48 h-32': pageStore.badgeOrientation === 'landscape' }"
+            :class="{ 'w-48 h-32': badgeOrientation === 'landscape' }"
           >
             <!-- Badge Header (e.g., Event Name or Type) -->
             <div class="text-center">
@@ -153,7 +153,6 @@
           </div>
         </div>
       </div>
-      <!-- 
       <p>
         Here is the content for <strong>{{ activeRightItem }}</strong
         >.
@@ -164,13 +163,11 @@
       >
         Close Content Panel
       </button>
-      -->
     </section>
 
     <!-- Badge Options Modal -->
-    <BadgeOptionsModal />
-    <!-- 
-    :show="pageStore.showModal"
+    <BadgeOptionsModal
+      :show="showModal"
       :badge-size-preset="badgeSizePreset"
       :badge-size="badgeSize"
       :badge-orientation="badgeOrientation"
@@ -183,14 +180,12 @@
       @update:custom-height="customHeight = $event"
       @close="closeModal"
       @save="saveBadgeConfig"
-      -->
+    />
   </div>
 </template>
 
 <script setup>
-import { usePageStore } from "@/stores/usePageStore";
-
-const pageStore = usePageStore();
+import { ref, watch } from "vue";
 
 const menuItems = [
   { name: "Dashboard", icon: "mdi:view-dashboard-outline" },
@@ -220,32 +215,32 @@ const dropdownItems = ref([
 ]);
 
 // Reactive state for modal
-
-// const badgeSizePreset = ref("preset");
-// const badgeSize = ref("A6");
-// const badgeOrientation = ref("portrait");
-// const customWidth = ref(100);
-// const customHeight = ref(150);
+const showModal = ref(true);
+const badgeSizePreset = ref("preset");
+const badgeSize = ref("A6");
+const badgeOrientation = ref("portrait");
+const customWidth = ref(100);
+const customHeight = ref(150);
 
 // Update width and height based on selected preset
-// watch([badgeSize, badgeSizePreset], () => {
-//   if (badgeSizePreset.value === "preset") {
-//     switch (badgeSize.value) {
-//       case "A4":
-//         customWidth.value = 210;
-//         customHeight.value = 297;
-//         break;
-//       case "A6":
-//         customWidth.value = 105;
-//         customHeight.value = 148;
-//         break;
-//       case "A7":
-//         customWidth.value = 74;
-//         customHeight.value = 105;
-//         break;
-//     }
-//   }
-// });
+watch([badgeSize, badgeSizePreset], () => {
+  if (badgeSizePreset.value === "preset") {
+    switch (badgeSize.value) {
+      case "A4":
+        customWidth.value = 210;
+        customHeight.value = 297;
+        break;
+      case "A6":
+        customWidth.value = 105;
+        customHeight.value = 148;
+        break;
+      case "A7":
+        customWidth.value = 74;
+        customHeight.value = 105;
+        break;
+    }
+  }
+});
 
 // Methods
 const toggleDropdown = () => {
@@ -256,7 +251,7 @@ const onSelect = (item) => {
   badgeType.value = item;
   accessLevel.value = getAccessLevel(item);
   dropdownOpen.value = false;
-  pageStore.showModal = true;
+  showModal.value = true;
 };
 
 const getAccessLevel = (item) => {
@@ -271,6 +266,23 @@ const getAccessLevel = (item) => {
     "Press Credential": "Media",
   };
   return accessLevels[item] || "General";
+};
+
+const closeModal = () => {
+  showModal.value = false;
+  badgeSizePreset.value = "preset";
+  badgeSize.value = "A6";
+  customWidth.value = 105;
+  customHeight.value = 148;
+  badgeOrientation.value = "portrait";
+};
+
+const saveBadgeConfig = () => {
+  if (badgeSizePreset.value === "preset") {
+    customWidth.value = 105;
+    customHeight.value = 148;
+  }
+  showModal.value = false;
 };
 
 // Right sidebar menu items

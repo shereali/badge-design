@@ -5,168 +5,156 @@
       class="absolute w-full h-full bg-white select-none"
       @mousedown="handleCanvasClick"
     >
-      <!-- Add Elements -->
-      <!-- <div class="absolute top-4 left-4 z-10 space-x-2">
-        <button
-          v-for="tag in ['h1', 'h2', 'h3', 'p', 'a', 'img']"
-          :key="tag"
-          class="px-2 py-1 bg-blue-600 text-white rounded"
-          @click="createElement(tag)"
-        >
-          ➕ {{ tag }}
-        </button>
-      </div> -->
-
       <!-- Vertical & Horizontal Guide Lines -->
       <template v-if="selectedBox && selectedBox.isDragging">
         <div
           class="absolute top-0 bottom-0 w-px bg-blue-500 z-0"
           :style="{
-            left: selectedBox.position.left + selectedBox.size.width / 2 + 'px',
+            left:
+              selectedBox.position.left +
+              selectedBox.properties.size.width / 2 +
+              'px',
           }"
         ></div>
         <div
           class="absolute left-0 right-0 h-px bg-blue-500 z-0"
           :style="{
-            top: selectedBox.position.top + selectedBox.size.height / 2 + 'px',
+            top:
+              selectedBox.position.top +
+              selectedBox.properties.size.height / 2 +
+              'px',
           }"
         ></div>
       </template>
 
       <!-- Draggable Elements -->
-      <div
-        v-for="(box, index) in boxes"
-        :key="box.id"
-        class="absolute border group"
-        :class="box.isSelected ? 'border-blue-500' : 'border-transparent'"
-        :style="{
-          top: box.position.top + 'px',
-          left: box.position.left + 'px',
-          width: box.size.width + 'px',
-          height: box.size.height + 'px',
-          transform: `rotate(${box.rotation}deg)`,
-          transformOrigin: 'center center',
-        }"
-        @mousedown.stop="activateElement(index, $event)"
-      >
-        <!-- Label (Dynamic) -->
+      <template v-for="(box, index) in store.boxes" :key="box.id">
         <div
-          v-if="box.isSelected && box.label"
-          class="absolute -top-5 left-0 px-1 text-xs text-white bg-blue-600"
-        >
-          {{ box.label }}
-        </div>
-
-        <!-- Distance (Only on Drag) -->
-        <template v-if="box.isDragging">
-          <!-- Y top -->
-          <div
-            class="absolute left-1/2 -top-10 -translate-x-1/2 text-xs text-red-500"
-          >
-            Y: {{ Math.round(box.position.top) }}
-          </div>
-          <!-- X left -->
-          <div
-            class="absolute -left-6 top-1/2 -translate-y-1/2 text-xs text-red-500"
-          >
-            {{ Math.round(box.position.left + box.size.width / 2) }}
-          </div>
-          <div
-            class="absolute -right-6 top-1/2 -translate-y-1/2 text-xs text-red-500"
-          >
-            {{
-              Math.round(canvasWidth - box.position.left - box.size.width / 2)
-            }}
-          </div>
-          <div
-            class="absolute left-1/2 -bottom-5 -translate-x-1/2 text-xs text-red-500"
-          >
-            {{
-              Math.round(canvasHeight - box.position.top - box.size.height / 2)
-            }}
-          </div>
-        </template>
-
-        <!-- Rotate Icon -->
-        <div
-          v-if="box.isSelected"
-          class="rotate-icon"
-          @mousedown.stop.prevent="startRotate(index, $event)"
-        >
-          🔄
-        </div>
-
-        <!-- Resizing Handles -->
-        <div
-          v-if="box.isSelected"
-          v-for="dir in directions"
-          :key="dir"
-          :class="['handle', dir]"
-          @mousedown.stop.prevent="startResize(index, dir)"
-        ></div>
-
-        <!-- Editable Text -->
-        <!-- Editable Dynamic Element -->
-        <component
-          v-if="box.type !== 'img'"
-          :is="box.type"
-          contenteditable
-          class="flex justify-center items-center outline-none cursor-move leading-tight text-center w-full h-full"
-          :style="{
-            fontSize:
-              Math.max(
-                12,
-                Math.min(
-                  48,
-                  box.type == 'p'
-                    ? box.size.height * 0.2
-                    : box.size.height * 0.4
-                )
-              ) + 'px',
-            fontFamily: 'popins, sans-serif',
-            color: box.textColor || 'black',
+          v-if="box.visible"
+          class="absolute border group border-blue-500"
+          :class="{
+            'border-2 border-blue-500': box.isSelected,
+            'border border-transparent': !box.isSelected,
           }"
-          v-html="box.text"
+          :style="{
+            top: box.position.top + 'px',
+            left: box.position.left + 'px',
+            width: box.properties.size.width + 'px',
+            height: box.properties.size.height + 'px',
+            transform: `rotate(${box.properties.rotation}deg)`,
+            transformOrigin: 'center center',
+            backgroundColor: box.properties.fillTransparency
+              ? 'transparent'
+              : box.properties.fillColor || '#ffffff',
+            border:
+              box.properties.strokeWidth > 0
+                ? `${box.properties.strokeWidth}px solid ${box.properties.strokeColor}`
+                : 'none',
+          }"
+          @mousedown.stop="activateElement(index, $event)"
         >
-        </component>
+          <!-- Selected-only elements -->
+          <template v-if="box.isSelected">
+            <!-- Label (Dynamic) -->
+            <div
+              v-if="box.label"
+              class="absolute -top-5 left-0 px-1 text-xs text-white bg-blue-600"
+            >
+              {{ box.label }}
+            </div>
 
-        <!-- Image Element -->
+            <!-- Distance (Only on Drag) -->
+            <template v-if="box.isDragging">
+              <div
+                class="absolute left-1/2 -top-10 -translate-x-1/2 text-xs text-red-500"
+              >
+                Y: {{ Math.round(box.position.top) }}
+              </div>
+              <div
+                class="absolute -left-6 top-1/2 -translate-y-1/2 text-xs text-red-500"
+              >
+                {{
+                  Math.round(box.position.left + box.properties.size.width / 2)
+                }}
+              </div>
+              <div
+                class="absolute -right-6 top-1/2 -translate-y-1/2 text-xs text-red-500"
+              >
+                {{
+                  Math.round(
+                    canvasWidth -
+                      box.position.left -
+                      box.properties.size.width / 2
+                  )
+                }}
+              </div>
+              <div
+                class="absolute left-1/2 -bottom-5 -translate-x-1/2 text-xs text-red-500"
+              >
+                {{
+                  Math.round(
+                    canvasHeight -
+                      box.position.top -
+                      box.properties.size.height / 2
+                  )
+                }}
+              </div>
+            </template>
 
-        <img
-          v-else
-          :src="box.text.src"
-          class="w-full h-full object-contain cursor-pointer select-none"
-        />
-      </div>
+            <!-- Rotate Icon -->
+            <div
+              class="rotate-icon"
+              @mousedown.stop.prevent="startRotate(index, $event)"
+            >
+              <Icon name="line-md:rotate-270" class="text-blue-600" />
+            </div>
+
+            <!-- Resizing Handles -->
+            <div
+              v-for="dir in directions"
+              :key="dir"
+              :class="['handle', dir]"
+              @mousedown.stop.prevent="startResize(index, dir)"
+            ></div>
+          </template>
+
+          <!-- Content -->
+          <component
+            v-if="box.type !== 'img'"
+            :is="box.type"
+            contenteditable
+            class="focus:border focus:outline-none focus:border-blue-500 cursor-move leading-tight w-full h-full flex"
+            :class="[verticalAlignClass(box), horizontalAlignClass(box)]"
+            :style="textStyles(box)"
+            :ref="(el) => setTextElementRef(box.id, el)"
+            @input="updateText(box, $event)"
+            @click="preserveCursorPosition($event)"
+          >
+            {{ box.text }}
+          </component>
+
+          <img
+            v-else
+            :src="box.properties.src.src"
+            class="w-full h-full object-contain cursor-pointer select-none"
+            @error="handleImageError"
+          />
+        </div>
+      </template>
     </div>
   </div>
 </template>
 
 <script setup>
+import { useCanvasStore } from "@/stores/useCanvasStore";
+import { ref, computed, watch, nextTick } from "vue";
+
+const store = useCanvasStore();
 const props = defineProps({
   modelValue: Array,
-  sendElement: Object,
 });
 
-const emit = defineEmits([
-  "addToFrontCanvas",
-  "addToBackCanvas",
-  "requestFrontImage",
-  "requestBackImage",
-  "sendSelectedElement",
-]);
-
-watch(
-  () => props.sendElement,
-  (newSendElement) => {
-    if (newSendElement) {
-      createElement(newSendElement);
-    }
-  }
-);
-
 const canvas = ref(null);
-const boxes = computed(() => props.modelValue);
 const directions = [
   "top-left",
   "top",
@@ -183,92 +171,46 @@ const canvasHeight = ref(0);
 let resizeDir = "";
 let dragOffset = { x: 0, y: 0 };
 let selectedBoxIndex = -1;
-
-const selectedElementId = ref(null);
+const textElements = ref({}); // Store refs to contenteditable elements
 
 onMounted(() => {
   const resizeObserver = new ResizeObserver(() => {
     canvasWidth.value = canvas.value?.offsetWidth;
-    canvasHeight.value = canvas.value.offsetHeight;
+    canvasHeight.value = canvas.value?.offsetHeight;
   });
-
   resizeObserver.observe(canvas.value);
 });
 
-function createElement(element) {
-  // console.log(`Creating element: ${element.item.label}`);
-
-  // return false;
-
-  if (element.item.type === "img") {
-    if (element.side === "front") {
-      emit("requestFrontImage");
-    } else {
-      emit("requestBackImage");
-    }
-    return;
-  }
-
-  const newElement = {
-    id: Date.now(),
-    text: element.item.label || "Sample Text",
-    type: element.item.type,
-    label: `${element.item.label}`,
-    position: element.position,
-    properties: {
-      y: element.y,
-      x: element.x,
-      // width: 250,
-      // height: 250,
-      // rotation: 250,
-      // font: 250,
-      // fontStyle: 250,
-      // fontSize: 250,
-      // fillColor: 250,
-      // fillTransparency: 250,
-      // text: 250,
-      // exampleText: 250,
-      // textDecoration: 250,
-      // color: 250,
-      // textAlign: 250,
-      // verticalAlign: 250,
-      // textTransform: 250,
-    },
-    size: { width: 250, height: 70 },
-    rotation: 0,
-    isSelected: false,
-    isDragging: false,
-    direction: "ltr",
-  };
-
-  if (element.side === "front") {
-    emit("addToFrontCanvas", newElement);
-  } else {
-    emit("addToBackCanvas", newElement);
+function setTextElementRef(id, el) {
+  if (el) {
+    textElements.value[id] = el;
   }
 }
 
 function handleCanvasClick() {
-  boxes.value.forEach((b) => (b.isSelected = false));
+  store.boxes.forEach((b) => (b.isSelected = false));
   selectedBoxIndex = -1;
-  emit("sendSelectedElement", null);
+  store.selectedElement = null;
+  store.updateProperties();
 }
 
 function activateElement(index, event) {
-  boxes.value.forEach((b, i) => (b.isSelected = i === index));
+  store.boxes.forEach((b, i) => (b.isSelected = i === index));
   selectedBoxIndex = index;
-  startDrag(index, event); // ✅ Trigger drag when element is clicked
-  console.log(
-    "Canvas clicked, deselecting all elements",
-    boxes.value[index].id
-  );
-
-  emit("sendSelectedElement", boxes.value[index].id);
-  // selectedElementId.value = boxes.value[index].id;
+  startDrag(index, event);
+  store.selectedElement = store.boxes[index].id;
+  store.updateProperties();
+  // Focus text element if it's a text type
+  if (["h1", "p"].includes(store.boxes[index].type)) {
+    nextTick(() => {
+      const el = textElements.value[store.boxes[index].id];
+      if (el) el.focus();
+    });
+  }
 }
 
 function startDrag(index, event) {
-  const box = boxes.value[index];
+  const box = store.boxes[index];
   dragOffset.x = event.clientX - box.position.left;
   dragOffset.y = event.clientY - box.position.top;
   box.isDragging = true;
@@ -277,16 +219,25 @@ function startDrag(index, event) {
 }
 
 function onDrag(event) {
-  const box = boxes.value[selectedBoxIndex];
+  const box = store.boxes[selectedBoxIndex];
   const canvasRect = canvas.value.getBoundingClientRect();
   let newLeft = event.clientX - dragOffset.x;
   let newTop = event.clientY - dragOffset.y;
 
-  newLeft = Math.max(0, Math.min(canvasRect.width - box.size.width, newLeft));
-  newTop = Math.max(0, Math.min(canvasRect.height - box.size.height, newTop));
+  newLeft = Math.max(
+    0,
+    Math.min(canvasRect.width - box.properties.size.width, newLeft)
+  );
+  newTop = Math.max(
+    0,
+    Math.min(canvasRect.height - box.properties.size.height, newTop)
+  );
 
   box.position.left = newLeft;
   box.position.top = newTop;
+  store.currentProperties.x = newLeft;
+  store.currentProperties.y = newTop;
+  store.updateProperties(store.currentProperties);
 }
 
 function startResize(index, dir) {
@@ -297,36 +248,47 @@ function startResize(index, dir) {
 }
 
 function onResize(event) {
-  const box = boxes.value[selectedBoxIndex];
+  const box = store.boxes[selectedBoxIndex];
   const minSize = 40;
   const dx = event.movementX;
   const dy = event.movementY;
 
   if (resizeDir.includes("right"))
-    box.size.width = Math.max(minSize, box.size.width + dx);
+    box.properties.size.width = Math.max(
+      minSize,
+      box.properties.size.width + dx
+    );
+
   if (resizeDir.includes("left")) {
-    box.size.width = Math.max(minSize, box.size.width - dx);
+    box.properties.size.width = Math.max(
+      minSize,
+      box.properties.size.width - dx
+    );
     box.position.left += dx;
   }
   if (resizeDir.includes("bottom"))
-    box.size.height = Math.max(minSize, box.size.height + dy);
+    box.properties.size.height = Math.max(
+      minSize,
+      box.properties.size.height + dy
+    );
   if (resizeDir.includes("top")) {
-    box.size.height = Math.max(minSize, box.size.height - dy);
+    box.properties.size.height = Math.max(
+      minSize,
+      box.properties.size.height - dy
+    );
     box.position.top += dy;
   }
-}
 
-function autoResizeText(index, event) {
-  //   const el = event.target;
-  //   el.style.height = "auto"; // Reset first
-  //   el.style.height = el.scrollHeight + "px";
-  //   boxes.value[index].size.height = el.offsetHeight;
+  store.currentProperties.size = { ...box.properties.size };
+  store.currentProperties.x = box.position.left;
+  store.currentProperties.y = box.position.top;
+  store.updateProperties(store.currentProperties);
 }
 
 function startRotate(index, event) {
-  const box = boxes.value[index];
-  const centerX = box.position.left + box.size.width / 2;
-  const centerY = box.position.top + box.size.height / 2;
+  const box = store.boxes[index];
+  const centerX = box.position.left + box.properties.size.width / 2;
+  const centerY = box.position.top + box.properties.size.height / 2;
 
   const startX = event.clientX;
   const startY = event.clientY;
@@ -334,17 +296,18 @@ function startRotate(index, event) {
   const dxStart = startX - centerX;
   const dyStart = startY - centerY;
   const startAngle = Math.atan2(dyStart, dxStart) * (360 / Math.PI);
-  const initialRotation = box.rotation;
+  const initialRotation = box.properties.rotation;
 
   function rotate(e) {
     const dx = e.clientX - centerX;
     const dy = e.clientY - centerY;
     const currentAngle = Math.atan2(dy, dx) * (360 / Math.PI);
 
-    // 🔥 Boost rotation speed (adjust multiplier as needed)
     const delta = (currentAngle - startAngle) * 12;
 
-    box.rotation = (initialRotation + delta + 360) % 360;
+    box.properties.rotation = (initialRotation + delta + 360) % 360;
+    store.currentProperties.rotation = Math.floor(box.properties.rotation);
+    store.updateProperties(store.currentProperties);
   }
 
   function stopRotate() {
@@ -357,17 +320,135 @@ function startRotate(index, event) {
 }
 
 function stopActions() {
-  boxes.value.forEach((b) => (b.isDragging = false));
+  store.boxes.forEach((b) => (b.isDragging = false));
   document.removeEventListener("mousemove", onDrag);
   document.removeEventListener("mousemove", onResize);
   document.removeEventListener("mouseup", stopActions);
 }
 
-const selectedBox = computed(() => boxes.value.find((b) => b.isSelected));
-
-function emitSelectElement(id) {
-  emit("selectElement", id);
+function preserveCursorPosition(event) {
+  const selection = window.getSelection();
+  if (selection && selection.rangeCount > 0) {
+    const range = selection.getRangeAt(0);
+    store.cursorPosition = {
+      node: range.startContainer,
+      offset: range.startOffset,
+    };
+  }
 }
+
+function updateText(box, event) {
+  const el = event.target;
+  const selection = window.getSelection();
+  let cursorOffset = 0;
+  let cursorNode = null;
+
+  // Preserve cursor position
+  if (selection && selection.rangeCount > 0) {
+    const range = selection.getRangeAt(0);
+    cursorNode = range.startContainer;
+    cursorOffset = range.startOffset;
+  }
+
+  // Update text in store
+  const newText = el.innerText;
+  store.updateElementText(box.id, newText);
+  store.currentProperties.text = newText;
+  store.updateProperties(store.currentProperties);
+
+  // Restore cursor position
+  if (cursorNode && cursorOffset !== null) {
+    nextTick(() => {
+      const range = document.createRange();
+      try {
+        range.setStart(cursorNode, cursorOffset);
+        range.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      } catch (e) {
+        console.warn("Failed to restore cursor position:", e);
+      }
+    });
+  }
+}
+
+function handleImageError(event) {
+  console.error("Image failed to load:", event.target.src);
+}
+
+const selectedBox = computed(() => store.boxes.find((b) => b.isSelected));
+
+function textStyles(box) {
+  const calculatedSize = Math.max(
+    12,
+    Math.min(
+      48,
+      box.type === "p"
+        ? box.properties.size.height * 0.2
+        : box.properties.size.height * 0.4
+    )
+  );
+  return {
+    fontSize:
+      box.properties.fontSize === "Auto" || !box.properties.fontSize
+        ? calculatedSize + "px"
+        : box.properties.fontSize + "px",
+    fontFamily: box.properties.font || "poppins, sans-serif",
+    fontWeight: box.properties.fontWeight || "normal",
+    fontStyle: box.properties.fontStyle || "normal",
+    textDecoration: box.properties.textDecoration || "none",
+    textTransform: box.properties.textTransform || "none",
+    color: box.properties.color || "black",
+    // textAlign: box.properties.textAlign || "center",
+    direction: box.properties.direction || "ltr", // Apply direction
+  };
+}
+
+function horizontalAlignClass(box) {
+  console.log("box", box);
+
+  let align = "justify-center";
+  if (box.properties.horizontalAlign === "left") align = "justify-start";
+  if (box.properties.horizontalAlign === "center") align = "justify-center";
+  if (box.properties.horizontalAlign === "right") align = "justify-end";
+  return [align];
+}
+
+function verticalAlignClass(box) {
+  // console.log("box", box);
+
+  let align = "items-center";
+  if (box.properties.verticalAlign === "top") align = "items-start";
+  if (box.properties.verticalAlign === "middle") align = "items-center";
+  if (box.properties.verticalAlign === "bottom") align = "items-end";
+
+  return [align];
+}
+
+// Watch for layer selection to focus text elements
+watch(
+  () => store.selectedElement,
+  (newId) => {
+    if (newId) {
+      const box = store.boxes.find((b) => b.id === newId);
+      if (box && ["h1", "p"].includes(box.type)) {
+        nextTick(() => {
+          const el = textElements.value[newId];
+          if (el) {
+            el.focus();
+            // Set cursor to end of text
+            const range = document.createRange();
+            const selection = window.getSelection();
+            range.selectNodeContents(el);
+            range.collapse(false);
+            selection.removeAllRanges();
+            selection.addRange(range);
+          }
+        });
+      }
+    }
+  }
+);
 </script>
 
 <style scoped>
@@ -433,5 +514,14 @@ function emitSelectElement(id) {
   cursor: grab;
   font-size: 18px;
   user-select: none;
+}
+
+/* Ensure contenteditable respects alignment */
+[contenteditable] {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 </style>
