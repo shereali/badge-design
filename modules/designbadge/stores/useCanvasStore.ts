@@ -35,6 +35,7 @@ interface ElementProperties {
   text: string;
   displayOption?: string;
   direction: string;
+  qrcode: string;
 }
 
 interface CanvasElement {
@@ -87,7 +88,7 @@ export const useCanvasStore = defineStore("canvasStore", {
           fontWeight: "normal",
           fontStyle: "normal",
           fontSize: "Auto",
-          fillColor: "#ffffff",
+          fillColor: "transparent",
           fillTransparency: false,
           textDecoration: "none",
           color: "black",
@@ -106,6 +107,7 @@ export const useCanvasStore = defineStore("canvasStore", {
           y: position.top,
           text: item.label || "Sample Text",
           displayOption: "both sides",
+          qrcode: data.qrcode ?? "",
           direction: "ltr", // Ensure default direction is LTR
         },
         isSelected: true,
@@ -168,54 +170,30 @@ export const useCanvasStore = defineStore("canvasStore", {
       }
     },
 
-    handleQRCodeGenerator() {
-      if (this.pendingImagePosition && this.pendingImageSide) {
-        const newElement: CanvasElement = {
-          id: Date.now(),
+    handleQRCodeGenerator(qrcode: string) {
+      console.log("qrcode", qrcode);
+
+      const data = {
+        item: {
           text: "",
-          type: "img",
-          label: "Image",
-          position: this.pendingImagePosition,
-          properties: {
-            size: { width: 150, height: 150 },
-            rotation: 0,
-            font: "",
-            fontWeight: "normal",
-            fontStyle: "normal",
-            fontSize: "Auto",
-            fillColor: "",
-            fillTransparency: false,
-            textDecoration: "",
-            color: "#000000",
-            textAlign: "",
-            verticalAlign: "",
-            horizontalAlign: "",
-            textTransform: "",
-            src: "",
-            strokeColor: "",
-            strokeWidth: 0,
-            associatedData: "",
-            content: "",
-            x: this.pendingImagePosition.left,
-            y: this.pendingImagePosition.top,
-            text: "",
-            displayOption: "both sides",
-            direction: "ltr",
-          },
-          isSelected: true,
-          isDragging: false,
-          visible: true,
-        };
-        if (this.pendingImageSide === "front") {
-          this.frontBoxes.push(newElement);
-        } else {
-          this.backBoxes.push(newElement);
-        }
-        this.pendingImagePosition = null;
-        this.pendingImageSide = null;
-        this.selectedElement = newElement.id;
-        this.updateProperties();
-      }
+          type: "qrcode",
+          label: "QR Code",
+        },
+        position: {
+          left: 43,
+          top: 188,
+        },
+        width: 150,
+        height: 150,
+        qrcode: qrcode,
+      };
+
+      const newElement = this.elementMachanism(data);
+
+      this.addElement(newElement);
+      this.selectedElement = newElement.id;
+      // this.currentProperties.qrcode = qrcode;
+      this.updateProperties();
     },
 
     updateProperties(newProperties?: Partial<ElementProperties>) {

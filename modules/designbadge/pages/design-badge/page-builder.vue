@@ -62,7 +62,7 @@
             </button>
             <button
               class="w-9 h-9 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300 transition"
-              :class="{ 'bg-blue-500 text-white': showGrid }"
+              :class="{ 'text-blue-500 bg-white': showGrid }"
               @click="toggleGrid"
             >
               <Icon name="mdi:grid" class="w-4 h-4" />

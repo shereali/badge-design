@@ -143,9 +143,10 @@
             class="w-full h-full object-contain cursor-pointer select-none"
             @error="handleImageError"
           />
+
           <Qrcode
             v-if="box.type === 'qrcode'"
-            value="My string to encode"
+            :value="box.properties.qrcode"
             variant="pixelated"
           />
         </div>
