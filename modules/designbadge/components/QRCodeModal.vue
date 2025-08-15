@@ -103,9 +103,10 @@
 </template>
 
 <script setup>
+import { useCanvasStore } from "@/stores/useCanvasStore";
 import { useQRCodeStore } from "@/stores/useQRCodeStore";
-
 const qrcodeStore = useQRCodeStore();
+const store = useCanvasStore();
 const dataType = ref("personalData");
 const selectedPersonalData = ref("");
 const selectedOtherContent = ref("");
@@ -117,6 +118,18 @@ const createQRCode = () => {
     ticketId: selectedPersonalData.value,
     content: selectedOtherContent.value,
   });
+
+  let qrcode = "";
+  if (dataType.value == "personalData") {
+    qrcode = selectedPersonalData.value;
+  } else {
+    qrcode = selectedOtherContent.value;
+  }
+  console.log("qrcode", qrcode);
+
+  // store.handleImageUploaded("shereali");
+  store.handleQRCodeGenerator(qrcode);
+
   qrcodeStore.showModal = false;
 };
 </script>

@@ -24,7 +24,7 @@ export const usePageStore = defineStore("page", {
     presetHeight: 148,
     showModal: false,
     badgeOrientation: "portrait",
-    badgeSize: "A4",
+    badgeSize: "A6",
     badgeSizePreset: "preset",
     customWidth: 0,
     customHeight: 0,

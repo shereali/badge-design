@@ -66,24 +66,54 @@
           <div
             v-for="item in group.items"
             :key="item.type"
-            :draggable="item.type !== 'qrcode' ? true : false"
+            :draggable="
+              item.type !== 'qrcode' &&
+              item.type !== 'gradient' &&
+              item.type !== 'color' &&
+              item.type !== 'none'
+                ? true
+                : false
+            "
             @dragstart="(e) => startSidebarDrag(e, item)"
             @dragend="(e) => emitDragEnd(e, item)"
             class="draggable-item flex items-center p-2 bg-white rounded hover:bg-slate-100 max-w-sm"
             :class="{
-              'cursor-move': item.type !== 'qrcode',
-              'cursor-pointer': item.type === 'qrcode',
+              'cursor-move':
+                item.type !== 'qrcode' &&
+                item.type !== 'gradient' &&
+                item.type !== 'color' &&
+                item.type !== 'none',
+              'cursor-pointer':
+                item.type === 'qrcode' ||
+                item.type === 'gradient' ||
+                item.type === 'color' ||
+                item.type === 'none',
             }"
             :data-type="item.type"
           >
-            <div v-if="item.type !== 'qrcode'">
-              <Icon :name="item.icon" class="w-5 h-5 mr-2" aria-hidden="true" />
-              <span>{{ item.label }}</span>
-            </div>
             <div
               v-if="item.type === 'qrcode'"
               @click="qrcodeStore.qrCodetoggleModal"
             >
+              <Icon :name="item.icon" class="w-5 h-5 mr-2" aria-hidden="true" />
+              <span>{{ item.label }}</span>
+            </div>
+            <div
+              v-else-if="item.type === 'gradient'"
+              @click="openGradientModal"
+            >
+              <Icon :name="item.icon" class="w-5 h-5 mr-2" aria-hidden="true" />
+              <span>{{ item.label }}</span>
+            </div>
+            <div v-else-if="item.type === 'color'" @click="openColorModal">
+              <Icon :name="item.icon" class="w-5 h-5 mr-2" aria-hidden="true" />
+              <span>{{ item.label }}</span>
+            </div>
+            <div v-else-if="item.type === 'none'" @click="removeBackground">
+              <Icon :name="item.icon" class="w-5 h-5 mr-2" aria-hidden="true" />
+              <span>{{ item.label }}</span>
+            </div>
+            <div v-else>
               <Icon :name="item.icon" class="w-5 h-5 mr-2" aria-hidden="true" />
               <span>{{ item.label }}</span>
             </div>
@@ -130,6 +160,7 @@ import { usePageStore } from "@/stores/usePageStore";
 import { useQRCodeStore } from "@/stores/useQRCodeStore";
 const pageStore = usePageStore();
 const qrcodeStore = useQRCodeStore();
+const store = useCanvasStore();
 
 defineProps({
   selectedElement: [String, Number, null],
@@ -141,8 +172,6 @@ defineProps({
 });
 
 const emit = defineEmits(["drag-start", "drag-end"]);
-
-const store = useCanvasStore();
 
 function startSidebarDrag(event, item) {
   emit("drag-start", item);
@@ -244,10 +273,10 @@ const designGroups = [
     label: "Background",
     icon: "mdi:image",
     items: [
-      { type: "img", label: "Image", icon: "mdi:image" },
-      { type: "background", label: "Gradient", icon: "mdi:gradient" },
-      { type: "background", label: "Color", icon: "mdi:palette" },
-      { type: "background", label: "None", icon: "mdi:close" },
+      { type: "background", label: "Image", icon: "mdi:image" },
+      { type: "gradient", label: "Gradient", icon: "mdi:gradient" },
+      { type: "color", label: "Color", icon: "mdi:palette" },
+      { type: "none", label: "None", icon: "mdi:close" },
     ],
   },
   {
@@ -257,7 +286,7 @@ const designGroups = [
     items: [
       { type: "p", label: "Text", icon: "mdi:text" },
       { type: "img", label: "Image", icon: "mdi:image" },
-      { type: "line", label: "Rectangle", icon: "mdi:rectangle" },
+      { type: "rectangle", label: "Rectangle", icon: "mdi:rectangle" },
     ],
   },
   {
@@ -275,6 +304,18 @@ const designGroups = [
 const toggleGroup = (groupType) => {
   openGroups.value[groupType] = !openGroups.value[groupType];
 };
+
+function openGradientModal() {
+  store.showGradientModal = true;
+}
+
+function openColorModal() {
+  store.showColorModal = true;
+}
+
+function removeBackground() {
+  store.setBackground(null, store.activeSide);
+}
 </script>
 
 <style scoped>

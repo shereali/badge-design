@@ -3,6 +3,12 @@
     <div
       ref="canvas"
       class="absolute w-full h-full bg-white select-none"
+      :style="{
+        background:
+          props.modelValue === store.frontBoxes
+            ? store.frontBackground || 'white'
+            : store.backBackground || 'white',
+      }"
       @mousedown="handleCanvasClick"
     >
       <!-- Vertical & Horizontal Guide Lines -->
@@ -52,6 +58,7 @@
                 : 'none',
           }"
           @mousedown.stop="activateElement(index, $event)"
+          @keydown="deleteItem($event)"
         >
           <!-- Selected-only elements -->
           <template v-if="box.isSelected">
@@ -141,12 +148,22 @@
             v-if="box.type === 'img'"
             :src="box.properties.src.src"
             class="w-full h-full object-contain cursor-pointer select-none"
+            @keydown="deleteItem($event)"
             @error="handleImageError"
           />
+          <img
+            v-if="box.type === 'background'"
+            :src="box.properties.src.src"
+            class="h-full w-screen bg-cover bg-center cursor-pointer select-none"
+            @keydown="deleteItem($event)"
+            @error="handleImageError"
+          />
+
           <Qrcode
             v-if="box.type === 'qrcode'"
-            value="My string to encode"
+            :value="box.properties.qrcode"
             variant="pixelated"
+            @keydown="deleteItem(index, $event)"
           />
         </div>
       </template>
@@ -181,7 +198,7 @@ const canvasHeight = ref(0);
 let resizeDir = "";
 let dragOffset = { x: 0, y: 0 };
 let selectedBoxIndex = -1;
-const textElements = ref({}); // Store refs to contenteditable elements
+const textElements = ref({});
 
 onMounted(() => {
   const resizeObserver = new ResizeObserver(() => {
@@ -212,7 +229,8 @@ function activateElement(index, event) {
   store.selectedElementType = store.boxes[index].type;
   store.activeTab = "properties";
   store.updateProperties();
-  // Focus text element if it's a text type
+  console.log("element type", store.selectedElementType);
+
   if (["h1", "p"].includes(store.boxes[index].type)) {
     nextTick(() => {
       const el = textElements.value[store.boxes[index].id];
@@ -220,6 +238,22 @@ function activateElement(index, event) {
     });
   }
 }
+
+function deleteItem(event) {
+  if (event.key === "Delete" && store.selectedElement) {
+    const index = store.boxes.findIndex(
+      (item) => item.id === store.selectedElement
+    );
+    if (index !== -1) {
+      store.boxes.splice(index, 1);
+      store.selectedElement = null;
+    }
+  }
+}
+
+onMounted(() => {
+  document.addEventListener("keydown", deleteItem);
+});
 
 function startDrag(index, event) {
   const box = store.boxes[index];
@@ -355,20 +389,17 @@ function updateText(box, event) {
   let cursorOffset = 0;
   let cursorNode = null;
 
-  // Preserve cursor position
   if (selection && selection.rangeCount > 0) {
     const range = selection.getRangeAt(0);
     cursorNode = range.startContainer;
     cursorOffset = range.startOffset;
   }
 
-  // Update text in store
   const newText = el.innerText;
   store.updateElementText(box.id, newText);
   store.currentProperties.text = newText;
   store.updateProperties(store.currentProperties);
 
-  // Restore cursor position
   if (cursorNode && cursorOffset !== null) {
     nextTick(() => {
       const range = document.createRange();
@@ -411,14 +442,11 @@ function textStyles(box) {
     textDecoration: box.properties.textDecoration || "none",
     textTransform: box.properties.textTransform || "none",
     color: box.properties.color || "black",
-    // textAlign: box.properties.textAlign || "center",
-    direction: box.properties.direction || "ltr", // Apply direction
+    direction: box.properties.direction || "ltr",
   };
 }
 
 function horizontalAlignClass(box) {
-  console.log("box", box);
-
   let align = "justify-center";
   if (box.properties.horizontalAlign === "left") align = "justify-start";
   if (box.properties.horizontalAlign === "center") align = "justify-center";
@@ -427,17 +455,13 @@ function horizontalAlignClass(box) {
 }
 
 function verticalAlignClass(box) {
-  // console.log("box", box);
-
   let align = "items-center";
   if (box.properties.verticalAlign === "top") align = "items-start";
   if (box.properties.verticalAlign === "middle") align = "items-center";
   if (box.properties.verticalAlign === "bottom") align = "items-end";
-
   return [align];
 }
 
-// Watch for layer selection to focus text elements
 watch(
   () => store.selectedElement,
   (newId) => {
@@ -448,7 +472,6 @@ watch(
           const el = textElements.value[newId];
           if (el) {
             el.focus();
-            // Set cursor to end of text
             const range = document.createRange();
             const selection = window.getSelection();
             range.selectNodeContents(el);
@@ -528,7 +551,6 @@ watch(
   user-select: none;
 }
 
-/* Ensure contenteditable respects alignment */
 [contenteditable] {
   display: flex;
   width: 100%;

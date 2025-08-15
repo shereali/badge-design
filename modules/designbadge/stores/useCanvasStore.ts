@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-
+import { usePageStore } from "./usePageStore";
 interface Size {
   width: number;
   height: number;
@@ -35,6 +35,7 @@ interface ElementProperties {
   text: string;
   displayOption?: string;
   direction: string;
+  qrcode: string;
 }
 
 interface CanvasElement {
@@ -60,14 +61,23 @@ export const useCanvasStore = defineStore("canvasStore", {
     currentProperties: {} as Partial<ElementProperties>,
     dropzone: null as HTMLElement | null,
     showImageModal: false,
+    showGradientModal: false,
+    showColorModal: false,
+    frontBackground: null as string | null, // Background for front side
+    backBackground: null as string | null, // Background for back side
     pendingImagePosition: null as Position | null,
     pendingImageSide: null as "front" | "back" | null,
     cursorPosition: null as { node: Node; offset: number } | null,
     dropdownOpen: false as boolean,
+    imageItem: null as string | any,
   }),
   getters: {
     boxes: (state): CanvasElement[] =>
       state.activeSide === "front" ? state.frontBoxes : state.backBoxes,
+    currentBackground: (state): string | null =>
+      state.activeSide === "front"
+        ? state.frontBackground
+        : state.backBackground,
   },
   actions: {
     elementMachanism(data?: any) {
@@ -87,7 +97,7 @@ export const useCanvasStore = defineStore("canvasStore", {
           fontWeight: "normal",
           fontStyle: "normal",
           fontSize: "Auto",
-          fillColor: "#ffffff",
+          fillColor: item.type === "rectangle" ? "blue" : "transparent",
           fillTransparency: false,
           textDecoration: "none",
           color: "black",
@@ -106,7 +116,8 @@ export const useCanvasStore = defineStore("canvasStore", {
           y: position.top,
           text: item.label || "Sample Text",
           displayOption: "both sides",
-          direction: "ltr", // Ensure default direction is LTR
+          qrcode: data.qrcode ?? "",
+          direction: "ltr",
         },
         isSelected: true,
         isDragging: false,
@@ -116,14 +127,34 @@ export const useCanvasStore = defineStore("canvasStore", {
       return newElement;
     },
     addElementFromDrag(item: any, position: Position) {
-      if (item.type === "img") {
+      if (item.type === "img" || item.type === "background") {
+        this.imageItem = item;
         this.showImageModal = true;
         this.pendingImagePosition = position;
         this.pendingImageSide = this.activeSide;
         return;
       }
 
-      const data = { item: item, position: position, width: 200, height: 64 };
+      // Ensure position is within drop zone
+      const pageStore = usePageStore();
+      const canvasWidth =
+        this.dropzone?.offsetWidth || pageStore.presetWidth * 3.78;
+      const canvasHeight =
+        this.dropzone?.offsetHeight || pageStore.presetHeight * 3.78;
+      const elementWidth = 200; // Default width
+      const elementHeight = 64; // Default height
+
+      const adjustedPosition = {
+        left: Math.max(0, Math.min(position.left, canvasWidth - elementWidth)),
+        top: Math.max(0, Math.min(position.top, canvasHeight - elementHeight)),
+      };
+
+      const data = {
+        item: item,
+        position: adjustedPosition,
+        width: elementWidth,
+        height: elementHeight,
+      };
 
       const newElement = this.elementMachanism(data);
 
@@ -132,26 +163,59 @@ export const useCanvasStore = defineStore("canvasStore", {
       this.updateProperties();
     },
 
-    addElement(element: CanvasElement) {
-      if (this.activeSide === "front") {
-        this.frontBoxes.push(element);
-      } else {
-        this.backBoxes.push(element);
-      }
-    },
-
     handleImageUploaded(dataUrl: string) {
       if (this.pendingImagePosition && this.pendingImageSide) {
+        const pageStore = usePageStore();
+        const customPosition = {
+          left: 198,
+          top: 277,
+        };
+        const canvasWidth =
+          this.dropzone?.offsetWidth || pageStore.presetWidth * 3.78;
+        const canvasHeight =
+          this.dropzone?.offsetHeight || pageStore.presetHeight * 3.78;
+        const elementWidth =
+          this.imageItem.type === "background"
+            ? pageStore.presetWidth * 3.78
+            : 150;
+        const elementHeight =
+          this.imageItem.type === "background"
+            ? pageStore.presetHeight * 3.78
+            : 150;
+
+        // Ensure position is within drop zone
+        const adjustedPosition = {
+          left: Math.max(
+            0,
+            Math.min(
+              this.imageItem.type === "background"
+                ? customPosition.left
+                : this.pendingImagePosition.left,
+              canvasWidth - elementWidth
+            )
+          ),
+          top: Math.max(
+            0,
+            Math.min(
+              this.imageItem.type === "background"
+                ? customPosition.top
+                : this.pendingImagePosition.top,
+              canvasHeight - elementHeight
+            )
+          ),
+        };
+
         const data = {
           item: {
-            text: "",
-            type: "img",
-            label: "Image",
+            text: this.imageItem.label,
+            type: this.imageItem.type,
+            label:
+              this.imageItem.type === "background" ? "background" : "Image",
           },
-          position: this.pendingImagePosition,
+          position: adjustedPosition,
           dataUrl: dataUrl,
-          width: 150,
-          height: 150,
+          width: elementWidth,
+          height: elementHeight,
         };
 
         const newElement = this.elementMachanism(data);
@@ -168,54 +232,78 @@ export const useCanvasStore = defineStore("canvasStore", {
       }
     },
 
-    handleQRCodeGenerator() {
-      if (this.pendingImagePosition && this.pendingImageSide) {
-        const newElement: CanvasElement = {
-          id: Date.now(),
-          text: "",
-          type: "img",
-          label: "Image",
-          position: this.pendingImagePosition,
-          properties: {
-            size: { width: 150, height: 150 },
-            rotation: 0,
-            font: "",
-            fontWeight: "normal",
-            fontStyle: "normal",
-            fontSize: "Auto",
-            fillColor: "",
-            fillTransparency: false,
-            textDecoration: "",
-            color: "#000000",
-            textAlign: "",
-            verticalAlign: "",
-            horizontalAlign: "",
-            textTransform: "",
-            src: "",
-            strokeColor: "",
-            strokeWidth: 0,
-            associatedData: "",
-            content: "",
-            x: this.pendingImagePosition.left,
-            y: this.pendingImagePosition.top,
-            text: "",
-            displayOption: "both sides",
-            direction: "ltr",
-          },
-          isSelected: true,
-          isDragging: false,
-          visible: true,
-        };
-        if (this.pendingImageSide === "front") {
-          this.frontBoxes.push(newElement);
-        } else {
-          this.backBoxes.push(newElement);
-        }
-        this.pendingImagePosition = null;
-        this.pendingImageSide = null;
-        this.selectedElement = newElement.id;
-        this.updateProperties();
+    addElement(element: CanvasElement) {
+      if (this.activeSide === "front") {
+        this.frontBoxes.push(element);
+      } else {
+        this.backBoxes.push(element);
       }
+    },
+
+    // handleImageUploaded(dataUrl: string) {
+    //   if (this.pendingImagePosition && this.pendingImageSide) {
+    //     const pageStore = usePageStore();
+    //     const customPosition = {
+    //       left: 198,
+    //       top: 277,
+    //     };
+    //     const data = {
+    //       item: {
+    //         text: this.imageItem.label,
+    //         type: this.imageItem.type,
+    //         label:
+    //           this.imageItem.type === "background" ? "background" : "Image",
+    //       },
+    //       position:
+    //         this.imageItem.type === "background"
+    //           ? customPosition
+    //           : this.pendingImagePosition,
+    //       dataUrl: dataUrl,
+    //       width:
+    //         this.imageItem.type === "background"
+    //           ? pageStore.presetWidth * 3.78
+    //           : 150,
+    //       height:
+    //         this.imageItem.type === "background"
+    //           ? pageStore.presetHeight * 3.78
+    //           : 150,
+    //     };
+
+    //     const newElement = this.elementMachanism(data);
+
+    //     if (this.pendingImageSide === "front") {
+    //       this.frontBoxes.push(newElement);
+    //     } else {
+    //       this.backBoxes.push(newElement);
+    //     }
+    //     this.pendingImagePosition = null;
+    //     this.pendingImageSide = null;
+    //     this.selectedElement = newElement.id;
+    //     this.updateProperties();
+    //   }
+    // },
+
+    handleQRCodeGenerator(qrcode: string) {
+      const data = {
+        item: {
+          text: "",
+          type: "qrcode",
+          label: "QR Code",
+        },
+        position: {
+          left: 43,
+          top: 188,
+        },
+        width: 150,
+        height: 150,
+        qrcode: qrcode,
+      };
+
+      const newElement = this.elementMachanism(data);
+
+      this.addElement(newElement);
+      this.selectedElement = newElement.id;
+      this.updateProperties();
     },
 
     updateProperties(newProperties?: Partial<ElementProperties>) {
@@ -308,7 +396,7 @@ export const useCanvasStore = defineStore("canvasStore", {
       switch (alignment) {
         case "top":
           element.position.top = 0;
-          element.properties.verticalAlign = "top"; // Ensure verticalAlign is updated
+          element.properties.verticalAlign = "top";
           break;
         case "middle":
           element.position.top = (canvasRect.height - elementHeight) / 2;
@@ -330,7 +418,6 @@ export const useCanvasStore = defineStore("canvasStore", {
         this.currentProperties.fillColor = "transparent";
         this.updateProperties(this.currentProperties);
       } else {
-        // this.currentProperties.fillTransparency = true;
         this.currentProperties.color = "transparent";
         this.updateProperties(this.currentProperties);
       }
@@ -351,7 +438,7 @@ export const useCanvasStore = defineStore("canvasStore", {
       this.currentProperties.verticalAlign = align;
       const element = this.boxes.find((e) => e.id === this.selectedElement);
       if (element) {
-        element.properties.verticalAlign = align; // Ensure element's verticalAlign is updated
+        element.properties.verticalAlign = align;
       }
       this.updateProperties(this.currentProperties);
     },
@@ -396,6 +483,24 @@ export const useCanvasStore = defineStore("canvasStore", {
         this.currentProperties.direction = direction;
         this.updateProperties(this.currentProperties);
       }
+    },
+
+    setBackground(background: string | null, side: "front" | "back") {
+      if (side === "front") {
+        this.frontBackground = background;
+      } else {
+        this.backBackground = background;
+      }
+    },
+
+    applyGradient(gradient: string, side: "front" | "back") {
+      this.setBackground(gradient, side);
+      this.showGradientModal = false;
+    },
+
+    applyColor(color: string, side: "front" | "back") {
+      this.setBackground(color, side);
+      this.showColorModal = false;
     },
   },
   persist: true,
