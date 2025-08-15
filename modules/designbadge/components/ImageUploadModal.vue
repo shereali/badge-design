@@ -7,7 +7,7 @@
     @click.self="$emit('close')"
   >
     <div
-      class="bg-white rounded-2xl shadow-lg w-full max-w-2xl p-6 animate-fadeIn"
+      class="bg-white rounded-2xl shadow-lg w-full max-w-2xl p-6 animate-fadeIn flex flex-col"
     >
       <div class="flex justify-between items-center border-b pb-3 mb-4">
         <h3 class="text-xl font-semibold text-gray-800">Image Manager</h3>
@@ -68,7 +68,7 @@
           <input
             ref="fileInput"
             type="file"
-            accept="image/*"
+            accept="image(/*"
             multiple
             class="hidden"
             @change="handleFileUpload"
@@ -116,7 +116,8 @@
           <div
             v-for="(img, idx) in filteredImages"
             :key="idx"
-            class="cursor-pointer border rounded hover:border-blue-500"
+            class="relative cursor-pointer border rounded hover:border-blue-500"
+            :class="{ 'border-blue-500': img === selectedImage }"
             @click="selectImage(img)"
           >
             <img
@@ -127,11 +128,37 @@
             <p class="text-xs text-center text-gray-500 truncate">
               {{ img.name }}
             </p>
+            <div
+              v-if="img === selectedImage"
+              class="absolute top-1 right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center"
+            >
+              <svg
+                class="w-3 h-3 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="mt-6 text-center">
+      <!-- Footer with Buttons -->
+      <div class="mt-6 flex justify-end space-x-2">
+        <button
+          v-if="activeTab === 'library' && selectedImage"
+          class="px-4 py-2 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+          @click="chooseImage"
+        >
+          Choose
+        </button>
         <button
           class="px-4 py-2 text-sm bg-red-500 text-white rounded hover:bg-red-600 transition"
           @click="$emit('close')"
@@ -144,6 +171,8 @@
 </template>
 
 <script setup>
+import { ref, computed } from "vue";
+
 const props = defineProps({
   side: {
     type: String,
@@ -175,6 +204,7 @@ const uploadedImages = ref([
 ]);
 const searchQuery = ref("");
 const selectedCategory = ref("");
+const selectedImage = ref(null);
 
 const filteredImages = computed(() => {
   return uploadedImages.value.filter((img) => {
@@ -208,13 +238,8 @@ function handleFileUpload(event) {
         category: "uncategorized",
       };
       uploadedImages.value.push(newImage);
-      emit("uploaded", {
-        side: props.side,
-        src: reader.result,
-        name: file.name,
-        category: "uncategorized",
-      });
-
+      activeTab.value = "library"; // Switch to library tab
+      selectedImage.value = newImage; // Select the newly uploaded image
       processed++;
       uploadProgress.value = Math.round((processed / files.length) * 100);
 
@@ -229,13 +254,19 @@ function handleFileUpload(event) {
 }
 
 function selectImage(image) {
-  emit("uploaded", {
-    side: props.side,
-    src: image.src,
-    name: image.name,
-    category: image.category,
-  });
-  emit("close");
+  selectedImage.value = image;
+}
+
+function chooseImage() {
+  if (selectedImage.value) {
+    emit("uploaded", {
+      side: props.side,
+      src: selectedImage.value.src,
+      name: selectedImage.value.name,
+      category: selectedImage.value.category,
+    });
+    emit("close");
+  }
 }
 </script>
 

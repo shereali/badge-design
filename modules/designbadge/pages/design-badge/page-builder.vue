@@ -41,7 +41,7 @@
 
           <!-- Zoom & Grid Controls -->
           <div
-            class="flex items-center space-x-2 bg-white rounded-lg p-1 shadow-sm"
+            class="flex items -center space-x-2 bg-white rounded-lg p-1 shadow-sm"
           >
             <button
               class="w-9 h-9 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300 transition"
@@ -129,17 +129,30 @@
       />
     </div>
 
-    <!-- Image Upload Modal -->
+    <!-- Modals -->
     <ImageUploadModal
       v-if="store.showImageModal"
       :side="store.pendingImageSide"
       @uploaded="handleImageUploaded"
       @close="store.showImageModal = false"
     />
+    <GradientPickerModal
+      v-if="store.showGradientModal"
+      :show="store.showGradientModal"
+      :side="store.activeSide"
+      @selected="(gradient) => store.applyGradient(gradient, store.activeSide)"
+      @close="store.showGradientModal = false"
+    />
+    <ColorPickerModal
+      v-if="store.showColorModal"
+      :show="store.showColorModal"
+      :side="store.activeSide"
+      @selected="(color) => store.applyColor(color, store.activeSide)"
+      @close="store.showColorModal = false"
+    />
+    <BadgeOptionsModal />
+    <QRCodeModal />
   </div>
-
-  <BadgeOptionsModal />
-  <QRCodeModal />
 </template>
 
 <script setup>
@@ -156,8 +169,6 @@ const zoomScale = computed(() => zoomLevel.value / 100);
 const selectedLayer = ref(null);
 const layers = ref([]);
 const displayOption = ref("both sides");
-//pageStore.saveBadgeConfig();
-console.log("show modal", pageStore.showModal);
 
 onMounted(() => {
   store.dropzone = dropzone.value;
@@ -184,7 +195,25 @@ const onDragEnd = ({ item, x, y }) => {
   const rect = dropzone.value.getBoundingClientRect();
   const dropXPos = x - rect.left;
   const dropYPos = y - rect.top;
-  store.addElementFromDrag(item, { top: dropYPos, left: dropXPos });
+
+  // Get canvas dimensions
+  const canvasWidth = rect.width;
+  const canvasHeight = rect.height;
+
+  // Default element size (same as used in useCanvasStore.ts)
+  const elementWidth =
+    item.type === "background" ? pageStore.presetWidth * 3.78 : 200;
+  const elementHeight =
+    item.type === "background" ? pageStore.presetHeight * 3.78 : 64;
+
+  // Ensure the element stays within the drop zone
+  const adjustedX = Math.max(0, Math.min(dropXPos, canvasWidth - elementWidth));
+  const adjustedY = Math.max(
+    0,
+    Math.min(dropYPos, canvasHeight - elementHeight)
+  );
+
+  store.addElementFromDrag(item, { top: adjustedY, left: adjustedX });
 };
 
 const handleDrop = (event) => {
@@ -192,6 +221,8 @@ const handleDrop = (event) => {
 };
 
 const handleImageUploaded = (dataUrl) => {
+  console.log("image upload", store.selectedElementType);
+
   store.handleImageUploaded(dataUrl);
   store.showImageModal = false;
 };

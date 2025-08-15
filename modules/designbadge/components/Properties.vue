@@ -158,11 +158,15 @@
       <template
         v-if="
           store.selectedElementType === 'h1' ||
-          store.selectedElementType === 'p'
+          store.selectedElementType === 'p' ||
+          store.selectedElementType === 'rectangle'
         "
       >
         <!-- Font Section -->
-        <div class="bg-white p-3 border-b border-gray-200">
+        <div
+          v-if="store.selectedElementType !== 'rectangle'"
+          class="bg-white p-3 border-b border-gray-200"
+        >
           <div
             class="flex items-center justify-between cursor-pointer"
             @click="toggleSection('font')"
@@ -310,7 +314,10 @@
             </div>
 
             <!-- Text Color -->
-            <div class="flex items-center gap-3">
+            <div
+              v-if="store.selectedElementType !== 'rectangle'"
+              class="flex items-center gap-3"
+            >
               <div class="w-full">
                 <span class="block text-sm font-medium text-gray-600"
                   >Text Color</span
@@ -345,7 +352,10 @@
         </div>
 
         <!-- Text Alignment Section -->
-        <div class="bg-white p-3 border-b border-gray-200">
+        <div
+          v-if="store.selectedElementType !== 'rectangle'"
+          class="bg-white p-3 border-b border-gray-200"
+        >
           <div
             class="flex items-center justify-between cursor-pointer"
             @click="toggleSection('textAlignment')"
@@ -432,7 +442,10 @@
         </div>
 
         <!-- Text Transform Section -->
-        <div class="bg-white p-3 border-b border-gray-200">
+        <div
+          v-if="store.selectedElementType !== 'rectangle'"
+          class="bg-white p-3 border-b border-gray-200"
+        >
           <div
             class="flex items-center justify-between cursor-pointer"
             @click="toggleSection('textTransform')"
@@ -489,7 +502,10 @@
         </div>
 
         <!-- Text Style Section -->
-        <div class="bg-white p-3 border-b border-gray-200">
+        <div
+          v-if="store.selectedElementType !== 'rectangle'"
+          class="bg-white p-3 border-b border-gray-200"
+        >
           <div
             class="flex items-center justify-between cursor-pointer"
             @click="toggleSection('textStyle')"
