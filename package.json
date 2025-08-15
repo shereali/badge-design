@@ -31,5 +31,8 @@
     "vue-router": "^4.5.1",
     "vue3-draggable-resizable": "^1.6.5",
     "vuedraggable": "^4.1.0"
+  },
+  "devDependencies": {
+    "nuxt-qrcode": "^0.4.6"
   }
 }

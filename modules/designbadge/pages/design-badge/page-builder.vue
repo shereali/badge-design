@@ -1,71 +1,83 @@
 <template>
-  <div class="flex h-screen bg-gray-100 overflow-hidden">
-    <!-- Design Area -->
-    <div class="flex-1 flex flex-col items-center p-4">
+  <div
+    class="flex flex-col md:flex-row h-screen bg-gray-100 sm:overflow-y-auto"
+  >
+    <!-- Main Content Area -->
+    <div class="flex-1 flex flex-col items-center p-4 order-2 md:order-1">
       <!-- Top Controls -->
-      <div class="flex flex-col items-center w-full">
-        <!-- Side Tabs -->
-        <div class="max-w-xs w-full">
-          <div class="flex border border-gray-300 rounded-md overflow-hidden">
+      <div class="w-full">
+        <div
+          class="flex flex-wrap items-center justify-center md:justify-between gap-3 w-full"
+        >
+          <!-- Side Tabs -->
+          <div
+            class="flex border border-gray-300 rounded-lg overflow-hidden shadow-sm"
+          >
             <button
-              class="flex-1 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400"
+              class="px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400"
               :class="{
                 'bg-blue-500 text-white': store.activeSide === 'front',
                 'bg-gray-200 text-gray-700 hover:bg-gray-300':
                   store.activeSide !== 'front',
-                'rounded-l-sm': true,
               }"
               @click="switchSideTab('front')"
               :disabled="isFlipping"
             >
-              Front Side
+              Front
             </button>
             <button
-              class="flex-1 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400"
+              class="px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400"
               :class="{
                 'bg-blue-500 text-white': store.activeSide === 'back',
                 'bg-gray-200 text-gray-700 hover:bg-gray-300':
                   store.activeSide !== 'back',
-                'rounded-r-sm': true,
               }"
               @click="switchSideTab('back')"
               :disabled="isFlipping"
             >
-              Back Side
+              Back
+            </button>
+          </div>
+
+          <!-- Zoom & Grid Controls -->
+          <div
+            class="flex items-center space-x-2 bg-white rounded-lg p-1 shadow-sm"
+          >
+            <button
+              class="w-9 h-9 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300 transition"
+              @click="zoom(-10)"
+            >
+              <Icon name="mdi:minus" class="w-4 h-4" />
+            </button>
+            <span
+              class="w-12 h-9 flex items-center justify-center bg-gray-100 rounded text-sm font-medium"
+            >
+              {{ zoomLevel }}%
+            </span>
+            <button
+              class="w-9 h-9 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300 transition"
+              @click="zoom(10)"
+            >
+              <Icon name="mdi:plus" class="w-4 h-4" />
+            </button>
+            <button
+              class="w-9 h-9 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300 transition"
+              :class="{ 'bg-blue-500 text-white': showGrid }"
+              @click="toggleGrid"
+            >
+              <Icon name="mdi:grid" class="w-4 h-4" />
             </button>
           </div>
         </div>
-        <!-- Zoom and Grid Controls -->
-        <div class="flex justify-end space-x-2 w-full">
-          <button
-            class="p-1 bg-gray-200 rounded hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400"
-            @click="zoom(-10)"
-          >
-            <Icon name="mdi:minus" class="w-4 h-4" />
-          </button>
-          <span class="px-2 py-1 bg-gray-200 rounded text-sm"
-            >{{ zoomLevel }}%</span
-          >
-          <button
-            class="p-1 bg-gray-200 rounded hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400"
-            @click="zoom(10)"
-          >
-            <Icon name="mdi:plus" class="w-4 h-4" />
-          </button>
-          <button
-            class="p-1 bg-gray-200 rounded hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400"
-            :class="{ 'bg-blue-500 text-white': showGrid }"
-            @click="toggleGrid"
-          >
-            <Icon name="mdi:grid" class="w-4 h-4" />
-          </button>
-        </div>
       </div>
-      <!-- Design Page Wrapper -->
-      <div class="flex-1 w-full flex justify-center items-start overflow-auto">
+
+      <!-- Design Page -->
+      <div
+        class="flex-1 w-full flex justify-center items-start overflow-auto mt-3"
+      >
         <div
           ref="dropzone"
-          class="design-page bg-white"
+          class="design-page bg-white shadow-md rounded-lg"
           :style="{
             width: `${pageStore.presetWidth}mm`,
             height: `${pageStore.presetHeight}mm`,
@@ -79,7 +91,7 @@
           @dragover.prevent
           @drop="handleDrop"
         >
-          <div class="card w-full h-full">
+          <div class="card w-full h-full relative">
             <div
               class="front border border-gray-300 w-full h-full absolute top-0 left-0"
             >
@@ -100,17 +112,24 @@
         </div>
       </div>
     </div>
+
     <!-- Sidebar -->
-    <Sidebar
-      :selected-element="store.selectedElement"
-      :selected-element-type="selectedElementType"
-      :layers="layers"
-      :selected-layer="selectedLayer"
-      :current-properties="store.currentProperties"
-      :display-option="displayOption"
-      @drag-start="onDragStart"
-      @drag-end="onDragEnd"
-    />
+    <div
+      class="w-full p-4 md:w-1/5 bg-gray-50 shadow-sm border-t md:border-t-0 md:border-l order-1 md:order-2 lg:overflow-y-auto"
+    >
+      <Sidebar
+        :selected-element="store.selectedElement"
+        :selected-element-type="selectedElementType"
+        :layers="layers"
+        :selected-layer="selectedLayer"
+        :current-properties="store.currentProperties"
+        :display-option="displayOption"
+        @drag-start="onDragStart"
+        @drag-end="onDragEnd"
+      />
+    </div>
+
+    <!-- Image Upload Modal -->
     <ImageUploadModal
       v-if="store.showImageModal"
       :side="store.pendingImageSide"
@@ -118,8 +137,9 @@
       @close="store.showImageModal = false"
     />
   </div>
+
   <BadgeOptionsModal />
-  <qr-code-modal />
+  <QRCodeModal />
 </template>
 
 <script setup>

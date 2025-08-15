@@ -51,29 +51,28 @@ interface CanvasElement {
 
 export const useCanvasStore = defineStore("canvasStore", {
   state: () => ({
+    activeTab: "design" as string,
     frontBoxes: [] as CanvasElement[],
     backBoxes: [] as CanvasElement[],
     activeSide: "front" as "front" | "back",
     selectedElement: null as string | number | null,
+    selectedElementType: null as string | null,
     currentProperties: {} as Partial<ElementProperties>,
     dropzone: null as HTMLElement | null,
     showImageModal: false,
     pendingImagePosition: null as Position | null,
     pendingImageSide: null as "front" | "back" | null,
     cursorPosition: null as { node: Node; offset: number } | null,
+    dropdownOpen: false as boolean,
   }),
   getters: {
     boxes: (state): CanvasElement[] =>
       state.activeSide === "front" ? state.frontBoxes : state.backBoxes,
   },
   actions: {
-    addElementFromDrag(item: any, position: Position) {
-      if (item.type === "img") {
-        this.showImageModal = true;
-        this.pendingImagePosition = position;
-        this.pendingImageSide = this.activeSide;
-        return;
-      }
+    elementMachanism(data?: any) {
+      const item = data.item;
+      const position = data.position;
 
       const newElement: CanvasElement = {
         id: Date.now(),
@@ -82,7 +81,7 @@ export const useCanvasStore = defineStore("canvasStore", {
         label: `${item.label}`,
         position,
         properties: {
-          size: { width: 200, height: 64 },
+          size: { width: data.width ?? "", height: data.height ?? "" },
           rotation: 0,
           font: "Roboto",
           fontWeight: "normal",
@@ -98,7 +97,7 @@ export const useCanvasStore = defineStore("canvasStore", {
           horizontalAlign:
             item.type === "h1" || item.type === "p" ? "center" : "",
           textTransform: "none",
-          src: "",
+          src: data.dataUrl ?? "",
           strokeColor: "",
           strokeWidth: 0,
           associatedData: "",
@@ -113,6 +112,20 @@ export const useCanvasStore = defineStore("canvasStore", {
         isDragging: false,
         visible: true,
       };
+
+      return newElement;
+    },
+    addElementFromDrag(item: any, position: Position) {
+      if (item.type === "img") {
+        this.showImageModal = true;
+        this.pendingImagePosition = position;
+        this.pendingImageSide = this.activeSide;
+        return;
+      }
+
+      const data = { item: item, position: position, width: 200, height: 64 };
+
+      const newElement = this.elementMachanism(data);
 
       this.addElement(newElement);
       this.selectedElement = newElement.id;
@@ -129,6 +142,34 @@ export const useCanvasStore = defineStore("canvasStore", {
 
     handleImageUploaded(dataUrl: string) {
       if (this.pendingImagePosition && this.pendingImageSide) {
+        const data = {
+          item: {
+            text: "",
+            type: "img",
+            label: "Image",
+          },
+          position: this.pendingImagePosition,
+          dataUrl: dataUrl,
+          width: 150,
+          height: 150,
+        };
+
+        const newElement = this.elementMachanism(data);
+
+        if (this.pendingImageSide === "front") {
+          this.frontBoxes.push(newElement);
+        } else {
+          this.backBoxes.push(newElement);
+        }
+        this.pendingImagePosition = null;
+        this.pendingImageSide = null;
+        this.selectedElement = newElement.id;
+        this.updateProperties();
+      }
+    },
+
+    handleQRCodeGenerator() {
+      if (this.pendingImagePosition && this.pendingImageSide) {
         const newElement: CanvasElement = {
           id: Date.now(),
           text: "",
@@ -136,7 +177,7 @@ export const useCanvasStore = defineStore("canvasStore", {
           label: "Image",
           position: this.pendingImagePosition,
           properties: {
-            size: { width: 250, height: 150 },
+            size: { width: 150, height: 150 },
             rotation: 0,
             font: "",
             fontWeight: "normal",
@@ -150,7 +191,7 @@ export const useCanvasStore = defineStore("canvasStore", {
             verticalAlign: "",
             horizontalAlign: "",
             textTransform: "",
-            src: dataUrl,
+            src: "",
             strokeColor: "",
             strokeWidth: 0,
             associatedData: "",
@@ -192,8 +233,8 @@ export const useCanvasStore = defineStore("canvasStore", {
         element.text = newProperties.text ?? element.text;
       }
       this.currentProperties = {
-        x: element.position.left,
-        y: element.position.top,
+        x: Math.floor(element.position.left),
+        y: Math.floor(element.position.top),
         size: { ...element.properties.size },
         rotation: element.properties.rotation,
         font: element.properties.font,
@@ -283,10 +324,16 @@ export const useCanvasStore = defineStore("canvasStore", {
       this.updateProperties(this.currentProperties);
     },
 
-    makeTransparent() {
-      this.currentProperties.fillTransparency = true;
-      this.currentProperties.fillColor = "transparent";
-      this.updateProperties(this.currentProperties);
+    makeTransparent(color: string) {
+      if (color === "fillColor") {
+        this.currentProperties.fillTransparency = true;
+        this.currentProperties.fillColor = "transparent";
+        this.updateProperties(this.currentProperties);
+      } else {
+        // this.currentProperties.fillTransparency = true;
+        this.currentProperties.color = "transparent";
+        this.updateProperties(this.currentProperties);
+      }
     },
 
     applyTextAlign(align: string) {

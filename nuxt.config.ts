@@ -29,6 +29,7 @@ export default defineNuxtConfig({
     "pinia-plugin-persistedstate/nuxt",
     "nuxt-color-picker",
     "@nuxtjs/google-fonts",
+    "nuxt-qrcode",
   ],
 
   tailwindcss: {
@@ -80,6 +81,21 @@ export default defineNuxtConfig({
       Assistant: true,
     },
     display: "swap",
+  },
+
+  qrcode: {
+    options: {
+      variant: "pixelated",
+      // OR
+      variant: {
+        inner: "circle",
+        marker: "rounded",
+        pixel: "rounded",
+      },
+      radius: 1,
+      blackColor: "currentColor", // 'var(--ui-text-highlighted)' if you are using `@nuxt/ui` v3
+      whiteColor: "transparent", // 'var(--ui-bg)'
+    },
   },
 
   build: {

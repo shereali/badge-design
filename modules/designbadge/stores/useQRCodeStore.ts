@@ -1,13 +1,16 @@
 import { defineStore } from "pinia";
 
+export interface QRCodeState {
+  showModal: boolean;
+}
 export const useQRCodeStore = defineStore("QRCode", {
-  state: () => ({
-    isOpen: false,
+  state: (): QRCodeState => ({
+    showModal: false,
   }),
 
   actions: {
-    toggleModal() {
-      this.isOpen = !this.isOpen;
+    qrCodetoggleModal() {
+      this.showModal = !this.showModal;
     },
   },
 });
