@@ -200,12 +200,12 @@ const designGroups = [
     items: [
       {
         type: "h1",
-        label: "LAST NAME",
+        label: "First Name",
         icon: "streamline-flex-color:copy-2-flat",
       },
       {
         type: "h1",
-        label: "FIRST NAME",
+        label: "Last Name",
         icon: "streamline-flex-color:copy-2-flat",
       },
       {
@@ -213,26 +213,26 @@ const designGroups = [
         label: "Full Name",
         icon: "streamline-flex-color:copy-2-flat",
       },
-      { type: "p", label: "EMAIL", icon: "streamline-flex-color:copy-2-flat" },
+      { type: "p", label: "Email", icon: "streamline-flex-color:copy-2-flat" },
       {
         type: "p",
-        label: "COMPANY NAME",
+        label: "Company Name",
         icon: "streamline-flex-color:copy-2-flat",
       },
       {
         type: "p",
-        label: "DESIGNATION",
+        label: "Designation",
         icon: "streamline-flex-color:copy-2-flat",
       },
-      { type: "p", label: "ROLE", icon: "streamline-flex-color:copy-2-flat" },
+      { type: "p", label: "Role", icon: "streamline-flex-color:copy-2-flat" },
       {
         type: "p",
-        label: "USER ID",
+        label: "User ID",
         icon: "streamline-flex-color:copy-2-flat",
       },
       {
-        type: "eventlogo",
-        label: "AVATAR",
+        type: "img",
+        label: "Avatar",
         icon: "streamline-flex-color:copy-2-flat",
       },
     ],
