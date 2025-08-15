@@ -120,7 +120,11 @@
 
           <!-- Content -->
           <component
-            v-if="box.type !== 'img'"
+            v-if="
+              checkElementTypes.find((item) =>
+                checkElementTypes.includes(box.type)
+              )
+            "
             :is="box.type"
             contenteditable
             class="focus:border focus:outline-none focus:border-blue-500 cursor-move leading-tight w-full h-full flex"
@@ -134,10 +138,15 @@
           </component>
 
           <img
-            v-else
+            v-if="box.type === 'img'"
             :src="box.properties.src.src"
             class="w-full h-full object-contain cursor-pointer select-none"
             @error="handleImageError"
+          />
+          <Qrcode
+            v-if="box.type === 'qrcode'"
+            value="My string to encode"
+            variant="pixelated"
           />
         </div>
       </template>
@@ -155,6 +164,7 @@ const props = defineProps({
 });
 
 const canvas = ref(null);
+const checkElementTypes = ["h1", "h2", "h3", "h4", "h6", "p", "a", "span"];
 const directions = [
   "top-left",
   "top",
@@ -199,6 +209,8 @@ function activateElement(index, event) {
   selectedBoxIndex = index;
   startDrag(index, event);
   store.selectedElement = store.boxes[index].id;
+  store.selectedElementType = store.boxes[index].type;
+  store.activeTab = "properties";
   store.updateProperties();
   // Focus text element if it's a text type
   if (["h1", "p"].includes(store.boxes[index].type)) {
