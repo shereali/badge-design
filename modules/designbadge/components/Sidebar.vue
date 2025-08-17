@@ -209,18 +209,25 @@
     <div v-if="store.activeTab === 'properties'" class="space-y-2">
       <Properties />
     </div>
-    <!-- Layers Tab -->
     <div v-if="store.activeTab === 'layers'" class="space-y-2">
       <ul>
         <li
-          v-for="layer in layers"
+          v-for="(layer, index) in layers"
           :key="layer.id"
-          @click="store.selectLayer(layer.id)"
-          class="p-2 rounded cursor-pointer hover:bg-gray-200"
+          draggable="true"
+          @dragstart="startLayerDrag($event, index)"
+          @dragover.prevent
+          @drop="onLayerDrop($event, index)"
+          @click="selectLayer(layer.id)"
+          class="p-2 rounded cursor-move hover:bg-gray-200 border border-gray-200"
           :class="{ 'bg-blue-200': selectedLayer === layer.id }"
         >
           <div class="flex items-center justify-between">
-            <span>{{ layer.name }} ({{ layer.type }})</span>
+            <div class="flex items-center">
+              <Icon name="mdi:drag" class="text-xl" />
+              <span> {{ layer.name }} ({{ layer.type }})</span>
+            </div>
+
             <button
               @click.stop="store.toggleLayerVisibility(layer.id)"
               class="text-blue-500"
@@ -242,6 +249,8 @@
 import { useCanvasStore } from "@/stores/useCanvasStore";
 import { usePageStore } from "@/stores/usePageStore";
 import { useQRCodeStore } from "@/stores/useQRCodeStore";
+import { ref } from "vue";
+
 const pageStore = usePageStore();
 const qrcodeStore = useQRCodeStore();
 const store = useCanvasStore();
@@ -255,16 +264,31 @@ defineProps({
   displayOption: String,
 });
 
-const emit = defineEmits(["drag-start", "drag-end"]);
+const emit = defineEmits(["drag-start", "drag-end"]); // Reduced emits
 
-function startSidebarDrag(event, item) {
-  emit("drag-start", item);
+function startLayerDrag(event, index) {
+  event.dataTransfer.setData("text/plain", index);
 }
 
-function emitDragEnd(event, item) {
-  const x = event.clientX;
-  const y = event.clientY;
-  emit("drag-end", { item, x, y });
+function onLayerDrop(event, dropIndex) {
+  event.preventDefault();
+  const dragIndex = parseInt(event.dataTransfer.getData("text/plain"));
+  if (dragIndex === dropIndex) return;
+
+  const boxes =
+    store.activeSide === "front" ? store.frontBoxes : store.backBoxes;
+  const [movedBox] = boxes.splice(dragIndex, 1);
+  boxes.splice(dropIndex, 0, movedBox);
+
+  boxes.forEach((box, index) => {
+    box.zIndex = boxes.length - index; // Higher index = lower z-index
+  });
+
+  store.boxes = [...boxes]; // Trigger reactivity
+}
+
+function selectLayer(layerId) {
+  store.selectLayer(layerId);
 }
 
 const sidebarInfo = ref([]);
@@ -277,135 +301,24 @@ const { data, pending, error } = await useFetch(
 );
 
 if (pending.value == false) {
-  // console.log("sidebarinfo", data.value);
   sidebarInfo.value = data.value;
-  // designGroups.value = data.value.designGroups;
-
-  console.log("sidebarInfo", sidebarInfo.value);
 }
 
-// const openGroups = ref({
-//   user_info: false,
-//   event_info: false,
-//   qrcode: false,
-//   background: false,
-//   static_field: false,
-//   punching_area: false,
-// });
+// Existing functions (unchanged)
+function startSidebarDrag(event, item) {
+  emit("drag-start", item);
+}
 
-// const designGroups = [
-//   {
-//     type: "user_info",
-//     label: "User Info",
-//     icon: "mdi:account",
-//     items: [
-//       {
-//         type: "h1",
-//         label: "First Name",
-//         icon: "streamline-flex-color:copy-2-flat",
-//       },
-//       {
-//         type: "h1",
-//         label: "Last Name",
-//         icon: "streamline-flex-color:copy-2-flat",
-//       },
-//       {
-//         type: "h1",
-//         label: "Full Name",
-//         icon: "streamline-flex-color:copy-2-flat",
-//       },
-//       { type: "p", label: "Email", icon: "streamline-flex-color:copy-2-flat" },
-//       {
-//         type: "p",
-//         label: "Company Name",
-//         icon: "streamline-flex-color:copy-2-flat",
-//       },
-//       {
-//         type: "p",
-//         label: "Designation",
-//         icon: "streamline-flex-color:copy-2-flat",
-//       },
-//       { type: "p", label: "Role", icon: "streamline-flex-color:copy-2-flat" },
-//       {
-//         type: "p",
-//         label: "User ID",
-//         icon: "streamline-flex-color:copy-2-flat",
-//       },
-//       {
-//         type: "img",
-//         label: "Avatar",
-//         icon: "streamline-flex-color:copy-2-flat",
-//       },
-//     ],
-//   },
-//   {
-//     type: "event_info",
-//     label: "Event Info",
-//     icon: "mdi:calendar",
-//     items: [
-//       {
-//         type: "h1",
-//         label: "Event Name",
-//         icon: "streamline-flex-color:copy-2-flat",
-//       },
-//       { type: "p", label: "Venue", icon: "streamline-flex-color:copy-2-flat" },
-//       { type: "p", label: "Date", icon: "streamline-flex-color:copy-2-flat" },
-//       {
-//         type: "p",
-//         label: "ZIP Code",
-//         icon: "streamline-flex-color:copy-2-flat",
-//       },
-//       { type: "p", label: "City", icon: "streamline-flex-color:copy-2-flat" },
-//       {
-//         type: "img",
-//         label: "Event Logo",
-//         icon: "streamline-flex-color:copy-2-flat",
-//       },
-//     ],
-//   },
-//   {
-//     type: "qrcode",
-//     label: "QR Code",
-//     icon: "mdi:qrcode",
-//     items: [{ type: "qrcode", label: "QR Code", icon: "mdi:qrcode" }],
-//   },
-//   {
-//     type: "background",
-//     label: "Background",
-//     icon: "mdi:image",
-//     items: [
-//       { type: "background", label: "Image", icon: "mdi:image" },
-//       { type: "gradient", label: "Gradient", icon: "mdi:gradient" },
-//       { type: "color", label: "Color", icon: "mdi:palette" },
-//       { type: "none", label: "None", icon: "mdi:close" },
-//     ],
-//   },
-//   {
-//     type: "static_field",
-//     label: "Static Fields",
-//     icon: "mdi:shape",
-//     items: [
-//       { type: "p", label: "Text", icon: "mdi:text" },
-//       { type: "img", label: "Image", icon: "mdi:image" },
-//       { type: "rectangle", label: "Rectangle", icon: "mdi:rectangle" },
-//     ],
-//   },
-//   {
-//     type: "punching_area",
-//     label: "Punching Area Reference",
-//     icon: "mdi:gesture-tap",
-//     items: [
-//       { type: "punching_area", label: "None", icon: "mdi:close" },
-//       { type: "punching_area", label: "Top", icon: "mdi:arrow-up" },
-//       { type: "punching_area", label: "Bottom", icon: "mdi:arrow-down" },
-//     ],
-//   },
-// ];
+function emitDragEnd(event, item) {
+  const x = event.clientX;
+  const y = event.clientY;
+  emit("drag-end", { item, x, y });
+}
 
-const toggleGroup = (groupType) => {
+function toggleGroup(groupType) {
   sidebarInfo.value.data.openGroups[groupType] =
     !sidebarInfo.value.data.openGroups[groupType];
-};
+}
 
 function openImageUploadModal(item) {
   store.imageItem = item;
@@ -426,6 +339,17 @@ function removeBackground() {
 </script>
 
 <style scoped>
+li[draggable="true"] {
+  user-select: none;
+}
+
+li[draggable="true"]:hover {
+  background-color: #e5e7eb;
+}
+
+li[draggable="true"][dragging] {
+  opacity: 0.5;
+}
 .transparent {
   display: flex;
   align-items: center;

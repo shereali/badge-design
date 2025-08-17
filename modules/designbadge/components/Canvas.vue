@@ -56,6 +56,7 @@
               box.properties.strokeWidth > 0
                 ? `${box.properties.strokeWidth}px solid ${box.properties.strokeColor}`
                 : 'none',
+            zIndex: box.zIndex || 0,
           }"
           @mousedown.stop="activateElement(index, $event)"
           @keydown="deleteItem($event)"

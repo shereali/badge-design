@@ -38,10 +38,9 @@
               Back
             </button>
           </div>
-
           <!-- Zoom & Grid Controls -->
           <div
-            class="flex items -center space-x-2 bg-white rounded-lg p-1 shadow-sm"
+            class="flex items-center space-x-2 bg-white rounded-lg p-1 shadow-sm"
           >
             <button
               class="w-9 h-9 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300 transition"
@@ -70,7 +69,6 @@
           </div>
         </div>
       </div>
-
       <!-- Design Page -->
       <div
         class="flex-1 w-full flex justify-center items-start overflow-auto mt-3"
@@ -112,7 +110,6 @@
         </div>
       </div>
     </div>
-
     <!-- Sidebar -->
     <div
       class="w-full p-4 md:w-1/5 bg-gray-50 shadow-sm border-t md:border-t-0 md:border-l order-1 md:order-2 lg:overflow-y-auto"
@@ -128,7 +125,6 @@
         @drag-end="onDragEnd"
       />
     </div>
-
     <!-- Modals -->
     <ImageUploadModal
       v-if="store.showImageModal"
@@ -158,6 +154,7 @@
 <script setup>
 import { useCanvasStore } from "@/stores/useCanvasStore";
 import { usePageStore } from "@/stores/usePageStore";
+import { ref, computed } from "vue";
 
 const pageStore = usePageStore();
 const store = useCanvasStore();
@@ -196,17 +193,14 @@ const onDragEnd = ({ item, x, y }) => {
   const dropXPos = x - rect.left;
   const dropYPos = y - rect.top;
 
-  // Get canvas dimensions
   const canvasWidth = rect.width;
   const canvasHeight = rect.height;
 
-  // Default element size (same as used in useCanvasStore.ts)
   const elementWidth =
     item.type === "background" ? pageStore.presetWidth * 3.78 : 200;
   const elementHeight =
     item.type === "background" ? pageStore.presetHeight * 3.78 : 64;
 
-  // Ensure the element stays within the drop zone
   const adjustedX = Math.max(0, Math.min(dropXPos, canvasWidth - elementWidth));
   const adjustedY = Math.max(
     0,
@@ -221,8 +215,6 @@ const handleDrop = (event) => {
 };
 
 const handleImageUploaded = (dataUrl) => {
-  console.log("image upload", store.selectedElementType);
-
   store.handleImageUploaded(dataUrl);
   store.showImageModal = false;
 };
