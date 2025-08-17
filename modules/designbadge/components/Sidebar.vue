@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div v-if="sidebarInfo?.data?.designGroups?.length">
     <div class="flex mb-4">
       <button
         class="flex-1 p-2"
@@ -25,6 +25,7 @@
     </div>
 
     <!-- Design Tab Content -->
+
     <div
       v-if="store.activeTab === 'design' && pending == false"
       class="space-y-1"
@@ -291,18 +292,27 @@ function selectLayer(layerId) {
   store.selectLayer(layerId);
 }
 
-const sidebarInfo = ref([]);
-
 let openGroups = ref({});
 let designGroups = ref([]);
 
-const { data, pending, error } = await useFetch(
+const sidebarInfo = ref(null);
+const retryCount = ref(0);
+const maxRetries = 3;
+
+const { data, pending, refresh, error } = await useFetch(
   "https://admin.expouse.com/api/event/28/onsite/badges/initial-data?token=Z0LH5I"
 );
 
-if (pending.value == false) {
-  sidebarInfo.value = data.value;
-}
+watchEffect(() => {
+  if (!pending.value) {
+    if (data.value) {
+      sidebarInfo.value = data.value;
+    } else if (retryCount.value < maxRetries) {
+      retryCount.value++;
+      refresh();
+    }
+  }
+});
 
 // Existing functions (unchanged)
 function startSidebarDrag(event, item) {

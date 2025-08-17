@@ -41,6 +41,9 @@ export const usePageStore = defineStore("page", {
     },
 
     saveBadgeConfig() {
+      const route = useRoute();
+      const router = useRouter();
+
       let widthMM = this.customWidth;
       let heightMM = this.customHeight;
 
@@ -83,10 +86,14 @@ export const usePageStore = defineStore("page", {
       // Update pageWidth and pageHeight
       this.pageWidth = finalWidthPX;
       this.pageHeight = finalHeightPX;
+      console.log("route.path", route.path);
 
-      console.log("pageHeight", this.pageHeight);
+      // console.log("pageHeight", this.pageHeight);
 
       this.showModal = false;
+      if (route.path == "/design-badge") {
+        router.push("/design-badge/page-builder");
+      }
     },
 
     updateCustomSize() {

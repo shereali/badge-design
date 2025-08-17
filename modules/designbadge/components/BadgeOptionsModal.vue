@@ -246,7 +246,7 @@
             Cancel
           </button>
           <button
-            @click="pageStore.saveBadgeConfig"
+            @click="pageStore.saveBadgeConfig()"
             class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
           >
             OK
@@ -259,7 +259,13 @@
 
 <script setup>
 import { usePageStore } from "@/stores/usePageStore";
+import { useCanvasStore } from "@/stores/useCanvasStore";
+
 const pageStore = usePageStore();
+
+const store = useCanvasStore();
+const route = useRoute();
+const router = useRouter();
 
 // const props = defineProps({
 //   show: Boolean,

@@ -6,25 +6,25 @@
         <div class="flex-shrink-0">
           <a href="/" class="flex items-center space-x-2">
             <img
-              src="https://via.placeholder.com/40"
+              src="https://admin.expouse.com/bcknd/src/assets/img/EXPOUSE-LOGO2.svg"
               alt="Logo"
-              class="w-10 h-10"
+              class="object-cover"
             />
-            <span class="text-xl font-semibold">EventHub</span>
+            <!-- <span class="text-xl font-semibold">Expouse - Badge</span> -->
           </a>
         </div>
 
         <!-- Desktop Navigation Links -->
         <div class="hidden md:flex items-center space-x-6">
           <a
-            href="/home"
+            href="/design-badge"
             class="hover:text-gray-300 px-3 py-2 rounded-md text-sm font-medium transition-colors"
             >Home</a
           >
           <a
-            href="/events"
+            href="/design-badge/page-builder"
             class="hover:text-gray-300 px-3 py-2 rounded-md text-sm font-medium transition-colors"
-            >Events</a
+            >Page Builder</a
           >
           <a
             href="/schedule"
@@ -32,7 +32,7 @@
             >Schedule</a
           >
           <a
-            href="/dashboard"
+            href="/design-page"
             class="hover:text-gray-300 px-3 py-2 rounded-md text-sm font-medium transition-colors"
             >Dashboard</a
           >
@@ -46,7 +46,7 @@
               class="flex items-center space-x-2 focus:outline-none"
             >
               <img
-                src="https://via.placeholder.com/40"
+                src="/assets/img/profile.jpg"
                 alt="User Avatar"
                 class="w-8 h-8 rounded-full border border-gray-600"
               />
