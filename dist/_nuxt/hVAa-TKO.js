@@ -1,2 +1,0 @@
-import{_ as t}from"./DlAUqK2U.js";import{x as o,z as s,y as a}from"./DKi7S-AL.js";const n={},r={class:"container mx-auto p-4"};function c(i,e){return a(),o("div",r,e[0]||(e[0]=[s("h1",{class:"text-2xl font-bold mb-4"},"Badge Design Home Page",-1),s("p",{class:"mb-4"},"This is the Badge Design Layer of the application.",-1)]))}const m=t(n,[["render",c]]);export{m as default};
-//# sourceMappingURL=hVAa-TKO.js.map
