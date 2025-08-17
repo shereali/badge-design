@@ -5,6 +5,20 @@ interface Size {
   height: number;
 }
 
+interface Variant {
+  inner: string;
+  marker: string;
+  pixel: string;
+}
+
+interface QRCode {
+  value: string;
+  variant: string;
+  radius: number;
+  blackColor: string;
+  whiteColor: string;
+}
+
 interface Position {
   left: number;
   top: number;
@@ -34,8 +48,8 @@ interface ElementProperties {
   y: number;
   text: string;
   displayOption?: string;
+  qrcode: QRCode;
   direction: string;
-  qrcode: string;
 }
 
 interface CanvasElement {
@@ -86,7 +100,7 @@ export const useCanvasStore = defineStore("canvasStore", {
 
       const newElement: CanvasElement = {
         id: Date.now(),
-        text: item.label || "Sample Text",
+        text: item.value || "Sample Text",
         type: item.type,
         label: `${item.label}`,
         position,
@@ -127,14 +141,6 @@ export const useCanvasStore = defineStore("canvasStore", {
       return newElement;
     },
     addElementFromDrag(item: any, position: Position) {
-      if (item.type === "img" || item.type === "background") {
-        this.imageItem = item;
-        this.showImageModal = true;
-        this.pendingImagePosition = position;
-        this.pendingImageSide = this.activeSide;
-        return;
-      }
-
       // Ensure position is within drop zone
       const pageStore = usePageStore();
       const canvasWidth =
@@ -164,72 +170,78 @@ export const useCanvasStore = defineStore("canvasStore", {
     },
 
     handleImageUploaded(dataUrl: string) {
-      if (this.pendingImagePosition && this.pendingImageSide) {
-        const pageStore = usePageStore();
-        const customPosition = {
-          left: 198,
-          top: 277,
-        };
-        const canvasWidth =
-          this.dropzone?.offsetWidth || pageStore.presetWidth * 3.78;
-        const canvasHeight =
-          this.dropzone?.offsetHeight || pageStore.presetHeight * 3.78;
-        const elementWidth =
-          this.imageItem.type === "background"
-            ? pageStore.presetWidth * 3.78
-            : 150;
-        const elementHeight =
-          this.imageItem.type === "background"
-            ? pageStore.presetHeight * 3.78
-            : 150;
+      // if (item.type === "img" || item.type === "background") {
+      //   this.imageItem = item;
+      //   this.showImageModal = true;
+      const position = { left: 123, top: 204 };
+      this.pendingImagePosition = position;
+      this.pendingImageSide = this.activeSide;
+      //   return;
+      // }
 
-        // Ensure position is within drop zone
-        const adjustedPosition = {
-          left: Math.max(
-            0,
-            Math.min(
-              this.imageItem.type === "background"
-                ? customPosition.left
-                : this.pendingImagePosition.left,
-              canvasWidth - elementWidth
-            )
-          ),
-          top: Math.max(
-            0,
-            Math.min(
-              this.imageItem.type === "background"
-                ? customPosition.top
-                : this.pendingImagePosition.top,
-              canvasHeight - elementHeight
-            )
-          ),
-        };
+      const pageStore = usePageStore();
+      const customPosition = {
+        left: 198,
+        top: 277,
+      };
+      const canvasWidth =
+        this.dropzone?.offsetWidth || pageStore.presetWidth * 3.78;
+      const canvasHeight =
+        this.dropzone?.offsetHeight || pageStore.presetHeight * 3.78;
+      const elementWidth =
+        this.imageItem.type === "background"
+          ? pageStore.presetWidth * 3.78
+          : 150;
+      const elementHeight =
+        this.imageItem.type === "background"
+          ? pageStore.presetHeight * 3.78
+          : 150;
 
-        const data = {
-          item: {
-            text: this.imageItem.label,
-            type: this.imageItem.type,
-            label:
-              this.imageItem.type === "background" ? "background" : "Image",
-          },
-          position: adjustedPosition,
-          dataUrl: dataUrl,
-          width: elementWidth,
-          height: elementHeight,
-        };
+      // Ensure position is within drop zone
+      const adjustedPosition = {
+        left: Math.max(
+          0,
+          Math.min(
+            this.imageItem.type === "background"
+              ? customPosition.left
+              : this.pendingImagePosition.left,
+            canvasWidth - elementWidth
+          )
+        ),
+        top: Math.max(
+          0,
+          Math.min(
+            this.imageItem.type === "background"
+              ? customPosition.top
+              : this.pendingImagePosition.top,
+            canvasHeight - elementHeight
+          )
+        ),
+      };
 
-        const newElement = this.elementMachanism(data);
+      const data = {
+        item: {
+          text: this.imageItem.label,
+          type: this.imageItem.type,
+          label: this.imageItem.type === "background" ? "background" : "Image",
+        },
+        position: adjustedPosition,
+        dataUrl: dataUrl,
+        width: elementWidth,
+        height: elementHeight,
+      };
 
-        if (this.pendingImageSide === "front") {
-          this.frontBoxes.push(newElement);
-        } else {
-          this.backBoxes.push(newElement);
-        }
-        this.pendingImagePosition = null;
-        this.pendingImageSide = null;
-        this.selectedElement = newElement.id;
-        this.updateProperties();
+      const newElement = this.elementMachanism(data);
+
+      if (this.pendingImageSide === "front") {
+        this.frontBoxes.push(newElement);
+      } else {
+        this.backBoxes.push(newElement);
       }
+      this.pendingImagePosition = null;
+      this.pendingImageSide = null;
+      this.selectedElement = newElement.id;
+      this.updateProperties();
     },
 
     addElement(element: CanvasElement) {
@@ -283,7 +295,14 @@ export const useCanvasStore = defineStore("canvasStore", {
     //   }
     // },
 
-    handleQRCodeGenerator(qrcode: string) {
+    handleQRCodeGenerator(qrcodeValue: string) {
+      const qrcodeData = {
+        value: qrcodeValue,
+        variant: "pixelated",
+        radius: 1,
+        blackColor: "#000000", // 'var(--ui-text-highlighted)' if you are using `@nuxt/ui` v3
+        whiteColor: "transparent",
+      };
       const data = {
         item: {
           text: "",
@@ -296,7 +315,7 @@ export const useCanvasStore = defineStore("canvasStore", {
         },
         width: 150,
         height: 150,
-        qrcode: qrcode,
+        qrcode: qrcodeData,
       };
 
       const newElement = this.elementMachanism(data);
@@ -344,6 +363,7 @@ export const useCanvasStore = defineStore("canvasStore", {
         content: element.properties.content,
         text: element.text,
         displayOption: element.properties.displayOption,
+        qrcode: element.properties.qrcode,
         direction: element.properties.direction,
       };
     },

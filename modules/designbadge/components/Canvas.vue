@@ -161,8 +161,11 @@
 
           <Qrcode
             v-if="box.type === 'qrcode'"
-            :value="box.properties.qrcode"
-            variant="pixelated"
+            :value="box.properties.qrcode.value"
+            :variant="box.properties.qrcode.variant"
+            :radius="box.properties.qrcode.radius"
+            :blackColor="box.properties.qrcode.blackColor"
+            :whiteColor="box.properties.qrcode.whiteColor"
             @keydown="deleteItem(index, $event)"
           />
         </div>

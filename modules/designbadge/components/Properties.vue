@@ -7,88 +7,86 @@
     </div>
 
     <template v-else>
-      <!-- Geometry Section -->
-      <div class="bg-white p-3 border-b border-gray-200">
-        <div class="grid grid-cols-6 gap-1 mb-3">
-          <Icon
-            @click="store.alignHorizontal('left')"
-            name="solar:align-left-broken"
-            class="text-xl p-1 hover:text-blue-600 cursor-pointer"
-            :class="{
-              'text-blue-700': store.currentProperties.textAlign === 'left',
-            }"
-            aria-hidden="true"
-          />
-          <Icon
-            @click="store.alignHorizontal('center')"
-            name="streamline-ultimate:align-center"
-            class="text-xl p-1 hover:text-blue-600 cursor-pointer"
-            :class="{
-              'text-blue-700': store.currentProperties.textAlign === 'center',
-            }"
-            aria-hidden="true"
-          />
-          <Icon
-            @click="store.alignHorizontal('right')"
-            name="solar:align-right-broken"
-            class="text-xl p-1 hover:text-blue-600 cursor-pointer"
-            :class="{
-              'text-blue-700': store.currentProperties.textAlign === 'right',
-            }"
-            aria-hidden="true"
-          />
-          <Icon
-            @click="store.alignVertical('top')"
-            name="mdi:format-align-top"
-            class="text-xl p-1 hover:text-blue-600 cursor-pointer"
-            :class="{
-              'text-blue-700': store.currentProperties.verticalAlign === 'top',
-            }"
-            aria-hidden="true"
-          />
-          <Icon
-            @click="store.alignVertical('middle')"
-            name="mdi:format-align-middle"
-            class="text-xl p-1 hover:text-blue-600 cursor-pointer"
-            :class="{
-              'text-blue-700':
-                store.currentProperties.verticalAlign === 'middle',
-            }"
-            aria-hidden="true"
-          />
-          <Icon
-            @click="store.alignVertical('bottom')"
-            name="mdi:format-align-bottom"
-            class="text-xl p-1 hover:text-blue-600 cursor-pointer"
-            :class="{
-              'text-blue-700':
-                store.currentProperties.verticalAlign === 'bottom',
-            }"
-            aria-hidden="true"
-          />
-        </div>
-        <div
-          class="flex items-center justify-between cursor-pointer"
-          @click="toggleSection('geometry')"
-        >
-          <div class="flex items-center">
+      <div class="bg-white leading-tight space-y-2">
+        <!-- Alignment Section -->
+        <div class="bg-white p-3 border-b border-gray-200">
+          <div class="grid grid-cols-6 gap-1">
             <Icon
-              name="tabler:geometry"
-              class="text-xl p-1 text-gray-600"
-              aria-hidden="true"
+              @click="store.alignHorizontal('left')"
+              name="solar:align-left-broken"
+              class="text-xl p-1 hover:text-blue-600 cursor-pointer"
+              :class="{
+                'text-blue-700': store.currentProperties.textAlign === 'left',
+              }"
             />
-            <span class="font-semibold text-gray-700">Geometry</span>
+            <Icon
+              @click="store.alignHorizontal('center')"
+              name="streamline-ultimate:align-center"
+              class="text-xl p-1 hover:text-blue-600 cursor-pointer"
+              :class="{
+                'text-blue-700': store.currentProperties.textAlign === 'center',
+              }"
+            />
+            <Icon
+              @click="store.alignHorizontal('right')"
+              name="solar:align-right-broken"
+              class="text-xl p-1 hover:text-blue-600 cursor-pointer"
+              :class="{
+                'text-blue-700': store.currentProperties.textAlign === 'right',
+              }"
+            />
+            <Icon
+              @click="store.alignVertical('top')"
+              name="mdi:format-align-top"
+              class="text-xl p-1 hover:text-blue-600 cursor-pointer"
+              :class="{
+                'text-blue-700':
+                  store.currentProperties.verticalAlign === 'top',
+              }"
+            />
+            <Icon
+              @click="store.alignVertical('middle')"
+              name="mdi:format-align-middle"
+              class="text-xl p-1 hover:text-blue-600 cursor-pointer"
+              :class="{
+                'text-blue-700':
+                  store.currentProperties.verticalAlign === 'middle',
+              }"
+            />
+            <Icon
+              @click="store.alignVertical('bottom')"
+              name="mdi:format-align-bottom"
+              class="text-xl p-1 hover:text-blue-600 cursor-pointer"
+              :class="{
+                'text-blue-700':
+                  store.currentProperties.verticalAlign === 'bottom',
+              }"
+            />
           </div>
-          <Icon
-            :name="
-              openSections.geometry ? 'mdi:chevron-up' : 'mdi:chevron-down'
-            "
-            class="text-gray-600"
-          />
         </div>
 
-        <div v-show="openSections.geometry" class="mt-2">
-          <div class="grid grid-cols-2 gap-3">
+        <!-- Geometry Section -->
+        <div class="bg-white p-3 border shadow-sm">
+          <div
+            class="flex items-center justify-between cursor-pointer"
+            @click="toggleSection('geometry')"
+          >
+            <div class="flex items-center">
+              <Icon name="tabler:geometry" class="text-xl p-1 text-gray-600" />
+              <span class="font-semibold text-gray-700">Geometry</span>
+            </div>
+            <Icon
+              :name="
+                openSections.geometry ? 'mdi:chevron-up' : 'mdi:chevron-down'
+              "
+              class="text-gray-600"
+            />
+          </div>
+
+          <div
+            v-show="openSections.geometry"
+            class="mt-3 grid grid-cols-2 gap-3"
+          >
             <!-- X -->
             <div class="border rounded flex items-center">
               <span class="p-1 bg-gray-200 text-gray-700 w-8 text-center"
@@ -148,6 +146,86 @@
                 class="w-full px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-300 rounded-r"
                 @input="store.updateProperties(store.currentProperties)"
               />
+            </div>
+          </div>
+        </div>
+
+        <!-- QR Code Section -->
+        <div
+          v-if="store.selectedElementType === 'qrcode'"
+          class="bg-white p-3 border shadow-sm"
+        >
+          <div
+            class="flex items-center justify-between cursor-pointer"
+            @click="toggleSection('qrcode')"
+          >
+            <div class="flex items-center">
+              <Icon name="tabler:qrcode" class="text-xl p-1 text-gray-600" />
+              <span class="font-semibold text-gray-700">QR Code</span>
+            </div>
+            <Icon
+              :name="
+                openSections.qrcode ? 'mdi:chevron-up' : 'mdi:chevron-down'
+              "
+              class="text-gray-600"
+            />
+          </div>
+
+          <div v-show="openSections.qrcode" class="mt-3 space-y-6">
+            <!-- Variant Dropdown -->
+            <div>
+              <label class="block text-sm font-medium mb-2">Variant</label>
+              <select
+                v-model="store.currentProperties.qrcode.variant"
+                class="w-full outline-none border rounded-lg p-1 focus:ring focus:ring-blue-300"
+              >
+                <option value="defualt">Default</option>
+                <option value="circle">Circle</option>
+                <option value="dots">Dots</option>
+                <option value="rounded">Rounded</option>
+                <option value="pixelated">Pixelated</option>
+              </select>
+            </div>
+
+            <!-- Background Color Picker -->
+            <div>
+              <label class="block text-sm font-medium mb-2"
+                >Background Color</label
+              >
+              <input
+                type="color"
+                v-model="store.currentProperties.qrcode.blackColor"
+                class="w-full h-10 p-1 border rounded-lg cursor-pointer"
+              />
+            </div>
+
+            <!-- Foreground Color Picker -->
+            <div>
+              <label class="block text-sm font-medium mb-2"
+                >Foreground Color</label
+              >
+              <input
+                type="color"
+                v-model="store.currentProperties.qrcode.whiteColor"
+                class="w-full h-10 p-1 border rounded-lg cursor-pointer"
+              />
+            </div>
+
+            <!-- Border Radius -->
+            <div>
+              <label class="block text-sm font-medium mb-2"
+                >Border Radius (1–10)</label
+              >
+              <input
+                type="range"
+                min="1"
+                max="10"
+                v-model="store.currentProperties.qrcode.radius"
+                class="w-full"
+              />
+              <p class="text-sm text-gray-500 mt-1">
+                {{ store.currentProperties.qrcode.radius }}px
+              </p>
             </div>
           </div>
         </div>
@@ -629,8 +707,14 @@ import { useCanvasStore } from "@/stores/useCanvasStore";
 
 const store = useCanvasStore();
 
+const variant = ref("solid");
+const backgroundColor = ref("#3b82f6"); // default blue
+const foregroundColor = ref("#ffffff"); // default white
+const radius = ref(5);
+
 const openSections = ref({
-  geometry: true, // Geometry starts open
+  geometry: false, // Geometry starts open
+  qrcode: false, // Geometry starts open
   font: false,
   color: false,
   textAlignment: false,

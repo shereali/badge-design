@@ -1,5 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  debug: true,
   devtools: { enabled: true },
   sourcemap: {
     server: true,
@@ -85,7 +86,7 @@ export default defineNuxtConfig({
 
   qrcode: {
     options: {
-      variant: "pixelated",
+      // variant: "pixelated",
       // OR
       variant: {
         inner: "circle",

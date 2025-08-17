@@ -25,7 +25,11 @@
     </div>
 
     <!-- Design Tab Content -->
-    <div v-if="store.activeTab === 'design'" class="space-y-1">
+    <div
+      v-if="store.activeTab === 'design' && pending == false"
+      class="space-y-1"
+    >
+      <!-- {{ sidebarInfo.data.openGroups }} -->
       <div class="py-3 px-2 flex">
         <Icon name="quill:paper" class="text-2xl text-blue-600" />
         <span
@@ -41,33 +45,42 @@
         >
       </div>
       <div
-        v-for="group in designGroups"
+        v-for="group in sidebarInfo.data.designGroups"
         :key="group.type"
         class="bg-white border-b border-gray-300"
       >
+        <!-- Group Header -->
         <div
           @click="toggleGroup(group.type)"
           class="flex items-center p-2 cursor-pointer hover:bg-gray-50"
         >
           <Icon
             :name="group.icon"
-            class="text-2xl mr-2 bg-blue-600"
+            class="text-2xl mr-2 bg-blue-600 flex-shrink-0"
             aria-hidden="true"
           />
-          <span>{{ group.label }}</span>
+          <span class="leading-none">{{ group.label }}</span>
           <Icon
             name="mdi:chevron-down"
             class="ml-auto text-2xl"
-            :class="{ 'transform rotate-180': openGroups[group.type] }"
-            aria-hidden="true"
+            :class="{
+              'transform rotate-180': sidebarInfo.data.openGroups[group.type],
+            }"
           />
         </div>
-        <div v-if="openGroups[group.type]" class="pl-6 space-y-2 py-2">
+
+        <!-- Group Items -->
+        <div
+          v-if="sidebarInfo.data.openGroups[group.type]"
+          class="pl-6 space-y-2 py-2"
+        >
           <div
             v-for="item in group.items"
             :key="item.type"
             :draggable="
               item.type !== 'qrcode' &&
+              item.type !== 'img' &&
+              item.type !== 'background' &&
               item.type !== 'gradient' &&
               item.type !== 'color' &&
               item.type !== 'none'
@@ -80,42 +93,113 @@
             :class="{
               'cursor-move':
                 item.type !== 'qrcode' &&
+                item.type !== 'img' &&
+                item.type !== 'background' &&
                 item.type !== 'gradient' &&
                 item.type !== 'color' &&
                 item.type !== 'none',
               'cursor-pointer':
                 item.type === 'qrcode' ||
+                item.type === 'img' ||
+                item.type === 'background' ||
                 item.type === 'gradient' ||
                 item.type === 'color' ||
                 item.type === 'none',
             }"
             :data-type="item.type"
           >
+            <!-- QR Code -->
             <div
               v-if="item.type === 'qrcode'"
+              class="flex items-center flex-row"
               @click="qrcodeStore.qrCodetoggleModal"
             >
-              <Icon :name="item.icon" class="w-5 h-5 mr-2" aria-hidden="true" />
-              <span>{{ item.label }}</span>
+              <Icon
+                :name="item.icon"
+                class="text-xl mr-2 flex-shrink-0"
+                aria-hidden="true"
+              />
+              <span class="leading-none">{{ item.label }}</span>
             </div>
+
+            <!-- Image -->
             <div
+              class="flex items-center"
+              v-else-if="item.type === 'img'"
+              @click="openImageUploadModal(item)"
+            >
+              <Icon
+                :name="item.icon"
+                class="text-xl mr-2 flex-shrink-0"
+                aria-hidden="true"
+              />
+              <span class="leading-none">{{ item.label }}</span>
+            </div>
+
+            <!-- Background -->
+            <div
+              class="flex items-center"
+              v-else-if="item.type === 'background'"
+              @click="openImageUploadModal(item)"
+            >
+              <Icon
+                :name="item.icon"
+                class="text-xl mr-2 flex-shrink-0"
+                aria-hidden="true"
+              />
+              <span class="leading-none">{{ item.label }}</span>
+            </div>
+
+            <!-- Gradient -->
+            <div
+              class="flex items-center"
               v-else-if="item.type === 'gradient'"
               @click="openGradientModal"
             >
-              <Icon :name="item.icon" class="w-5 h-5 mr-2" aria-hidden="true" />
-              <span>{{ item.label }}</span>
+              <Icon
+                :name="item.icon"
+                class="text-xl mr-2 flex-shrink-0"
+                aria-hidden="true"
+              />
+              <span class="leading-none">{{ item.label }}</span>
             </div>
-            <div v-else-if="item.type === 'color'" @click="openColorModal">
-              <Icon :name="item.icon" class="w-5 h-5 mr-2" aria-hidden="true" />
-              <span>{{ item.label }}</span>
+
+            <!-- Color -->
+            <div
+              class="flex items-center"
+              v-else-if="item.type === 'color'"
+              @click="openColorModal"
+            >
+              <Icon
+                :name="item.icon"
+                class="text-xl mr-2 flex-shrink-0"
+                aria-hidden="true"
+              />
+              <span class="leading-none">{{ item.label }}</span>
             </div>
-            <div v-else-if="item.type === 'none'" @click="removeBackground">
-              <Icon :name="item.icon" class="w-5 h-5 mr-2" aria-hidden="true" />
-              <span>{{ item.label }}</span>
+
+            <!-- None -->
+            <div
+              class="flex items-center"
+              v-else-if="item.type === 'none'"
+              @click="removeBackground"
+            >
+              <Icon
+                :name="item.icon"
+                class="text-xl mr-2 flex-shrink-0"
+                aria-hidden="true"
+              />
+              <span class="leading-none">{{ item.label }}</span>
             </div>
-            <div v-else>
-              <Icon :name="item.icon" class="w-5 h-5 mr-2" aria-hidden="true" />
-              <span>{{ item.label }}</span>
+
+            <!-- Default Items -->
+            <div class="flex items-center" v-else>
+              <Icon
+                :name="item.icon"
+                class="text-xl mr-2 flex-shrink-0"
+                aria-hidden="true"
+              />
+              <span class="leading-none">{{ item.label }}</span>
             </div>
           </div>
         </div>
@@ -183,127 +267,150 @@ function emitDragEnd(event, item) {
   emit("drag-end", { item, x, y });
 }
 
-const openGroups = ref({
-  user_info: false,
-  event_info: false,
-  qrcode: false,
-  background: false,
-  static_field: false,
-  punching_area: false,
-});
+const sidebarInfo = ref([]);
 
-const designGroups = [
-  {
-    type: "user_info",
-    label: "User Info",
-    icon: "mdi:account",
-    items: [
-      {
-        type: "h1",
-        label: "First Name",
-        icon: "streamline-flex-color:copy-2-flat",
-      },
-      {
-        type: "h1",
-        label: "Last Name",
-        icon: "streamline-flex-color:copy-2-flat",
-      },
-      {
-        type: "h1",
-        label: "Full Name",
-        icon: "streamline-flex-color:copy-2-flat",
-      },
-      { type: "p", label: "Email", icon: "streamline-flex-color:copy-2-flat" },
-      {
-        type: "p",
-        label: "Company Name",
-        icon: "streamline-flex-color:copy-2-flat",
-      },
-      {
-        type: "p",
-        label: "Designation",
-        icon: "streamline-flex-color:copy-2-flat",
-      },
-      { type: "p", label: "Role", icon: "streamline-flex-color:copy-2-flat" },
-      {
-        type: "p",
-        label: "User ID",
-        icon: "streamline-flex-color:copy-2-flat",
-      },
-      {
-        type: "img",
-        label: "Avatar",
-        icon: "streamline-flex-color:copy-2-flat",
-      },
-    ],
-  },
-  {
-    type: "event_info",
-    label: "Event Info",
-    icon: "mdi:calendar",
-    items: [
-      {
-        type: "h1",
-        label: "Event Name",
-        icon: "streamline-flex-color:copy-2-flat",
-      },
-      { type: "p", label: "Venue", icon: "streamline-flex-color:copy-2-flat" },
-      { type: "p", label: "Date", icon: "streamline-flex-color:copy-2-flat" },
-      {
-        type: "p",
-        label: "ZIP Code",
-        icon: "streamline-flex-color:copy-2-flat",
-      },
-      { type: "p", label: "City", icon: "streamline-flex-color:copy-2-flat" },
-      {
-        type: "img",
-        label: "Event Logo",
-        icon: "streamline-flex-color:copy-2-flat",
-      },
-    ],
-  },
-  {
-    type: "qrcode",
-    label: "QR Code",
-    icon: "mdi:qrcode",
-    items: [{ type: "qrcode", label: "QR Code", icon: "mdi:qrcode" }],
-  },
-  {
-    type: "background",
-    label: "Background",
-    icon: "mdi:image",
-    items: [
-      { type: "background", label: "Image", icon: "mdi:image" },
-      { type: "gradient", label: "Gradient", icon: "mdi:gradient" },
-      { type: "color", label: "Color", icon: "mdi:palette" },
-      { type: "none", label: "None", icon: "mdi:close" },
-    ],
-  },
-  {
-    type: "static_field",
-    label: "Static Fields",
-    icon: "mdi:shape",
-    items: [
-      { type: "p", label: "Text", icon: "mdi:text" },
-      { type: "img", label: "Image", icon: "mdi:image" },
-      { type: "rectangle", label: "Rectangle", icon: "mdi:rectangle" },
-    ],
-  },
-  {
-    type: "punching_area",
-    label: "Punching Area Reference",
-    icon: "mdi:gesture-tap",
-    items: [
-      { type: "punching_area", label: "None", icon: "mdi:close" },
-      { type: "punching_area", label: "Top", icon: "mdi:arrow-up" },
-      { type: "punching_area", label: "Bottom", icon: "mdi:arrow-down" },
-    ],
-  },
-];
+let openGroups = ref({});
+let designGroups = ref([]);
+
+const { data, pending, error } = await useFetch(
+  "https://admin.expouse.com/api/event/28/onsite/badges/initial-data?token=Z0LH5I"
+);
+
+if (pending.value == false) {
+  // console.log("sidebarinfo", data.value);
+  sidebarInfo.value = data.value;
+  // designGroups.value = data.value.designGroups;
+
+  console.log("sidebarInfo", sidebarInfo.value);
+}
+
+// const openGroups = ref({
+//   user_info: false,
+//   event_info: false,
+//   qrcode: false,
+//   background: false,
+//   static_field: false,
+//   punching_area: false,
+// });
+
+// const designGroups = [
+//   {
+//     type: "user_info",
+//     label: "User Info",
+//     icon: "mdi:account",
+//     items: [
+//       {
+//         type: "h1",
+//         label: "First Name",
+//         icon: "streamline-flex-color:copy-2-flat",
+//       },
+//       {
+//         type: "h1",
+//         label: "Last Name",
+//         icon: "streamline-flex-color:copy-2-flat",
+//       },
+//       {
+//         type: "h1",
+//         label: "Full Name",
+//         icon: "streamline-flex-color:copy-2-flat",
+//       },
+//       { type: "p", label: "Email", icon: "streamline-flex-color:copy-2-flat" },
+//       {
+//         type: "p",
+//         label: "Company Name",
+//         icon: "streamline-flex-color:copy-2-flat",
+//       },
+//       {
+//         type: "p",
+//         label: "Designation",
+//         icon: "streamline-flex-color:copy-2-flat",
+//       },
+//       { type: "p", label: "Role", icon: "streamline-flex-color:copy-2-flat" },
+//       {
+//         type: "p",
+//         label: "User ID",
+//         icon: "streamline-flex-color:copy-2-flat",
+//       },
+//       {
+//         type: "img",
+//         label: "Avatar",
+//         icon: "streamline-flex-color:copy-2-flat",
+//       },
+//     ],
+//   },
+//   {
+//     type: "event_info",
+//     label: "Event Info",
+//     icon: "mdi:calendar",
+//     items: [
+//       {
+//         type: "h1",
+//         label: "Event Name",
+//         icon: "streamline-flex-color:copy-2-flat",
+//       },
+//       { type: "p", label: "Venue", icon: "streamline-flex-color:copy-2-flat" },
+//       { type: "p", label: "Date", icon: "streamline-flex-color:copy-2-flat" },
+//       {
+//         type: "p",
+//         label: "ZIP Code",
+//         icon: "streamline-flex-color:copy-2-flat",
+//       },
+//       { type: "p", label: "City", icon: "streamline-flex-color:copy-2-flat" },
+//       {
+//         type: "img",
+//         label: "Event Logo",
+//         icon: "streamline-flex-color:copy-2-flat",
+//       },
+//     ],
+//   },
+//   {
+//     type: "qrcode",
+//     label: "QR Code",
+//     icon: "mdi:qrcode",
+//     items: [{ type: "qrcode", label: "QR Code", icon: "mdi:qrcode" }],
+//   },
+//   {
+//     type: "background",
+//     label: "Background",
+//     icon: "mdi:image",
+//     items: [
+//       { type: "background", label: "Image", icon: "mdi:image" },
+//       { type: "gradient", label: "Gradient", icon: "mdi:gradient" },
+//       { type: "color", label: "Color", icon: "mdi:palette" },
+//       { type: "none", label: "None", icon: "mdi:close" },
+//     ],
+//   },
+//   {
+//     type: "static_field",
+//     label: "Static Fields",
+//     icon: "mdi:shape",
+//     items: [
+//       { type: "p", label: "Text", icon: "mdi:text" },
+//       { type: "img", label: "Image", icon: "mdi:image" },
+//       { type: "rectangle", label: "Rectangle", icon: "mdi:rectangle" },
+//     ],
+//   },
+//   {
+//     type: "punching_area",
+//     label: "Punching Area Reference",
+//     icon: "mdi:gesture-tap",
+//     items: [
+//       { type: "punching_area", label: "None", icon: "mdi:close" },
+//       { type: "punching_area", label: "Top", icon: "mdi:arrow-up" },
+//       { type: "punching_area", label: "Bottom", icon: "mdi:arrow-down" },
+//     ],
+//   },
+// ];
 
 const toggleGroup = (groupType) => {
-  openGroups.value[groupType] = !openGroups.value[groupType];
+  sidebarInfo.value.data.openGroups[groupType] =
+    !sidebarInfo.value.data.openGroups[groupType];
 };
+
+function openImageUploadModal(item) {
+  store.imageItem = item;
+  store.showImageModal = true;
+}
 
 function openGradientModal() {
   store.showGradientModal = true;

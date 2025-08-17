@@ -110,7 +110,7 @@ const store = useCanvasStore();
 const dataType = ref("personalData");
 const selectedPersonalData = ref("");
 const selectedOtherContent = ref("");
-const ticketOptions = ref(["TICK001", "TICK002", "TICK003"]);
+const ticketOptions = ref(["Attendees", "Speakers", "Exibitors", "Sponsors"]);
 
 const createQRCode = () => {
   console.log("Creating QR Code with:", {
