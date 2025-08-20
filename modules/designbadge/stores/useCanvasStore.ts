@@ -33,6 +33,9 @@ interface ElementProperties {
   fontSize: string | number;
   fillColor: string;
   fillTransparency: boolean;
+  imagePosition: string;
+  objectFit: string;
+
   textDecoration: string;
   color: string;
   textAlign: string;
@@ -84,6 +87,9 @@ export const useCanvasStore = defineStore("canvasStore", {
     cursorPosition: null as { node: Node; offset: number } | null,
     dropdownOpen: false as boolean,
     imageItem: null as string | any,
+    punchArea: false,
+    punchCircle: "" as string,
+    punchLong: "" as string,
   }),
   getters: {
     boxes: (state): CanvasElement[] =>
@@ -113,6 +119,9 @@ export const useCanvasStore = defineStore("canvasStore", {
           fontSize: "Auto",
           fillColor: item.type === "rectangle" ? "blue" : "transparent",
           fillTransparency: false,
+          imagePosition: "center" as string,
+          objectFit: "cover" as string,
+
           textDecoration: "none",
           color: "black",
           textAlign: item.type === "h1" || item.type === "p" ? "center" : "",
@@ -349,6 +358,9 @@ export const useCanvasStore = defineStore("canvasStore", {
         fontStyle: element.properties.fontStyle,
         fontSize: element.properties.fontSize,
         fillColor: element.properties.fillColor,
+        imagePosition: element.properties.imagePosition,
+        objectFit: element.properties.objectFit,
+
         fillTransparency: element.properties.fillTransparency,
         textDecoration: element.properties.textDecoration,
         color: element.properties.color,
@@ -521,6 +533,19 @@ export const useCanvasStore = defineStore("canvasStore", {
     applyColor(color: string, side: "front" | "back") {
       this.setBackground(color, side);
       this.showColorModal = false;
+    },
+
+    setPunchArea(area: string, side: string) {
+      console.log("Setting punch area:", area, "for side:", side);
+      if (side === "front") {
+        this.punchArea = true;
+        this.punchCircle = area;
+        this.punchLong = area;
+      } else if (side === "back") {
+        this.punchArea = true;
+        this.punchCircle = area;
+        this.punchLong = area;
+      }
     },
   },
   persist: true,

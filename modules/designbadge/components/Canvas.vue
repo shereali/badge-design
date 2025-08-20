@@ -11,6 +11,42 @@
       }"
       @mousedown="handleCanvasClick"
     >
+      <!-- Canvas Background -->
+      <!-- Punch Area Indicators -->
+      <div class="punch-area">
+        <div class="punch-long">
+          <!-- {{ store.punchLong }} -->
+          <div
+            v-if="store.punchLong == 'long-left-right'"
+            class="w-16 h-4 bg-transparent border border-gray-200 rounded-xl absolute top-5 right-5 z-10"
+          ></div>
+          <div
+            v-if="store.punchLong == 'long-left-right'"
+            class="w-16 h-4 bg-transparent border border-gray-200 rounded-xl absolute top-5 left-5 z-10"
+          ></div>
+
+          <div
+            v-if="store.punchLong == 'long-center'"
+            class="w-16 h-4 bg-transparent border border-gray-200 rounded-xl absolute top-5 left-1/2 -translate-x-1/2 z-10"
+          ></div>
+        </div>
+
+        <div class="punch-circle">
+          <div
+            v-if="store.punchCircle == 'circle-left-right'"
+            class="w-5 h-5 bg-transparent border border-gray-200 rounded-xl absolute top-5 left-5 z-10"
+          ></div>
+          <div
+            v-if="store.punchCircle == 'circle-left-right'"
+            class="w-5 h-5 bg-transparent border border-gray-200 rounded-xl absolute top-5 right-5 z-10"
+          ></div>
+
+          <div
+            v-if="store.punchCircle == 'circle-center'"
+            class="w-5 h-5 bg-transparent border border-gray-200 rounded-xl absolute top-5 left-1/2 -translate-x-1/2 z-10"
+          ></div>
+        </div>
+      </div>
       <!-- Vertical & Horizontal Guide Lines -->
       <template v-if="selectedBox && selectedBox.isDragging">
         <div
@@ -127,6 +163,7 @@
           </template>
 
           <!-- Content -->
+
           <component
             v-if="
               checkElementTypes.find((item) =>
@@ -148,14 +185,16 @@
           <img
             v-if="box.type === 'img'"
             :src="box.properties.src.src"
-            class="w-full h-full object-contain cursor-pointer select-none"
+            class="w-full h-full cursor-pointer select-none"
+            :class="[objectPositionClass(box), objectFitPositionClass(box)]"
             @keydown="deleteItem($event)"
             @error="handleImageError"
           />
           <img
             v-if="box.type === 'background'"
             :src="box.properties.src.src"
-            class="h-full w-screen bg-cover bg-center cursor-pointer select-none"
+            class="w-full h-full transition-all duration-300 cursor-pointer select-none"
+            :class="[objectPositionClass(box), objectFitPositionClass(box)]"
             @keydown="deleteItem($event)"
             @error="handleImageError"
           />
@@ -464,6 +503,44 @@ function verticalAlignClass(box) {
   if (box.properties.verticalAlign === "middle") align = "items-center";
   if (box.properties.verticalAlign === "bottom") align = "items-end";
   return [align];
+}
+
+function objectPositionClass(box) {
+  switch (box.properties.imagePosition || box.properties.objectFit) {
+    case "top-left":
+      return "object-top-left ...";
+    case "top":
+      return "object-top ...";
+    case "top-right":
+      return "object-top-right ...";
+    case "left":
+      return "object-left ...";
+    case "center":
+      return "object-center ...";
+    case "right":
+      return "object-right ...";
+    case "bottom-left":
+      return "object-bottom-left ...";
+    case "bottom":
+      return "object-bottom ...";
+    case "bottom-right":
+      return "object-bottom-right ...";
+  }
+}
+
+function objectFitPositionClass(box) {
+  switch (box.properties.objectFit) {
+    case "contain":
+      return "object-contain ...";
+    case "cover":
+      return "object-cover ...";
+    case "fill":
+      return "object-fill ...";
+    case "none":
+      return "object-none ...";
+    case "scale-down":
+      return "object-scale-down ...";
+  }
 }
 
 watch(

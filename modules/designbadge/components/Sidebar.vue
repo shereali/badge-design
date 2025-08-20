@@ -84,7 +84,11 @@
               item.type !== 'background' &&
               item.type !== 'gradient' &&
               item.type !== 'color' &&
-              item.type !== 'none'
+              item.type !== 'none' &&
+              item.type !== 'circle-center' &&
+              item.type !== 'circle-left-right' &&
+              item.type !== 'long-center' &&
+              item.type !== 'long-left-right'
                 ? true
                 : false
             "
@@ -98,14 +102,22 @@
                 item.type !== 'background' &&
                 item.type !== 'gradient' &&
                 item.type !== 'color' &&
-                item.type !== 'none',
+                item.type !== 'none' &&
+                item.type !== 'circle-center' &&
+                item.type !== 'circle-left-right' &&
+                item.type !== 'long-center' &&
+                item.type !== 'long-left-right',
               'cursor-pointer':
                 item.type === 'qrcode' ||
                 item.type === 'img' ||
                 item.type === 'background' ||
                 item.type === 'gradient' ||
                 item.type === 'color' ||
-                item.type === 'none',
+                item.type === 'none' ||
+                item.type === 'circle-center' ||
+                item.type === 'circle-left-right' ||
+                item.type === 'long-center' ||
+                item.type === 'long-left-right',
             }"
             :data-type="item.type"
           >
@@ -192,6 +204,60 @@
               />
               <span class="leading-none">{{ item.label }}</span>
             </div>
+
+            <!-- Punching Area -->
+            <!-- Circle Center -->
+            <button
+              @click="setPunchingArea('circle-center')"
+              class="m-auto w-full border rounded-md p-1 border-gray-300 flex items-center justify-center"
+              :class="selectedPunchArea(item.type)"
+              v-else-if="item.type === 'circle-center'"
+            >
+              <div
+                class="w-5 h-5 bg-transparent border border-gray-300 rounded-xl"
+              ></div>
+            </button>
+            <!-- Circle Left Right -->
+            <button
+              @click="setPunchingArea('circle-left-right')"
+              class="w-full border rounded-md py-1 px-5 border-gray-300 flex items-center justify-between"
+              :class="selectedPunchArea(item.type)"
+              v-else-if="item.type === 'circle-left-right'"
+            >
+              <div
+                class="w-5 h-5 bg-transparent border border-gray-300 rounded-xl z-10"
+              ></div>
+
+              <div
+                class="w-5 h-5 bg-transparent border border-gray-300 rounded-xl z-10"
+              ></div>
+            </button>
+            <!-- Long Center -->
+            <button
+              @click="setPunchingArea('long-center')"
+              class="m-auto w-full border rounded-md p-1 border-gray-300 flex items-center justify-center"
+              :class="selectedPunchArea(item.type)"
+              v-else-if="item.type === 'long-center'"
+            >
+              <div
+                class="w-16 h-4 bg-transparent border border-gray-300 rounded-xl z-10"
+              ></div>
+            </button>
+            <!-- Long Left Right -->
+            <button
+              @click="setPunchingArea('long-left-right')"
+              class="w-full border rounded-md py-1 px-5 border-gray-300 flex items-center justify-between"
+              :class="selectedPunchArea(item.type)"
+              v-else-if="item.type === 'long-left-right'"
+            >
+              <div
+                class="w-16 h-4 bg-transparent border border-gray-300 rounded-xl z-10"
+              ></div>
+
+              <div
+                class="w-16 h-4 bg-transparent border border-gray-300 rounded-xl z-10"
+              ></div>
+            </button>
 
             <!-- Default Items -->
             <div class="flex items-center" v-else>
@@ -346,6 +412,31 @@ function openColorModal() {
 function removeBackground() {
   store.setBackground(null, store.activeSide);
 }
+
+function setPunchingArea(area) {
+  // console.log("Setting punch area:", area);
+  selectedPunchArea(area);
+  store.setPunchArea(area, store.activeSide);
+}
+
+const selectedPunchArea = (area) => {
+  switch (area) {
+    case "circle-center":
+      return store.punchCircle === "circle-center"
+        ? "border border-blue-300"
+        : "";
+    case "circle-left-right":
+      return store.punchCircle === "circle-left-right"
+        ? "border border-blue-300"
+        : "";
+    case "long-center":
+      return store.punchLong === "long-center" ? "border border-blue-300" : "";
+    case "long-left-right":
+      return store.punchLong === "long-left-right"
+        ? "border border-blue-300"
+        : "";
+  }
+};
 </script>
 
 <style scoped>
