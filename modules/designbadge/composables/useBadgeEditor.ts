@@ -111,26 +111,32 @@ export function useBadgeEditor() {
   );
 
   // Reactive variables to store query parameter values
-  const badgeId = ref(route.query.badgeId || null);
-  const event_id = ref(route.query.event_id || null);
-  const token = ref(route.query.user_token || null);
+  const queryBadgeId = ref(route.query.badge as string);
+  const queryEventId = ref(route.query.event as string);
+  const queryToken = ref(route.query.token as string);
 
   // Watch for changes in the route's query parameters
   watch(
     () => route.query,
     (newQuery) => {
       // Update reactive variables when query parameters change
-      badgeId.value = newQuery.badgeId || null;
-      event_id.value = newQuery.event_id || null;
-      token.value = newQuery.user_token || null;
+      queryBadgeId.value = newQuery.badge as string;
+      queryEventId.value = newQuery.event as string;
+      queryToken.value = newQuery.token as string;
 
       // // Optionally, fetch data or update the UI based on new query parameters
-      // if (badgeId.value && eventId.value) {
-      //   fetchBadgeData(badgeId.value, eventId.value, token.value);
+      // if (badge_id.value && eventId.value) {
+      //   fetchBadgeData(badge_id.value, eventId.value, token.value);
       // }
     },
     { immediate: true } // Run the watcher immediately to handle initial query parameters
   );
+
+  const badge_id = atob(queryBadgeId.value);
+  const event_id = atob(queryEventId.value);
+  const token = atob(queryToken.value);
+
+  console.log("badge_id", badge_id);
 
   // Reactive state for fetch result
   const {
@@ -140,28 +146,28 @@ export function useBadgeEditor() {
     refresh,
   } = useFetch(
     () =>
-      `https://admin.expouse.com/api/event/${event_id.value}/onsite/badges/info/${badgeId.value}`,
+      `https://admin.expouse.com/api/event/${event_id}/onsite/badges/info/${badge_id}`,
     {
       method: "POST",
-      body: { token: token.value },
+      body: { token: token },
       immediate: false, // Prevent automatic fetch until explicitly called
     }
   );
 
   const { data: userData, refresh: refreshUserData } = useFetch(
     () =>
-      `https://edu.expouse.com/event/badges/pdf?event_id=${event_id.value}&uid=${token.value}`,
+      `https://edu.expouse.com/event/badges/pdf?event_id=${event_id}&uid=${token}`,
     {
       method: "GET",
       immediate: false, // Prevent automatic fetch until explicitly called
     }
   );
 
-  function replaceTextValues(firstArray, secondArray) {
+  function replaceTextValues(firstArray: any, secondArray: any) {
     // Flatten the items from designGroups for easier lookup
     const valueMap = {};
-    secondArray.data.designGroups.forEach((group) => {
-      group.items.forEach((item) => {
+    secondArray.data.designGroups.forEach((group: any) => {
+      group.items.forEach((item: any) => {
         if (item.key) {
           valueMap[item.key] = item.value;
         } else if (item.type) {
@@ -171,8 +177,8 @@ export function useBadgeEditor() {
     });
 
     // Helper function to update text fields in a boxes array
-    const updateBoxes = (boxes) => {
-      return boxes.map((item) => {
+    const updateBoxes = (boxes: any) => {
+      return boxes.map((item: any) => {
         let newText = item.text;
 
         // Check if there's a matching key or type in the valueMap and value is valid
@@ -264,7 +270,7 @@ export function useBadgeEditor() {
   });
 
   // Optional: Watch for route changes to refetch data on reload or navigation
-  watch([event_id, badgeId], () => {
+  watch([event_id, badge_id], () => {
     fetchBadgeData();
   });
 
@@ -276,9 +282,9 @@ export function useBadgeEditor() {
   const sendData = async (): Promise<any> => {
     try {
       // Validate query parameters
-      if (!token.value || !event_id.value || !badgeId.value) {
+      if (!token.value || !event_id.value || !badge_id.value) {
         throw new Error(
-          "Missing required query parameters: token, event_id, or badgeId"
+          "Missing required query parameters: token, event_id, or badge_id"
         );
       }
 
@@ -311,13 +317,13 @@ export function useBadgeEditor() {
 
       // Send the POST request
       const res = await $fetch(
-        `https://admin.expouse.com/api/event/${event_id.value}/onsite/badges/${badgeId.value}/update`,
+        `https://admin.expouse.com/api/event/${event_id}/onsite/badges/${badge_id}/update`,
         {
           method: "POST",
           body: {
             token: token.value,
             event_id: event_id.value,
-            badge_id: badgeId.value,
+            badge_id: badge_id.value,
             badge_json: badgeJson,
             layers: sanitizedLayers,
           },

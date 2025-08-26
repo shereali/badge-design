@@ -246,4 +246,13 @@ const downloadPDF = async () => {
     );
   }
 };
+
+// Encode
+const value = "9845793485";
+const encoded = btoa(value); // "OTg0NTc5MzQ4NQ=="
+
+// Decode
+const decoded = atob(encoded); // "9845793485"
+
+console.log(encoded, decoded);
 </script>
