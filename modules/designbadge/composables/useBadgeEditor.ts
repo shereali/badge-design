@@ -125,8 +125,8 @@ export function useBadgeEditor() {
       queryToken.value = newQuery.token as string;
 
       // // Optionally, fetch data or update the UI based on new query parameters
-      // if (badge_id.value && eventId.value) {
-      //   fetchBadgeData(badge_id.value, eventId.value, token.value);
+      // if (badge_id && eventId.value) {
+      //   fetchBadgeData(badge_id, eventId.value, token);
       // }
     },
     { immediate: true } // Run the watcher immediately to handle initial query parameters
@@ -282,7 +282,7 @@ export function useBadgeEditor() {
   const sendData = async (): Promise<any> => {
     try {
       // Validate query parameters
-      if (!token.value || !event_id.value || !badge_id.value) {
+      if (!token || !event_id || !badge_id) {
         throw new Error(
           "Missing required query parameters: token, event_id, or badge_id"
         );
@@ -290,6 +290,17 @@ export function useBadgeEditor() {
 
       // Create a plain object for badge_json to avoid circular references
       const badgeJson = {
+        pageWidth: pageStore.pageWidth,
+        pageHeight: pageStore.pageWidth,
+        presetWidth: pageStore.pageWidth,
+        presetHeight: pageStore.pageWidth,
+        showModal: pageStore.pageWidth,
+        badgeOrientation: pageStore.pageWidth,
+        badgeSize: pageStore.pageWidth,
+        badgeSizePreset: pageStore.pageWidth,
+        customWidth: pageStore.pageWidth,
+        customHeight: pageStore.pageWidth,
+
         frontBoxes: frontBoxes.value,
         backBoxes: backBoxes.value,
         activeSide: activeSide.value,
@@ -321,9 +332,9 @@ export function useBadgeEditor() {
         {
           method: "POST",
           body: {
-            token: token.value,
-            event_id: event_id.value,
-            badge_id: badge_id.value,
+            token: token,
+            event_id: event_id,
+            badge_id: badge_id,
             badge_json: badgeJson,
             layers: sanitizedLayers,
           },

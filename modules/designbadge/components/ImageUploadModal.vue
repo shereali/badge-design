@@ -176,9 +176,13 @@ const emit = defineEmits(["uploaded", "close"]);
 
 const router = useRouter();
 const route = useRoute();
-const eventId = route.query.event_id;
-const badgeId = route.query.badgeId;
-const token = route.query.user_token;
+const queryEvent = ref(route.query.event);
+const queryBadge = ref(route.query.badge);
+const queryToken = ref(route.query.token);
+
+const event_id = atob(queryEvent.value);
+const badge_id = atob(queryBadge.value);
+const token = atob(queryToken.value);
 
 const fileInput = ref(null);
 const uploadProgress = ref(0);
@@ -186,7 +190,7 @@ const activeTab = ref("upload");
 const uploadedImages = ref([]);
 
 const { data, pending, refresh, error } = await useFetch(
-  `https://admin.expouse.com/api/event/${eventId}/onsite/gallery/images?token=${token}`
+  `https://admin.expouse.com/api/event/${event_id}/onsite/gallery/images?token=${token}`
 );
 // console.log("Fetched Images:", data.value);
 
@@ -211,10 +215,10 @@ const searchQuery = ref("");
 
 const selectedImage = ref(null);
 
-console.log("Initial Uploaded Images:", uploadedImages.value);
+// console.log("Initial Uploaded Images:", uploadedImages.value);
 
 const filteredImages = computed(() => {
-  console.log("Filtering images with query:", uploadedImages.value);
+  // console.log("Filtering images with query:", uploadedImages.value);
 
   return uploadedImages.value.filter((img) => {
     const matchesSearch = img.title
@@ -232,7 +236,7 @@ async function handleFormSubmit(file) {
   // console.log("Submitting file to server:", file);
 
   const res = await $fetch(
-    `https://admin.expouse.com/api/event/${eventId}/onsite/badges/${badgeId}/fileStore`,
+    `https://admin.expouse.com/api/event/${event_id}/onsite/badges/${badge_id}/fileStore`,
     {
       method: "POST",
       body: {
@@ -247,7 +251,7 @@ async function handleFormSubmit(file) {
   uploadedImages.value.push(res.data);
   activeTab.value = "library"; // Switch to library tab
 
-  console.log("Uploaded Image url after submit:", selectedImage.value);
+  // console.log("Uploaded Image url after submit:", selectedImage.value);
 }
 
 function handleFileUpload(event) {
@@ -286,13 +290,13 @@ function handleFileUpload(event) {
 }
 
 function selectImage(image) {
-  console.log("Selected Image:", image);
+  // console.log("Selected Image:", image);
 
   selectedImage.value = image;
 }
 
 function chooseImage() {
-  console.log("Chosen Image:", selectedImage.value);
+  // console.log("Chosen Image:", selectedImage.value);
 
   if (selectedImage.value) {
     emit("uploaded", {

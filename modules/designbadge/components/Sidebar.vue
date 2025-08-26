@@ -371,12 +371,16 @@ const maxRetries = 3;
 
 const router = useRouter();
 const route = useRoute();
-const eventId = ref(route.query.event_id);
-const badgeId = ref(route.query.badgeId);
-const token = ref(route.query.user_token);
+const queryEvent = ref(route.query.event);
+const queryBadge = ref(route.query.badge);
+const queryToken = ref(route.query.token);
+
+const event_id = atob(queryEvent.value);
+// const badgeId = atob(queryBadge.value);
+const token = atob(queryToken.value);
 
 const { data, pending, refresh, error } = await useFetch(
-  `https://admin.expouse.com/api/event/${eventId.value}/onsite/badges/initial-data?token=${token.value}`
+  `https://admin.expouse.com/api/event/${event_id}/onsite/badges/initial-data?token=${token}`
 );
 
 watchEffect(() => {
