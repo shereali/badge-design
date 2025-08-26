@@ -100,14 +100,31 @@ export const useCanvasStore = defineStore("canvasStore", {
         : state.backBackground,
   },
   actions: {
+    // setReplaceTextValues(pdfData: any) {
+    //   if (pdfData) {
+    //     this.$state = { ...this.$state, ...pdfData };
+    //   }
+    // },
+    setCavasElementData(canvasData: any) {
+      console.log("setCavasElementData called with:", canvasData);
+      if (!canvasData) return;
+      if (canvasData.data.badge_json) {
+        // this.frontBoxes = canvasData.data.badge_json;
+        // this.backBoxes = canvasData.data.badge_json;
+        this.$state = { ...this.$state, ...canvasData.data.badge_json };
+      } else {
+        this.$state = { ...this.$state, ...canvasData };
+      }
+    },
     elementMachanism(data?: any) {
       const item = data.item;
       const position = data.position;
 
       const newElement: CanvasElement = {
         id: Date.now(),
-        text: item.value || "Sample Text",
+        text: item.value,
         type: item.type,
+        key: item.key,
         label: `${item.label}`,
         position,
         properties: {
@@ -232,6 +249,7 @@ export const useCanvasStore = defineStore("canvasStore", {
         item: {
           text: this.imageItem.label,
           type: this.imageItem.type,
+          key: this.imageItem.type === "background" ? "background_img" : "img",
           label: this.imageItem.type === "background" ? "background" : "Image",
         },
         position: adjustedPosition,
@@ -261,49 +279,6 @@ export const useCanvasStore = defineStore("canvasStore", {
       }
     },
 
-    // handleImageUploaded(dataUrl: string) {
-    //   if (this.pendingImagePosition && this.pendingImageSide) {
-    //     const pageStore = usePageStore();
-    //     const customPosition = {
-    //       left: 198,
-    //       top: 277,
-    //     };
-    //     const data = {
-    //       item: {
-    //         text: this.imageItem.label,
-    //         type: this.imageItem.type,
-    //         label:
-    //           this.imageItem.type === "background" ? "background" : "Image",
-    //       },
-    //       position:
-    //         this.imageItem.type === "background"
-    //           ? customPosition
-    //           : this.pendingImagePosition,
-    //       dataUrl: dataUrl,
-    //       width:
-    //         this.imageItem.type === "background"
-    //           ? pageStore.presetWidth * 3.78
-    //           : 150,
-    //       height:
-    //         this.imageItem.type === "background"
-    //           ? pageStore.presetHeight * 3.78
-    //           : 150,
-    //     };
-
-    //     const newElement = this.elementMachanism(data);
-
-    //     if (this.pendingImageSide === "front") {
-    //       this.frontBoxes.push(newElement);
-    //     } else {
-    //       this.backBoxes.push(newElement);
-    //     }
-    //     this.pendingImagePosition = null;
-    //     this.pendingImageSide = null;
-    //     this.selectedElement = newElement.id;
-    //     this.updateProperties();
-    //   }
-    // },
-
     handleQRCodeGenerator(qrcodeValue: string) {
       const qrcodeData = {
         value: qrcodeValue,
@@ -316,6 +291,7 @@ export const useCanvasStore = defineStore("canvasStore", {
         item: {
           text: "",
           type: "qrcode",
+          key: "qrcode",
           label: "QR Code",
         },
         position: {
@@ -548,5 +524,5 @@ export const useCanvasStore = defineStore("canvasStore", {
       }
     },
   },
-  persist: true,
+  // persist: true,
 });

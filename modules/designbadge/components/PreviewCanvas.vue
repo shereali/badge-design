@@ -9,7 +9,6 @@
             ? store.frontBackground || 'white'
             : store.backBackground || 'white',
       }"
-      @mousedown="handleCanvasClick"
     >
       <!-- Canvas Background -->
       <!-- Punch Area Indicators -->
@@ -94,73 +93,8 @@
                 : 'none',
             zIndex: box.zIndex || 0,
           }"
-          @mousedown.stop="activateElement(index, $event)"
-          @keydown="deleteItem($event)"
         >
           <!-- Selected-only elements -->
-          <template v-if="box.isSelected">
-            <!-- Label (Dynamic) -->
-            <div
-              v-if="box.label"
-              class="absolute -top-5 left-0 px-1 text-xs text-white bg-blue-600"
-            >
-              {{ box.label }}
-            </div>
-
-            <!-- Distance (Only on Drag) -->
-            <template v-if="box.isDragging">
-              <div
-                class="absolute left-1/2 -top-10 -translate-x-1/2 text-xs text-red-500"
-              >
-                Y: {{ Math.round(box.position.top) }}
-              </div>
-              <div
-                class="absolute -left-6 top-1/2 -translate-y-1/2 text-xs text-red-500"
-              >
-                {{
-                  Math.round(box.position.left + box.properties.size.width / 2)
-                }}
-              </div>
-              <div
-                class="absolute -right-6 top-1/2 -translate-y-1/2 text-xs text-red-500"
-              >
-                {{
-                  Math.round(
-                    canvasWidth -
-                      box.position.left -
-                      box.properties.size.width / 2
-                  )
-                }}
-              </div>
-              <div
-                class="absolute left-1/2 -bottom-5 -translate-x-1/2 text-xs text-red-500"
-              >
-                {{
-                  Math.round(
-                    canvasHeight -
-                      box.position.top -
-                      box.properties.size.height / 2
-                  )
-                }}
-              </div>
-            </template>
-
-            <!-- Rotate Icon -->
-            <div
-              class="rotate-icon"
-              @mousedown.stop.prevent="startRotate(index, $event)"
-            >
-              <Icon name="line-md:rotate-270" class="text-blue-600" />
-            </div>
-
-            <!-- Resizing Handles -->
-            <div
-              v-for="dir in directions"
-              :key="dir"
-              :class="['handle', dir]"
-              @mousedown.stop.prevent="startResize(index, dir)"
-            ></div>
-          </template>
 
           <!-- Content -->
 
@@ -176,8 +110,6 @@
             :class="[verticalAlignClass(box), horizontalAlignClass(box)]"
             :style="textStyles(box)"
             :ref="(el) => setTextElementRef(box.id, el)"
-            @input="updateText(box, $event)"
-            @click="preserveCursorPosition($event)"
           >
             {{ box.text }}
           </component>
@@ -188,16 +120,12 @@
             :src="box.properties.src.url"
             class="w-full h-full cursor-pointer select-none"
             :class="[objectPositionClass(box), objectFitPositionClass(box)]"
-            @keydown="deleteItem($event)"
-            @error="handleImageError"
           />
           <img
             v-if="box.type === 'background'"
             :src="box.properties.src.url"
             class="w-full h-full transition-all duration-300 cursor-pointer select-none"
             :class="[objectPositionClass(box), objectFitPositionClass(box)]"
-            @keydown="deleteItem($event)"
-            @error="handleImageError"
           />
 
           <Qrcode
@@ -207,7 +135,6 @@
             :radius="box.properties.qrcode.radius"
             :blackColor="box.properties.qrcode.blackColor"
             :whiteColor="box.properties.qrcode.whiteColor"
-            @keydown="deleteItem(index, $event)"
           />
         </div>
       </template>
@@ -226,16 +153,6 @@ const props = defineProps({
 
 const canvas = ref(null);
 const checkElementTypes = ["h1", "h2", "h3", "h4", "h6", "p", "a", "span"];
-const directions = [
-  "top-left",
-  "top",
-  "top-right",
-  "right",
-  "bottom-right",
-  "bottom",
-  "bottom-left",
-  "left",
-];
 
 const canvasWidth = ref(0);
 const canvasHeight = ref(0);
@@ -257,215 +174,6 @@ function setTextElementRef(id, el) {
     textElements.value[id] = el;
   }
 }
-
-function handleCanvasClick() {
-  store.boxes.forEach((b) => (b.isSelected = false));
-  selectedBoxIndex = -1;
-  store.selectedElement = null;
-  store.updateProperties();
-}
-
-function activateElement(index, event) {
-  store.boxes.forEach((b, i) => (b.isSelected = i === index));
-  selectedBoxIndex = index;
-  startDrag(index, event);
-  store.selectedElement = store.boxes[index].id;
-  store.selectedElementType = store.boxes[index].type;
-  store.activeTab = "properties";
-  store.updateProperties();
-  console.log("element type", store.boxes[index]);
-
-  if (["h1", "p"].includes(store.boxes[index].type)) {
-    nextTick(() => {
-      const el = textElements.value[store.boxes[index].id];
-      if (el) el.focus();
-    });
-  }
-}
-
-function deleteItem(event) {
-  if (event.key === "Delete" && store.selectedElement) {
-    const index = store.boxes.findIndex(
-      (item) => item.id === store.selectedElement
-    );
-    if (index !== -1) {
-      store.boxes.splice(index, 1);
-      store.selectedElement = null;
-    }
-  }
-}
-
-onMounted(() => {
-  document.addEventListener("keydown", deleteItem);
-});
-
-function startDrag(index, event) {
-  const box = store.boxes[index];
-  dragOffset.x = event.clientX - box.position.left;
-  dragOffset.y = event.clientY - box.position.top;
-  box.isDragging = true;
-  document.addEventListener("mousemove", onDrag);
-  document.addEventListener("mouseup", stopActions);
-}
-
-function onDrag(event) {
-  const box = store.boxes[selectedBoxIndex];
-  console.log("Dragging box:", box);
-
-  const canvasRect = canvas.value.getBoundingClientRect();
-  let newLeft = event.clientX - dragOffset.x;
-  let newTop = event.clientY - dragOffset.y;
-
-  newLeft = Math.max(
-    0,
-    Math.min(canvasRect.width - box.properties.size.width, newLeft)
-  );
-  newTop = Math.max(
-    0,
-    Math.min(canvasRect.height - box.properties.size.height, newTop)
-  );
-
-  box.position.left = newLeft;
-  box.position.top = newTop;
-  store.currentProperties.x = newLeft;
-  store.currentProperties.y = newTop;
-  store.updateProperties(store.currentProperties);
-}
-
-function startResize(index, dir) {
-  selectedBoxIndex = index;
-  resizeDir = dir;
-  document.addEventListener("mousemove", onResize);
-  document.addEventListener("mouseup", stopActions);
-}
-
-function onResize(event) {
-  const box = store.boxes[selectedBoxIndex];
-  const minSize = 40;
-  const dx = event.movementX;
-  const dy = event.movementY;
-
-  if (resizeDir.includes("right"))
-    box.properties.size.width = Math.max(
-      minSize,
-      box.properties.size.width + dx
-    );
-
-  if (resizeDir.includes("left")) {
-    box.properties.size.width = Math.max(
-      minSize,
-      box.properties.size.width - dx
-    );
-    box.position.left += dx;
-  }
-  if (resizeDir.includes("bottom"))
-    box.properties.size.height = Math.max(
-      minSize,
-      box.properties.size.height + dy
-    );
-  if (resizeDir.includes("top")) {
-    box.properties.size.height = Math.max(
-      minSize,
-      box.properties.size.height - dy
-    );
-    box.position.top += dy;
-  }
-
-  store.currentProperties.size = { ...box.properties.size };
-  store.currentProperties.x = box.position.left;
-  store.currentProperties.y = box.position.top;
-  store.updateProperties(store.currentProperties);
-}
-
-function startRotate(index, event) {
-  const box = store.boxes[index];
-  const centerX = box.position.left + box.properties.size.width / 2;
-  const centerY = box.position.top + box.properties.size.height / 2;
-
-  const startX = event.clientX;
-  const startY = event.clientY;
-
-  const dxStart = startX - centerX;
-  const dyStart = startY - centerY;
-  const startAngle = Math.atan2(dyStart, dxStart) * (360 / Math.PI);
-  const initialRotation = box.properties.rotation;
-
-  function rotate(e) {
-    const dx = e.clientX - centerX;
-    const dy = e.clientY - centerY;
-    const currentAngle = Math.atan2(dy, dx) * (360 / Math.PI);
-
-    const delta = (currentAngle - startAngle) * 12;
-
-    box.properties.rotation = (initialRotation + delta + 360) % 360;
-    store.currentProperties.rotation = Math.floor(box.properties.rotation);
-    store.updateProperties(store.currentProperties);
-  }
-
-  function stopRotate() {
-    document.removeEventListener("mousemove", rotate);
-    document.removeEventListener("mouseup", stopRotate);
-  }
-
-  document.addEventListener("mousemove", rotate);
-  document.addEventListener("mouseup", stopRotate);
-}
-
-function stopActions() {
-  store.boxes.forEach((b) => (b.isDragging = false));
-  document.removeEventListener("mousemove", onDrag);
-  document.removeEventListener("mousemove", onResize);
-  document.removeEventListener("mouseup", stopActions);
-}
-
-function preserveCursorPosition(event) {
-  const selection = window.getSelection();
-  if (selection && selection.rangeCount > 0) {
-    const range = selection.getRangeAt(0);
-    store.cursorPosition = {
-      node: range.startContainer,
-      offset: range.startOffset,
-    };
-  }
-}
-
-function updateText(box, event) {
-  const el = event.target;
-  const selection = window.getSelection();
-  let cursorOffset = 0;
-  let cursorNode = null;
-
-  if (selection && selection.rangeCount > 0) {
-    const range = selection.getRangeAt(0);
-    cursorNode = range.startContainer;
-    cursorOffset = range.startOffset;
-  }
-
-  const newText = el.innerText;
-  store.updateElementText(box.id, newText);
-  store.currentProperties.text = newText;
-  store.updateProperties(store.currentProperties);
-
-  if (cursorNode && cursorOffset !== null) {
-    nextTick(() => {
-      const range = document.createRange();
-      try {
-        range.setStart(cursorNode, cursorOffset);
-        range.collapse(true);
-        selection.removeAllRanges();
-        selection.addRange(range);
-      } catch (e) {
-        console.warn("Failed to restore cursor position:", e);
-      }
-    });
-  }
-}
-
-function handleImageError(event) {
-  console.error("Image failed to load:", event.target.src);
-}
-
-const selectedBox = computed(() => store.boxes.find((b) => b.isSelected));
 
 function textStyles(box) {
   const calculatedSize = Math.max(

@@ -9,6 +9,13 @@
         <div
           class="flex flex-wrap items-center justify-center md:justify-between gap-3 w-full"
         >
+          <button
+            @click="sendData"
+            class="px-5 py-2 text-sm bg-blue-500 text-white rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400"
+          >
+            Send Data
+          </button>
+
           <!-- Side Tabs -->
           <div
             class="flex border border-gray-300 rounded-lg overflow-hidden shadow-sm"
@@ -150,93 +157,39 @@
     <QRCodeModal />
   </div>
 </template>
-
 <script setup>
+import { useBadgeEditor } from "@/composables/useBadgeEditor";
 import { useCanvasStore } from "@/stores/useCanvasStore";
 import { usePageStore } from "@/stores/usePageStore";
-import { ref, computed } from "vue";
 
-const pageStore = usePageStore();
+// Initialize the composable
+const {
+  dropzone,
+  zoomLevel,
+  showGrid,
+  isFlipping,
+  zoomScale,
+  selectedLayer,
+  layers,
+  displayOption,
+  selectedElementType,
+
+  sendData,
+  switchSideTab,
+  zoom,
+  toggleGrid,
+  onDragStart,
+  onDragEnd,
+  handleDrop,
+  handleImageUploaded,
+} = useBadgeEditor();
+
 const store = useCanvasStore();
-const dropzone = ref(null);
-const zoomLevel = ref(100);
-const showGrid = ref(false);
-const isFlipping = ref(false);
-const zoomScale = computed(() => zoomLevel.value / 100);
-const selectedLayer = ref(null);
-const layers = ref([]);
-const displayOption = ref("both sides");
+const pageStore = usePageStore();
 
-onMounted(() => {
-  store.dropzone = dropzone.value;
-});
-
-const switchSideTab = (side) => {
-  if (isFlipping.value || store.activeSide === side) return;
-  isFlipping.value = true;
-  store.activeSide = side;
-  setTimeout(() => (isFlipping.value = false), 600);
-};
-
-const zoom = (delta) => {
-  zoomLevel.value = Math.max(50, Math.min(200, zoomLevel.value + delta));
-};
-
-const toggleGrid = () => (showGrid.value = !showGrid.value);
-
-const onDragStart = (item) => {
-  // Prepare for drag
-};
-
-const onDragEnd = ({ item, x, y }) => {
-  const rect = dropzone.value.getBoundingClientRect();
-  const dropXPos = x - rect.left;
-  const dropYPos = y - rect.top;
-
-  const canvasWidth = rect.width;
-  const canvasHeight = rect.height;
-
-  const elementWidth =
-    item.type === "background" ? pageStore.presetWidth * 3.78 : 200;
-  const elementHeight =
-    item.type === "background" ? pageStore.presetHeight * 3.78 : 64;
-
-  const adjustedX = Math.max(0, Math.min(dropXPos, canvasWidth - elementWidth));
-  const adjustedY = Math.max(
-    0,
-    Math.min(dropYPos, canvasHeight - elementHeight)
-  );
-
-  store.addElementFromDrag(item, { top: adjustedY, left: adjustedX });
-};
-
-const handleDrop = (event) => {
-  event.preventDefault();
-};
-
-const handleImageUploaded = (dataUrl) => {
-  store.handleImageUploaded(dataUrl);
-  store.showImageModal = false;
-};
-
-const selectedElementType = computed(() => {
-  const element = store.boxes.find((e) => e.id === store.selectedElement);
-  return element ? element.type : null;
-});
-
-watch(
-  [() => store.activeSide, () => store.frontBoxes, () => store.backBoxes],
-  () => {
-    layers.value = store.boxes.map((box) => ({
-      id: box.id,
-      name: box.label,
-      type: box.type,
-      visible: box.visible ?? true,
-    }));
-    selectedLayer.value = store.selectedElement;
-  },
-  { deep: true }
-);
+// Router and Route
+const router = useRouter();
+const route = useRoute();
 </script>
 
 <style scoped>

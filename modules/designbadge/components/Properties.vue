@@ -896,6 +896,7 @@ function updateTextDirection() {
 const fontSearch = ref("");
 
 const fonts = [
+  { name: "Cairo", value: '"Cairo", sans-serif' },
   { name: "Roboto", value: '"Roboto", sans-serif' },
   { name: "Open Sans", value: '"Open Sans", sans-serif' },
   { name: "Lato", value: '"Lato", sans-serif' },

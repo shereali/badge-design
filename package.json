@@ -17,6 +17,7 @@
     "@vueuse/nuxt": "^13.6.0",
     "html2canvas": "^1.4.1",
     "interactjs": "^1.10.27",
+    "jspdf": "^3.0.1",
     "nitropack": "^2.12.4",
     "nuxt": "^4.0.2",
     "nuxt-color-picker": "^1.2.8",

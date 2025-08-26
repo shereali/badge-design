@@ -351,7 +351,11 @@ function onLayerDrop(event, dropIndex) {
     box.zIndex = boxes.length - index; // Higher index = lower z-index
   });
 
-  store.boxes = [...boxes]; // Trigger reactivity
+  if (store.activeSide === "front") {
+    store.frontBoxes = [...boxes]; // Trigger reactivity for front side
+  } else {
+    store.backBoxes = [...boxes]; // Trigger reactivity for back side
+  }
 }
 
 function selectLayer(layerId) {
@@ -365,8 +369,14 @@ const sidebarInfo = ref(null);
 const retryCount = ref(0);
 const maxRetries = 3;
 
+const router = useRouter();
+const route = useRoute();
+const eventId = ref(route.query.event_id);
+const badgeId = ref(route.query.badgeId);
+const token = ref(route.query.user_token);
+
 const { data, pending, refresh, error } = await useFetch(
-  "https://admin.expouse.com/api/event/28/onsite/badges/initial-data?token=Z0LH5I"
+  `https://admin.expouse.com/api/event/${eventId.value}/onsite/badges/initial-data?token=${token.value}`
 );
 
 watchEffect(() => {

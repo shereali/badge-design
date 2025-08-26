@@ -89,7 +89,7 @@
       </div>
 
       <!-- Uploaded Images Tab -->
-      <div v-if="activeTab === 'library'">
+      <div v-if="pending == false && activeTab === 'library'">
         <!-- Search + Category -->
         <div class="flex justify-between items-center mb-4">
           <input
@@ -98,15 +98,6 @@
             placeholder="Search image..."
             class="w-full px-3 py-2 border rounded"
           />
-          <select
-            v-model="selectedCategory"
-            class="ml-2 px-3 py-2 border rounded"
-          >
-            <option value="">All</option>
-            <option value="nature">Nature</option>
-            <option value="tech">Tech</option>
-            <option value="people">People</option>
-          </select>
         </div>
 
         <!-- Preview List -->
@@ -120,13 +111,14 @@
             :class="{ 'border-blue-500': img === selectedImage }"
             @click="selectImage(img)"
           >
+            <!-- {{ img }} -->
             <img
-              :src="img.src"
-              :alt="img.name"
+              :src="img.url"
+              :alt="img.title"
               class="w-full h-24 object-cover rounded"
             />
             <p class="text-xs text-center text-gray-500 truncate">
-              {{ img.name }}
+              {{ img.title }}
             </p>
             <div
               v-if="img === selectedImage"
@@ -182,44 +174,80 @@ const props = defineProps({
 
 const emit = defineEmits(["uploaded", "close"]);
 
+const router = useRouter();
+const route = useRoute();
+const eventId = route.query.event_id;
+const badgeId = route.query.badgeId;
+const token = route.query.user_token;
+
 const fileInput = ref(null);
 const uploadProgress = ref(0);
 const activeTab = ref("upload");
-const uploadedImages = ref([
-  {
-    src: "https://placekitten.com/200/300",
-    name: "Kitten 1",
-    category: "nature",
-  },
-  {
-    src: "https://placekitten.com/300/300",
-    name: "Kitten 2",
-    category: "people",
-  },
-  {
-    src: "https://placekitten.com/400/300",
-    name: "Kitten 3",
-    category: "tech",
-  },
-]);
+const uploadedImages = ref([]);
+
+const { data, pending, refresh, error } = await useFetch(
+  `https://admin.expouse.com/api/event/${eventId}/onsite/gallery/images?token=${token}`
+);
+// console.log("Fetched Images:", data.value);
+
+if (Array.isArray(data.value.data)) {
+  uploadedImages.value = data.value.data.map((img) => ({
+    url: img.url,
+    title: img.title,
+  }));
+} else {
+  uploadedImages.value = [];
+}
+
+// if (pending.value) {
+//   console.log("Loading images...");
+// } else if (error.value) {
+//   console.error("Error fetching images:", error.value);
+// } else {
+//   console.log("Images loaded:", uploadedImages.value);
+// }
+
 const searchQuery = ref("");
-const selectedCategory = ref("");
+
 const selectedImage = ref(null);
 
+console.log("Initial Uploaded Images:", uploadedImages.value);
+
 const filteredImages = computed(() => {
+  console.log("Filtering images with query:", uploadedImages.value);
+
   return uploadedImages.value.filter((img) => {
-    const matchesCategory = selectedCategory.value
-      ? img.category === selectedCategory.value
-      : true;
-    const matchesSearch = img.name
+    const matchesSearch = img.title
       .toLowerCase()
       .includes(searchQuery.value.toLowerCase());
-    return matchesCategory && matchesSearch;
+    return matchesSearch;
   });
 });
 
 function triggerInput() {
   fileInput.value?.click();
+}
+
+async function handleFormSubmit(file) {
+  // console.log("Submitting file to server:", file);
+
+  const res = await $fetch(
+    `https://admin.expouse.com/api/event/${eventId}/onsite/badges/${badgeId}/fileStore`,
+    {
+      method: "POST",
+      body: {
+        token: token,
+        file: file,
+      },
+    }
+  );
+  // console.log("Server Response:", res.data);
+
+  selectedImage.value = res.data;
+  uploadedImages.value.push(res.data);
+  activeTab.value = "library"; // Switch to library tab
+
+  console.log("Uploaded Image url after submit:", selectedImage.value);
 }
 
 function handleFileUpload(event) {
@@ -233,13 +261,17 @@ function handleFileUpload(event) {
     const reader = new FileReader();
     reader.onload = () => {
       const newImage = {
-        src: reader.result,
-        name: file.name,
-        category: "uncategorized",
+        url: reader.result,
+        title: file.title,
       };
-      uploadedImages.value.push(newImage);
-      activeTab.value = "library"; // Switch to library tab
-      selectedImage.value = newImage; // Select the newly uploaded image
+
+      // console.log("Uploaded Image:", reader.result);
+      // Save Image to Server Here (e.g., via API)
+      handleFormSubmit(reader.result);
+
+      // uploadedImages.value.push(newImage);
+      // activeTab.value = "library"; // Switch to library tab
+      // selectedImage.value = newImage; // Select the newly uploaded image
       processed++;
       uploadProgress.value = Math.round((processed / files.length) * 100);
 
@@ -254,16 +286,19 @@ function handleFileUpload(event) {
 }
 
 function selectImage(image) {
+  console.log("Selected Image:", image);
+
   selectedImage.value = image;
 }
 
 function chooseImage() {
+  console.log("Chosen Image:", selectedImage.value);
+
   if (selectedImage.value) {
     emit("uploaded", {
       side: props.side,
-      src: selectedImage.value.src,
-      name: selectedImage.value.name,
-      category: selectedImage.value.category,
+      url: selectedImage.value.url,
+      title: selectedImage.value.title,
     });
     emit("close");
   }

@@ -103,7 +103,7 @@ export default defineNuxtConfig({
     transpile: ["qrcode"],
   },
 
-  // plugins: ["~/modules/plugins/page-builder.client.ts"],
+  // plugins: ["~/plugins/pdf.client"],
 
   app: {
     head: {
