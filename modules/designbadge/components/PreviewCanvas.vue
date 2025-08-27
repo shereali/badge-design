@@ -2,7 +2,7 @@
   <div>
     <div
       ref="canvas"
-      class="absolute w-full h-full bg-white select-none"
+      class="absolute w-full h-full bg-white select-none border-none"
       :style="{
         background:
           props.modelValue === store.frontBoxes

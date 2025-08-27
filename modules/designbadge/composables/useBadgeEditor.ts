@@ -66,6 +66,9 @@ export function useBadgeEditor() {
 
   const applyGradient = store.applyGradient;
 
+  // Toast Massage
+  const toast = useToast();
+
   // Router and Route
   const router = useRouter();
   const route = useRoute();
@@ -344,6 +347,13 @@ export function useBadgeEditor() {
       response.value = res;
       errorData.value = null;
       console.log("Response:", response.value);
+      if (response.value.success) {
+        toast.success({
+          title: "Success!",
+          message: response.value.message,
+          position: "topRight",
+        });
+      }
       return res;
     } catch (err: any) {
       error.value = err.message || "Failed to send data";

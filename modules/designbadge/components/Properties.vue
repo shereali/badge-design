@@ -12,7 +12,7 @@
         <div class="grid grid-cols-6 gap-1">
           <Icon
             @click="store.alignHorizontal('left')"
-            name="solar:align-left-broken"
+            name="solar:align-left-linear"
             class="text-xl p-1 hover:text-blue-600 cursor-pointer"
             :class="{
               'text-blue-700': store.currentProperties.textAlign === 'left',
@@ -28,7 +28,7 @@
           />
           <Icon
             @click="store.alignHorizontal('right')"
-            name="solar:align-right-broken"
+            name="solar:align-right-linear"
             class="text-xl p-1 hover:text-blue-600 cursor-pointer"
             :class="{
               'text-blue-700': store.currentProperties.textAlign === 'right',
@@ -36,7 +36,7 @@
           />
           <Icon
             @click="store.alignVertical('top')"
-            name="mdi:format-align-top"
+            name="solar:align-top-linear"
             class="text-xl p-1 hover:text-blue-600 cursor-pointer"
             :class="{
               'text-blue-700': store.currentProperties.verticalAlign === 'top',
@@ -44,7 +44,7 @@
           />
           <Icon
             @click="store.alignVertical('middle')"
-            name="mdi:format-align-middle"
+            name="streamline-ultimate:align-middle"
             class="text-xl p-1 hover:text-blue-600 cursor-pointer"
             :class="{
               'text-blue-700':
@@ -53,7 +53,7 @@
           />
           <Icon
             @click="store.alignVertical('bottom')"
-            name="mdi:format-align-bottom"
+            name="solar:align-bottom-linear"
             class="text-xl p-1 hover:text-blue-600 cursor-pointer"
             :class="{
               'text-blue-700':

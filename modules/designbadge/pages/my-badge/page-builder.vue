@@ -11,14 +11,18 @@
         >
           <button
             @click="sendData"
-            class="px-5 py-2 text-sm bg-blue-500 text-white rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400"
+            class="flex gap-1 px-5 py-2 text-sm bg-blue-500 text-white rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400"
           >
-            Send Data
+            <Icon
+              name="material-symbols:published-with-changes-rounded"
+              class="text-xl"
+            />
+            <span>Save Badge</span>
           </button>
 
           <!-- Side Tabs -->
           <div
-            class="flex border border-gray-300 rounded-lg overflow-hidden shadow-sm"
+            class="flex border border-gray-300 rounded-lg overflow-hidden shadow-sm ml-12"
           >
             <button
               class="px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400"
@@ -82,7 +86,7 @@
       >
         <div
           ref="dropzone"
-          class="design-page bg-white shadow-md rounded-lg"
+          class="design-page bg-white"
           :style="{
             width: `${pageStore.presetWidth}mm`,
             height: `${pageStore.presetHeight}mm`,
@@ -97,17 +101,13 @@
           @drop="handleDrop"
         >
           <div class="card w-full h-full relative">
-            <div
-              class="front border border-gray-300 w-full h-full absolute top-0 left-0"
-            >
+            <div class="front w-full h-full absolute top-0 left-0">
               <Canvas
                 v-if="store.activeSide === 'front'"
                 :modelValue="store.frontBoxes"
               />
             </div>
-            <div
-              class="back border border-gray-300 w-full h-full absolute top-0 left-0"
-            >
+            <div class="back w-full h-full absolute top-0 left-0">
               <Canvas
                 v-if="store.activeSide === 'back'"
                 :modelValue="store.backBoxes"

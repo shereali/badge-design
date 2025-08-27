@@ -24,13 +24,14 @@ export default defineNuxtConfig({
   extends: ["./modules/designbadge"],
   modules: [
     "@nuxtjs/tailwindcss",
-    "@nuxt/icon",
-    "@vueuse/nuxt", // required
+    "@nuxt/icon", // required
+    "@vueuse/nuxt",
     "@pinia/nuxt",
     "pinia-plugin-persistedstate/nuxt",
     "nuxt-color-picker",
     "@nuxtjs/google-fonts",
     "nuxt-qrcode",
+    "nuxt-toast",
   ],
 
   tailwindcss: {

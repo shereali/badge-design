@@ -4,20 +4,86 @@
   >
     <!-- Main Content Area -->
     <div class="flex-1 flex flex-col items-center p-4 order-2 md:order-1">
-      <!-- Download Button -->
-      <button
-        class="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-        @click="downloadPDF"
-      >
-        Download as PDF
-      </button>
+      <!-- Top Controls -->
+      <div class="w-full">
+        <div
+          class="flex flex-wrap items-center justify-center md:justify-between gap-3 w-full"
+        >
+          <button
+            @click="downloadPDF"
+            class="flex gap-1 border border-slate-300 px-5 py-2 text-sm bg-white text-red-500 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400"
+          >
+            <Icon name="tdesign:file-pdf" class="text-xl" />
+            <span>Download</span>
+          </button>
+
+          <!-- Side Tabs -->
+          <div
+            class="flex border border-gray-300 rounded-lg overflow-hidden shadow-sm ml-12"
+          >
+            <button
+              class="px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400"
+              :class="{
+                'bg-blue-500 text-white': store.activeSide === 'front',
+                'bg-gray-200 text-gray-700 hover:bg-gray-300':
+                  store.activeSide !== 'front',
+              }"
+              @click="switchSideTab('front')"
+              :disabled="isFlipping"
+            >
+              Front
+            </button>
+            <button
+              class="px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400"
+              :class="{
+                'bg-blue-500 text-white': store.activeSide === 'back',
+                'bg-gray-200 text-gray-700 hover:bg-gray-300':
+                  store.activeSide !== 'back',
+              }"
+              @click="switchSideTab('back')"
+              :disabled="isFlipping"
+            >
+              Back
+            </button>
+          </div>
+          <!-- Zoom & Grid Controls -->
+          <div
+            class="flex items-center space-x-2 bg-white rounded-lg p-1 shadow-sm"
+          >
+            <button
+              class="w-9 h-9 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300 transition"
+              @click="zoom(-10)"
+            >
+              <Icon name="mdi:minus" class="w-4 h-4" />
+            </button>
+            <span
+              class="w-12 h-9 flex items-center justify-center bg-gray-100 rounded text-sm font-medium"
+            >
+              {{ zoomLevel }}%
+            </span>
+            <button
+              class="w-9 h-9 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300 transition"
+              @click="zoom(10)"
+            >
+              <Icon name="mdi:plus" class="w-4 h-4" />
+            </button>
+            <button
+              class="w-9 h-9 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300 transition"
+              :class="{ 'text-blue-500 bg-white': showGrid }"
+              @click="toggleGrid"
+            >
+              <Icon name="mdi:grid" class="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </div>
       <!-- Design Page -->
       <div
-        class="flex-1 w-full flex justify-center items-start overflow-auto mt-3"
+        class="flex-1 w-full flex justify-center items-start overflow-auto mt-3 border-none"
       >
         <div
           ref="designPageRef"
-          class="design-page bg-white shadow-md rounded-lg"
+          class="design-page bg-white shadow-md rounded-lg border-none"
           :style="{
             width: `${pageStore.presetWidth}mm`,
             height: `${pageStore.presetHeight}mm`,
@@ -32,17 +98,14 @@
           <div class="card w-full h-full relative">
             <div
               ref="frontRef"
-              class="front border border-gray-300 w-full h-full absolute top-0 left-0"
+              class="front w-full h-full absolute top-0 left-0"
             >
               <PreviewCanvas
                 v-if="store.activeSide === 'front'"
                 :modelValue="store.frontBoxes"
               />
             </div>
-            <div
-              ref="backRef"
-              class="back border border-gray-300 w-full h-full absolute top-0 left-0"
-            >
+            <div ref="backRef" class="back w-full h-full absolute top-0 left-0">
               <PreviewCanvas
                 v-if="store.activeSide === 'back'"
                 :modelValue="store.backBoxes"
@@ -126,12 +189,20 @@ const downloadPDF = async () => {
     }
 
     const pdf = new $jsPDF({
+      // orientation:
+      //   pageStore.presetWidth > pageStore.presetHeight
+      //     ? "landscape"
+      //     : "portrait",
+      // unit: "mm",
+      // format: [pageStore.presetWidth || 85.6, pageStore.presetHeight || 54],
+
       orientation:
         pageStore.presetWidth > pageStore.presetHeight
           ? "landscape"
           : "portrait",
       unit: "mm",
       format: [pageStore.presetWidth || 85.6, pageStore.presetHeight || 54],
+      compress: true, // ✅ enable compression
     });
 
     // Helper function to capture a DOM element as canvas
@@ -214,7 +285,9 @@ const downloadPDF = async () => {
         0,
         0,
         pageStore.presetWidth || 85.6,
-        pageStore.presetHeight || 54
+        pageStore.presetHeight || 54,
+        undefined,
+        "MEDIUM" // ✅ compress front side
       );
     }
 
@@ -233,12 +306,27 @@ const downloadPDF = async () => {
         0,
         0,
         pageStore.presetWidth || 85.6,
-        pageStore.presetHeight || 54
+        pageStore.presetHeight || 54,
+        undefined,
+        "MEDIUM" // ✅ compress front side
       );
     }
 
+    console.log("frontCanvas:", store.frontBoxes);
+
+    const fullName = store.frontBoxes.find(
+      (box) => box.key === "full_name"
+    )?.text;
+
+    console.log("fullName type:", typeof fullName);
+
+    const badgeName =
+      fullName && fullName.trim() !== ""
+        ? fullName.toLowerCase().replace(/\s+/g, "_")
+        : `${Date.now()}`;
+
     // Save the PDF
-    pdf.save(`badge_${Date.now()}.pdf`);
+    pdf.save(`${badgeName}-my-badges.pdf`);
   } catch (error) {
     console.error("Error generating PDF:", error);
     alert(
