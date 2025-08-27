@@ -98,14 +98,17 @@
           <div class="card w-full h-full relative">
             <div
               ref="frontRef"
-              class="front w-full h-full absolute top-0 left-0"
+              class="front w-full h-full absolute top-0 left-0 border-none"
             >
               <PreviewCanvas
                 v-if="store.activeSide === 'front'"
                 :modelValue="store.frontBoxes"
               />
             </div>
-            <div ref="backRef" class="back w-full h-full absolute top-0 left-0">
+            <div
+              ref="backRef"
+              class="back w-full h-full absolute top-0 left-0 border-none"
+            >
               <PreviewCanvas
                 v-if="store.activeSide === 'back'"
                 :modelValue="store.backBoxes"
@@ -245,6 +248,13 @@ const downloadPDF = async () => {
                 : el.style.fontFamily;
             }
           });
+          // Remove borders from design page in cloned document
+          const designPage = clonedDoc.querySelector(".design-page");
+          if (designPage) {
+            designPage.style.border = "none";
+            designPage.style.boxShadow = "none";
+            // designPage.style.backgroundColor = "#ffffff";
+          }
         },
       });
 
@@ -292,7 +302,7 @@ const downloadPDF = async () => {
     }
 
     // Add back side to PDF
-    if (backCanvas) {
+    if (backCanvas && store.backBoxes.length > 0) {
       pdf.addPage(
         [pageStore.presetWidth || 85.6, pageStore.presetHeight || 54],
         pageStore.presetWidth > pageStore.presetHeight
@@ -312,7 +322,7 @@ const downloadPDF = async () => {
       );
     }
 
-    console.log("frontCanvas:", store.frontBoxes);
+    // console.log("frontCanvas:", store.frontBoxes);
 
     const fullName = store.frontBoxes.find(
       (box) => box.key === "full_name"
@@ -336,11 +346,18 @@ const downloadPDF = async () => {
 };
 
 // Encode
-const value = "9845793485";
-const encoded = btoa(value); // "OTg0NTc5MzQ4NQ=="
+// const value = "9845793485";
+// const encoded = btoa(value); // "OTg0NTc5MzQ4NQ=="
 
-// Decode
-const decoded = atob(encoded); // "9845793485"
+// // Decode
+// const decoded = atob(encoded); // "9845793485"
 
-console.log(encoded, decoded);
+// console.log(encoded, decoded);
 </script>
+
+<style scoped>
+.design-page {
+  border: none !important;
+  box-shadow: none !important;
+}
+</style>

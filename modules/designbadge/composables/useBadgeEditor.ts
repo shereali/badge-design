@@ -293,16 +293,18 @@ export function useBadgeEditor() {
 
       // Create a plain object for badge_json to avoid circular references
       const badgeJson = {
-        pageWidth: pageStore.pageWidth,
-        pageHeight: pageStore.pageWidth,
-        presetWidth: pageStore.pageWidth,
-        presetHeight: pageStore.pageWidth,
-        showModal: pageStore.pageWidth,
-        badgeOrientation: pageStore.pageWidth,
-        badgeSize: pageStore.pageWidth,
-        badgeSizePreset: pageStore.pageWidth,
-        customWidth: pageStore.pageWidth,
-        customHeight: pageStore.pageWidth,
+        page_config: {
+          pageWidth: pageStore.pageWidth,
+          pageHeight: pageStore.pageHeight,
+          presetWidth: pageStore.presetWidth,
+          presetHeight: pageStore.presetHeight,
+          showModal: pageStore.showModal,
+          badgeOrientation: pageStore.badgeOrientation,
+          badgeSize: pageStore.badgeSize,
+          badgeSizePreset: pageStore.badgeSizePreset,
+          customWidth: pageStore.customWidth,
+          customHeight: pageStore.customHeight,
+        },
 
         frontBoxes: frontBoxes.value,
         backBoxes: backBoxes.value,

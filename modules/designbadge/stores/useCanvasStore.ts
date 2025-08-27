@@ -107,12 +107,21 @@ export const useCanvasStore = defineStore("canvasStore", {
     // },
     setCavasElementData(canvasData: any) {
       console.log("setCavasElementData called with:", canvasData);
+      const pageStore = usePageStore();
       if (!canvasData) return;
       if (canvasData.data.badge_json) {
         // this.frontBoxes = canvasData.data.badge_json;
         // this.backBoxes = canvasData.data.badge_json;
+        pageStore.$state = {
+          ...pageStore.$state,
+          ...canvasData.data.badge_json.page_config,
+        };
         this.$state = { ...this.$state, ...canvasData.data.badge_json };
       } else {
+        pageStore.$state = {
+          ...pageStore.$state,
+          ...canvasData.data.badge_json.page_config,
+        };
         this.$state = { ...this.$state, ...canvasData };
       }
     },
