@@ -113,6 +113,46 @@ defineProps({
 const emit = defineEmits(["selected", "close"]);
 
 const predefinedGradients = [
+  {
+    name: "Top Wave - Purple",
+    style: "linear-gradient(340deg, #6B46C1, #ED64A6, #FFFFFF, #F7FAAC)",
+  },
+  {
+    name: "Bottom Wave - Blue",
+    style: "linear-gradient(200deg, #2B6CB0, #90CDF4, #FFFFFF, #BEE3F8)",
+  },
+  {
+    name: "Right Wave - Green",
+    style: "linear-gradient(110deg, #38A169, #9AE6B4, #FFFFFF, #C6F6D5)",
+  },
+  {
+    name: "Left Wave - Orange",
+    style: "linear-gradient(70deg, #DD6B20, #F6AD55, #FFFFFF, #FBD38D)",
+  },
+  {
+    name: "Top-Left Wave - Teal",
+    style: "linear-gradient(315deg, #2C7A7B, #81E6D9, #FFFFFF, #E6FFFA)",
+  },
+  {
+    name: "Top-Right Wave - Pink",
+    style: "linear-gradient(45deg, #D53F8C, #F687B3, #FFFFFF, #FED7E2)",
+  },
+  {
+    name: "Bottom-Left Wave - Yellow",
+    style: "linear-gradient(225deg, #D69E2E, #F6E05E, #FFFFFF, #FAF089)",
+  },
+  {
+    name: "Bottom-Right Wave - Indigo",
+    style: "linear-gradient(135deg, #4C51BF, #A3BFFA, #FFFFFF, #E6E8FF)",
+  },
+  {
+    name: "Top Wave - Coral",
+    style: "linear-gradient(340deg, #E53E3E, #FC8181, #FFFFFF, #FED7D7)",
+  },
+  {
+    name: "Bottom Wave - Mint",
+    style: "linear-gradient(200deg, #48BB78, #9AE6B4, #FFFFFF, #C6F6D5)",
+  },
   { name: "Sunset", style: "linear-gradient(to right, #ff7e5f, #feb47b)" },
   { name: "Ocean", style: "linear-gradient(to right, #00c4cc, #7bd3f7)" },
   { name: "Forest", style: "linear-gradient(to right, #134e4a, #4cceac)" },
