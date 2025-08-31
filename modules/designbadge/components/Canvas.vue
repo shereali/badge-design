@@ -404,35 +404,59 @@ function onResize(event) {
   const dx = event.movementX;
   const dy = event.movementY;
 
-  if (resizeDir.includes("right"))
-    box.properties.size.width = Math.max(
-      minSize,
-      box.properties.size.width + dx
-    );
+  let newWidth = box.properties.size.width;
+  let newHeight = box.properties.size.height;
+  let newLeft = box.position.left;
+  let newTop = box.position.top;
 
+  // Horizontal resizing
+  if (resizeDir.includes("right")) {
+    newWidth = Math.max(minSize, newWidth + dx);
+  }
   if (resizeDir.includes("left")) {
-    box.properties.size.width = Math.max(
-      minSize,
-      box.properties.size.width - dx
-    );
-    box.position.left += dx;
+    const prevWidth = newWidth;
+    newWidth = Math.max(minSize, newWidth - dx);
+
+    // Adjust left only if width didn't hit minSize
+    if (newWidth > minSize || prevWidth > minSize) {
+      newLeft += dx;
+    }
   }
-  if (resizeDir.includes("bottom"))
-    box.properties.size.height = Math.max(
-      minSize,
-      box.properties.size.height + dy
-    );
+
+  // Vertical resizing
+  if (resizeDir.includes("bottom")) {
+    newHeight = Math.max(minSize, newHeight + dy);
+  }
   if (resizeDir.includes("top")) {
-    box.properties.size.height = Math.max(
-      minSize,
-      box.properties.size.height - dy
-    );
-    box.position.top += dy;
+    const prevHeight = newHeight;
+    newHeight = Math.max(minSize, newHeight - dy);
+
+    // Adjust top only if height didn't hit minSize
+    if (newHeight > minSize || prevHeight > minSize) {
+      newTop += dy;
+    }
   }
+
+  // Update box properties
+  box.properties.size.width = newWidth;
+  box.properties.size.height = newHeight;
+  box.position.left = newLeft;
+  box.position.top = newTop;
+
+  // Update store properties
+  store.currentProperties.avatar = {
+    ...box.properties.avatar,
+    containerStyle: {
+      ...(box.properties.avatar?.containerStyle || {}),
+      width: newWidth,
+      height: newHeight,
+    },
+  };
 
   store.currentProperties.size = { ...box.properties.size };
-  store.currentProperties.x = box.position.left;
-  store.currentProperties.y = box.position.top;
+  store.currentProperties.x = newLeft;
+  store.currentProperties.y = newTop;
+
   store.updateProperties(store.currentProperties);
 }
 
@@ -458,6 +482,9 @@ function startRotate(index, event) {
 
     box.properties.rotation = (initialRotation + delta + 360) % 360;
     store.currentProperties.rotation = Math.floor(box.properties.rotation);
+    store.currentProperties.avatar = {
+      ...box.properties.avatar, // Preserve existing avatar properties
+    };
     store.updateProperties(store.currentProperties);
   }
 
