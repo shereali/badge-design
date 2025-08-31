@@ -213,6 +213,7 @@
           />
 
           <!-- Avatar -->
+          <!-- {{ box.properties.avatar }} -->
 
           <div
             v-if="box.type === 'avatar'"
@@ -452,6 +453,7 @@ function onResize(event) {
       height: newHeight,
     },
   };
+  console.log("avatar size", store.currentProperties.avatar.containerStyle);
 
   store.currentProperties.size = { ...box.properties.size };
   store.currentProperties.x = newLeft;

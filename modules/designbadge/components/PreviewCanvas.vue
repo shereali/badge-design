@@ -98,7 +98,6 @@
 
           <!-- Content -->
           <!-- {{ box.properties.size.width }} x {{ box.properties.size.height }} -->
-          <!-- {{ box.properties.avatar }} -->
 
           <component
             v-if="
@@ -109,7 +108,17 @@
             :is="box.type"
             contenteditable
             class="focus:border focus:outline-none focus:border-blue-500 cursor-move leading-tight w-full h-full flex"
-            :class="[verticalAlignClass(box), horizontalAlignClass(box)]"
+            :class="
+              box.type === 'p'
+                ? [
+                    'flex-col',
+                    'break-words',
+                    'whitespace-normal',
+                    verticalToJustifyClass(box),
+                    horizontalToTextAlignClass(box),
+                  ]
+                : [verticalAlignClass(box), horizontalAlignClass(box)]
+            "
             :style="textStyles(box)"
             :ref="(el) => setTextElementRef(box.id, el)"
           >
@@ -130,6 +139,7 @@
             :class="[objectPositionClass(box), objectFitPositionClass(box)]"
           />
 
+          <!-- {{ box.text }} -->
           <!-- Avatar -->
 
           <div
@@ -144,7 +154,7 @@
             :style="box.properties.avatar.containerStyle"
           >
             <img
-              :src="box.properties.avatar.avatar_src"
+              :src="box.text"
               class="object-cover"
               :style="box.properties.avatar.imageStyle"
             />
@@ -183,6 +193,8 @@ let dragOffset = { x: 0, y: 0 };
 let selectedBoxIndex = -1;
 const textElements = ref({});
 
+console.log("store box", store.boxes);
+
 onMounted(() => {
   const resizeObserver = new ResizeObserver(() => {
     canvasWidth.value = canvas.value?.offsetWidth;
@@ -220,6 +232,24 @@ function textStyles(box) {
     color: box.properties.color || "black",
     direction: box.properties.direction || "ltr",
   };
+}
+
+// Add these new functions
+function verticalToJustifyClass(box) {
+  let align = "justify-center";
+  if (box.properties.verticalAlign === "top") align = "justify-start";
+  if (box.properties.verticalAlign === "middle") align = "justify-center";
+  if (box.properties.verticalAlign === "bottom") align = "justify-end";
+  return align;
+}
+
+function horizontalToTextAlignClass(box) {
+  const align = box.properties.horizontalAlign;
+  if (align === "left") return "text-left";
+  if (align === "center") return "text-center";
+  if (align === "right") return "text-right";
+  if (align === "justify") return "text-justify";
+  return "text-center";
 }
 
 function horizontalAlignClass(box) {

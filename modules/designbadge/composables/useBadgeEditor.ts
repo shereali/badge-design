@@ -218,6 +218,23 @@ export function useBadgeEditor() {
           };
         }
 
+        if (
+          item.type === "avatar" &&
+          valueMap["avatar"] !== undefined &&
+          valueMap["avatar"] !== null &&
+          valueMap["avatar"] !== ""
+        ) {
+          updatedProperties = {
+            ...updatedProperties,
+            avatar: {
+              ...updatedProperties.avatar,
+              value: valueMap["avatar"],
+            },
+          };
+        }
+
+        // console.log("item type", item);
+
         // Return updated item with all other properties unchanged
         return {
           ...item,
