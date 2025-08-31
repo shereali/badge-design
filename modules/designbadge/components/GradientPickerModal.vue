@@ -17,7 +17,80 @@
           v-for="gradient in predefinedGradients"
           :key="gradient.name"
           class="relative h-20 rounded-lg cursor-pointer hover:scale-105 transition-transform duration-200"
-          :style="{ background: gradient.style }"
+          :class="[
+            gradient.name === 'Blue Wave Top' &&
+              'bg-gradient-to-tl from-blue-900 to-white',
+            gradient.name === 'Blue Wave Bottom' &&
+              'bg-gradient-to-tr from-blue-900 to-white',
+            gradient.name === 'Top Wave - Purple' &&
+              'bg-gradient-to-tl from-purple-800 to-yellow-100',
+            gradient.name === 'Bottom Wave - Blue' &&
+              'bg-gradient-to-tr from-blue-700 to-blue-100',
+            gradient.name === 'Right Wave - Green' &&
+              'bg-gradient-to-r from-green-700 to-green-100',
+            gradient.name === 'Left Wave - Orange' &&
+              'bg-gradient-to-l from-orange-700 to-orange-100',
+            gradient.name === 'Top-Left Wave - Teal' &&
+              'bg-gradient-to-tl from-teal-700 to-teal-100',
+            gradient.name === 'Top-Right Wave - Pink' &&
+              'bg-gradient-to-tr from-pink-700 to-pink-100',
+            gradient.name === 'Bottom-Left Wave - Yellow' &&
+              'bg-gradient-to-bl from-yellow-700 to-yellow-100',
+            gradient.name === 'Bottom-Right Wave - Indigo' &&
+              'bg-gradient-to-br from-indigo-700 to-indigo-100',
+            gradient.name === 'Top Wave - Coral' &&
+              'bg-gradient-to-tl from-red-700 to-red-100',
+            gradient.name === 'Bottom Wave - Mint' &&
+              'bg-gradient-to-tr from-green-600 to-green-100',
+            gradient.name === 'Sunset' &&
+              'bg-gradient-to-r from-orange-500 to-orange-200',
+            gradient.name === 'Ocean' &&
+              'bg-gradient-to-r from-cyan-500 to-cyan-200',
+            gradient.name === 'Forest' &&
+              'bg-gradient-to-r from-teal-800 to-teal-400',
+            gradient.name === 'Twilight' &&
+              'bg-gradient-to-r from-gray-800 to-purple-600',
+            gradient.name === 'Aurora' &&
+              'bg-gradient-to-r from-blue-500 to-cyan-400',
+            gradient.name === 'Blaze' &&
+              'bg-gradient-to-r from-red-600 to-red-200',
+            gradient.name === 'Dusk' &&
+              'bg-gradient-to-r from-blue-800 to-indigo-700',
+            gradient.name === 'Meadow' &&
+              'bg-gradient-to-r from-lime-600 to-lime-300',
+            gradient.name === 'Coral' &&
+              'bg-gradient-to-r from-pink-500 to-pink-200',
+            gradient.name === 'Nightfall' &&
+              'bg-gradient-to-r from-blue-800 to-blue-500',
+            gradient.name === 'Citrus' &&
+              'bg-gradient-to-r from-yellow-500 to-yellow-200',
+            gradient.name === 'Berry' &&
+              'bg-gradient-to-r from-red-600 to-yellow-100',
+            gradient.name === 'Tropical' &&
+              'bg-gradient-to-r from-cyan-500 to-red-500',
+            gradient.name === 'Horizon' &&
+              'bg-gradient-to-r from-purple-800 to-indigo-500',
+            gradient.name === 'Mint' &&
+              'bg-gradient-to-r from-green-300 to-blue-400',
+            gradient.name === 'Peach' &&
+              'bg-gradient-to-r from-orange-500 to-red-500',
+            gradient.name === 'Lavender' &&
+              'bg-gradient-to-r from-indigo-300 to-pink-300',
+            gradient.name === 'Serenity' &&
+              'bg-gradient-to-r from-gray-800 to-blue-400',
+            gradient.name === 'Emerald' &&
+              'bg-gradient-to-r from-teal-600 to-lime-400',
+            gradient.name === 'Candy' &&
+              'bg-gradient-to-r from-red-300 to-orange-200',
+            gradient.name === 'Vintage' &&
+              'bg-gradient-to-r from-gray-400 to-gray-800',
+            gradient.name === 'Skyline' &&
+              'bg-gradient-to-r from-blue-500 to-indigo-600',
+            gradient.name === 'Rose' &&
+              'bg-gradient-to-r from-pink-300 to-orange-200',
+            gradient.name === 'Galaxy' &&
+              'bg-gradient-to-r from-indigo-800 to-pink-200',
+          ]"
           @click="selectGradient(gradient.style)"
         >
           <span
@@ -79,7 +152,9 @@
           <label class="text-sm font-medium text-gray-600">Preview</label>
           <div
             class="h-24 rounded-lg mt-2"
-            :style="{ background: customGradientStyle }"
+            :class="`bg-gradient-to-${direction.value} from-${startColor.slice(
+              1
+            )} to-${endColor.slice(1)}`"
           ></div>
         </div>
       </div>
@@ -113,6 +188,14 @@ defineProps({
 const emit = defineEmits(["selected", "close"]);
 
 const predefinedGradients = [
+  {
+    name: "Blue Wave Top",
+    style: "linear-gradient(340deg, #1E3A8A, #60A5FA, #E0F2FE, #FFFFFF)",
+  },
+  {
+    name: "Blue Wave Bottom",
+    style: "linear-gradient(200deg, #1E3A8A, #60A5FA, #E0F2FE, #FFFFFF)",
+  },
   {
     name: "Top Wave - Purple",
     style: "linear-gradient(340deg, #6B46C1, #ED64A6, #FFFFFF, #F7FAAC)",

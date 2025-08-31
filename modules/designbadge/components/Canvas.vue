@@ -173,7 +173,17 @@
             :is="box.type"
             contenteditable
             class="focus:border focus:outline-none focus:border-blue-500 cursor-move leading-tight w-full h-full flex"
-            :class="[verticalAlignClass(box), horizontalAlignClass(box)]"
+            :class="
+              box.type === 'p'
+                ? [
+                    'flex-col',
+                    'break-words',
+                    'whitespace-normal',
+                    verticalToJustifyClass(box),
+                    horizontalToTextAlignClass(box),
+                  ]
+                : [verticalAlignClass(box), horizontalAlignClass(box)]
+            "
             :style="textStyles(box)"
             :ref="(el) => setTextElementRef(box.id, el)"
             @input="updateText(box, $event)"
@@ -182,7 +192,7 @@
             {{ box.text }}
           </component>
 
-          <!-- Images and QR Code -->
+          <!-- Images -->
           <img
             v-if="box.type === 'img'"
             :src="box.properties.src.url"
@@ -191,6 +201,8 @@
             @keydown="deleteItem($event)"
             @error="handleImageError"
           />
+
+          <!-- Static Image  -->
           <img
             v-if="box.type === 'background'"
             :src="box.properties.src.url"
@@ -199,6 +211,28 @@
             @keydown="deleteItem($event)"
             @error="handleImageError"
           />
+
+          <!-- Avatar -->
+
+          <div
+            v-if="box.type === 'avatar'"
+            :class="[
+              'overflow-hidden shadow-sm transition-transform hover:scale-[1.02] flex items-center justify-center bg-gray-100',
+              box.properties.avatar.showBorder ? 'border border-gray-300' : '',
+              box.properties.avatar.showRing
+                ? 'ring-2 ring-offset-2 ring-gray-400'
+                : '',
+            ]"
+            :style="box.properties.avatar.containerStyle"
+          >
+            <img
+              :src="box.properties.avatar.avatar_src"
+              class="object-cover"
+              :style="box.properties.avatar.imageStyle"
+            />
+          </div>
+
+          <!-- QR Code -->
 
           <Qrcode
             v-if="box.type === 'qrcode'"
@@ -243,6 +277,24 @@ let resizeDir = "";
 let dragOffset = { x: 0, y: 0 };
 let selectedBoxIndex = -1;
 const textElements = ref({});
+
+// Add these new functions
+function verticalToJustifyClass(box) {
+  let align = "justify-center";
+  if (box.properties.verticalAlign === "top") align = "justify-start";
+  if (box.properties.verticalAlign === "middle") align = "justify-center";
+  if (box.properties.verticalAlign === "bottom") align = "justify-end";
+  return align;
+}
+
+function horizontalToTextAlignClass(box) {
+  const align = box.properties.horizontalAlign;
+  if (align === "left") return "text-left";
+  if (align === "center") return "text-center";
+  if (align === "right") return "text-right";
+  if (align === "justify") return "text-justify";
+  return "text-center";
+}
 
 onMounted(() => {
   const resizeObserver = new ResizeObserver(() => {
@@ -310,7 +362,7 @@ function startDrag(index, event) {
 
 function onDrag(event) {
   const box = store.boxes[selectedBoxIndex];
-  console.log("Dragging box:", box);
+  if (!box) return;
 
   const canvasRect = canvas.value.getBoundingClientRect();
   let newLeft = event.clientX - dragOffset.x;
@@ -325,10 +377,17 @@ function onDrag(event) {
     Math.min(canvasRect.height - box.properties.size.height, newTop)
   );
 
+  // Update position
   box.position.left = newLeft;
   box.position.top = newTop;
+
+  // Update currentProperties with position and preserve existing avatar properties
   store.currentProperties.x = newLeft;
   store.currentProperties.y = newTop;
+  store.currentProperties.avatar = {
+    ...box.properties.avatar, // Preserve existing avatar properties
+  };
+
   store.updateProperties(store.currentProperties);
 }
 

@@ -6,9 +6,7 @@
     <div class="flex-1 flex flex-col items-center p-4 order-2 md:order-1">
       <!-- Top Controls -->
       <div class="w-full">
-        <div
-          class="flex flex-wrap items-center justify-center md:justify-between gap-3 w-full"
-        >
+        <div class="flex items-center justify-center gap-3 w-full">
           <button
             @click="downloadPDF"
             class="flex gap-1 border border-slate-200 px-5 py-2 text-sm bg-blue-200 text-blue-500 rounded-lg font-medium transition-colors focus:outline-none focus:ring-1 focus:ring-blue-300"
@@ -18,63 +16,8 @@
           </button>
 
           <!-- Side Tabs -->
-          <div
-            class="flex border border-gray-300 rounded-lg overflow-hidden shadow-sm ml-12"
-          >
-            <button
-              class="px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400"
-              :class="{
-                'bg-blue-500 text-white': store.activeSide === 'front',
-                'bg-gray-200 text-gray-700 hover:bg-gray-300':
-                  store.activeSide !== 'front',
-              }"
-              @click="switchSideTab('front')"
-              :disabled="isFlipping"
-            >
-              Front
-            </button>
-            <button
-              class="px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400"
-              :class="{
-                'bg-blue-500 text-white': store.activeSide === 'back',
-                'bg-gray-200 text-gray-700 hover:bg-gray-300':
-                  store.activeSide !== 'back',
-              }"
-              @click="switchSideTab('back')"
-              :disabled="isFlipping"
-            >
-              Back
-            </button>
-          </div>
+
           <!-- Zoom & Grid Controls -->
-          <div
-            class="flex items-center space-x-2 bg-white rounded-lg p-1 shadow-sm"
-          >
-            <button
-              class="w-9 h-9 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300 transition"
-              @click="zoom(-10)"
-            >
-              <Icon name="mdi:minus" class="w-4 h-4" />
-            </button>
-            <span
-              class="w-12 h-9 flex items-center justify-center bg-gray-100 rounded text-sm font-medium"
-            >
-              {{ zoomLevel }}%
-            </span>
-            <button
-              class="w-9 h-9 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300 transition"
-              @click="zoom(10)"
-            >
-              <Icon name="mdi:plus" class="w-4 h-4" />
-            </button>
-            <button
-              class="w-9 h-9 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300 transition"
-              :class="{ 'text-blue-500 bg-white': showGrid }"
-              @click="toggleGrid"
-            >
-              <Icon name="mdi:grid" class="w-4 h-4" />
-            </button>
-          </div>
         </div>
       </div>
       <!-- Design Page -->

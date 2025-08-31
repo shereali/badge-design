@@ -24,6 +24,14 @@ interface Position {
   top: number;
 }
 
+interface Avatar {
+  showBorder: boolean;
+  showRing: boolean;
+  containerStyle: any;
+  avatar_src: string;
+  imageStyle: any;
+}
+
 interface ElementProperties {
   size: Size;
   rotation: number;
@@ -53,11 +61,13 @@ interface ElementProperties {
   displayOption?: string;
   qrcode: QRCode;
   direction: string;
+  avatar: Avatar;
 }
 
 interface CanvasElement {
   id: string | number;
   text: string;
+  key: string;
   type: string;
   label: string;
   position: Position;
@@ -167,6 +177,14 @@ export const useCanvasStore = defineStore("canvasStore", {
           displayOption: "both sides",
           qrcode: data.qrcode ?? "",
           direction: "ltr",
+          avatar: {
+            showBorder: false,
+            showRing: false,
+            containerStyle: [],
+            avatar_src:
+              "https://ui-avatars.com/api/?background=c8c9ca&color=6c757d&size=200",
+            imageStyle: [],
+          },
         },
         isSelected: true,
         isDragging: false,
@@ -193,8 +211,8 @@ export const useCanvasStore = defineStore("canvasStore", {
       const data = {
         item: item,
         position: adjustedPosition,
-        width: elementWidth,
-        height: elementHeight,
+        width: item.type == "avatar" ? 150 : elementWidth,
+        height: item.type == "avatar" ? 150 : elementHeight,
       };
 
       const newElement = this.elementMachanism(data);
@@ -362,6 +380,14 @@ export const useCanvasStore = defineStore("canvasStore", {
         displayOption: element.properties.displayOption,
         qrcode: element.properties.qrcode,
         direction: element.properties.direction,
+        avatar: {
+          showBorder: false,
+          showRing: false,
+          containerStyle: [],
+          avatar_src:
+            "https://ui-avatars.com/api/?background=c8c9ca&color=6c757d&size=200",
+          imageStyle: [],
+        },
       };
     },
 

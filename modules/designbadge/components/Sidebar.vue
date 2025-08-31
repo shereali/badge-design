@@ -394,6 +394,10 @@ watchEffect(() => {
   }
 });
 
+if (!pending.value) {
+  console.log("Sidebar Info", sidebarInfo.value);
+}
+
 // Existing functions (unchanged)
 function startSidebarDrag(event, item) {
   emit("drag-start", item);

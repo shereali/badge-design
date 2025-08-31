@@ -97,6 +97,8 @@
           <!-- Selected-only elements -->
 
           <!-- Content -->
+          <!-- {{ box.properties.size.width }} x {{ box.properties.size.height }} -->
+          <!-- {{ box.properties.avatar }} -->
 
           <component
             v-if="
@@ -127,6 +129,26 @@
             class="w-full h-full transition-all duration-300 cursor-pointer select-none"
             :class="[objectPositionClass(box), objectFitPositionClass(box)]"
           />
+
+          <!-- Avatar -->
+
+          <div
+            v-if="box.type === 'avatar'"
+            :class="[
+              'overflow-hidden shadow-sm transition-transform hover:scale-[1.02] flex items-center justify-center bg-gray-100',
+              box.properties.avatar.showBorder ? 'border border-gray-300' : '',
+              box.properties.avatar.showRing
+                ? 'ring-2 ring-offset-2 ring-gray-400'
+                : '',
+            ]"
+            :style="box.properties.avatar.containerStyle"
+          >
+            <img
+              :src="box.properties.avatar.avatar_src"
+              class="object-cover"
+              :style="box.properties.avatar.imageStyle"
+            />
+          </div>
 
           <Qrcode
             v-if="box.type === 'qrcode'"
