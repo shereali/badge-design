@@ -239,7 +239,7 @@ const downloadPDF = async () => {
         imgData,
         "PNG",
         0,
-        0,
+        (pageStore.presetHeight || 54) + 10,
         pageStore.presetWidth || 85.6,
         pageStore.presetHeight || 54,
         undefined,
@@ -248,7 +248,7 @@ const downloadPDF = async () => {
     }
 
     // Add back side to PDF (always include)
-    if (backCanvas) {
+    if (backCanvas && store.backBoxes.length > 0) {
       const imgData = backCanvas.toDataURL("image/png");
       pdf.addImage(
         imgData,

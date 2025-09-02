@@ -110,12 +110,12 @@
 
             <!-- Delete Button -->
             <div
-              class="absolute -top-6 right-0 text-xs text-ceter text-white bg-red-600 cursor-pointer"
+              class="absolute -top-6 right-0 text-xs text-ceter cursor-pointer"
               @click.stop="deleteElement(index)"
             >
               <Icon
-                name="mdi:close"
-                class="text-lg flex items-center justify-center place-content-center"
+                name="fluent-emoji-flat:cross-mark"
+                class="text-md flex items-center justify-center place-content-center"
               />
             </div>
 
