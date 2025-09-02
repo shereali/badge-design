@@ -22,7 +22,7 @@
       <!-- Body -->
       <div class="mt-5 space-y-5">
         <!-- Radio Buttons -->
-        <div class="flex gap-6">
+        <div class="flex gap-6 invisible">
           <label
             class="flex items-center gap-2 cursor-pointer text-gray-700 hover:text-blue-500"
           >
