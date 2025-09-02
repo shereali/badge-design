@@ -61,6 +61,8 @@ export default defineNuxtConfig({
 
   googleFonts: {
     families: {
+      Cairo: true,
+      "Sans+Serif": true,
       Roboto: true,
       "Open+Sans": true,
       Lato: true,

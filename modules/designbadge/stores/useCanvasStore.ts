@@ -274,7 +274,7 @@ export const useCanvasStore = defineStore("canvasStore", {
         properties: {
           size: { width: data.width ?? "", height: data.height ?? "" },
           rotation: 0,
-          font: "Roboto",
+          font: "",
           fontWeight: "normal",
           fontStyle: "normal",
           fontSize: "Auto",
