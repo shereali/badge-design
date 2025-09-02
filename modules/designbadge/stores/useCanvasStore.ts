@@ -361,14 +361,111 @@ export const useCanvasStore = defineStore("canvasStore", {
       const position = { left: 123, top: 204 };
       this.pendingImagePosition = position;
       this.pendingImageSide = this.activeSide;
-      const item = { type: "img" }; // Example, adjust as needed
-      this.addElementFromDrag(item, position);
+      //   return;
+      // }
+
+      const pageStore = usePageStore();
+      const customPosition = {
+        left: 198,
+        top: 277,
+      };
+      const canvasWidth =
+        this.dropzone?.offsetWidth || pageStore.presetWidth * 3.78;
+      const canvasHeight =
+        this.dropzone?.offsetHeight || pageStore.presetHeight * 3.78;
+      const elementWidth =
+        this.imageItem.type === "background"
+          ? pageStore.presetWidth * 3.78
+          : 150;
+      const elementHeight =
+        this.imageItem.type === "background"
+          ? pageStore.presetHeight * 3.78
+          : 150;
+
+      // Ensure position is within drop zone
+      const adjustedPosition = {
+        left: Math.max(
+          0,
+          Math.min(
+            this.imageItem.type === "background"
+              ? customPosition.left
+              : this.pendingImagePosition.left,
+            canvasWidth - elementWidth
+          )
+        ),
+        top: Math.max(
+          0,
+          Math.min(
+            this.imageItem.type === "background"
+              ? customPosition.top
+              : this.pendingImagePosition.top,
+            canvasHeight - elementHeight
+          )
+        ),
+      };
+
+      const data = {
+        item: {
+          text: this.imageItem.label,
+          type: this.imageItem.type,
+          key: this.imageItem.type === "background" ? "background_img" : "img",
+          label: this.imageItem.type === "background" ? "background" : "Image",
+        },
+        position: adjustedPosition,
+        dataUrl: dataUrl,
+        width: elementWidth,
+        height: elementHeight,
+      };
+
+      const newElement = this.elementMachanism(data);
+
+      if (this.pendingImageSide === "front") {
+        this.frontBoxes.push(newElement);
+      } else {
+        this.backBoxes.push(newElement);
+      }
+      this.pendingImagePosition = null;
+      this.pendingImageSide = null;
+      this.selectedElement = newElement.id;
+      this.updateProperties();
     },
     addElement(element: CanvasElement) {
       const boxes =
         this.activeSide === "front" ? this.frontBoxes : this.backBoxes;
       boxes.push(element);
     },
+
+    handleQRCodeGenerator(qrcodeValue: string) {
+      const qrcodeData = {
+        value: qrcodeValue,
+        variant: "pixelated",
+        radius: 1,
+        blackColor: "#000000", // 'var(--ui-text-highlighted)' if you are using `@nuxt/ui` v3
+        whiteColor: "transparent",
+      };
+      const data = {
+        item: {
+          text: "",
+          type: "qrcode",
+          key: "qrcode",
+          label: "QR Code",
+        },
+        position: {
+          left: 43,
+          top: 188,
+        },
+        width: 150,
+        height: 150,
+        qrcode: qrcodeData,
+      };
+
+      const newElement = this.elementMachanism(data);
+
+      this.addElement(newElement);
+      this.selectedElement = newElement.id;
+      this.updateProperties();
+    },
+
     updateProperties(newProps?: Partial<ElementProperties>) {
       if (this.selectedElement === null) {
         this.currentProperties = {};

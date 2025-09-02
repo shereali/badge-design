@@ -20,9 +20,12 @@
       </div>
 
       <!-- Body -->
-      <div class="mt-5 space-y-5">
+      <div class="text-8xl py-2">
+        <Icon name="vaadin:qrcode" />
+      </div>
+      <div class="mt-5 space-y-5" style="display: none">
         <!-- Radio Buttons -->
-        <div class="flex gap-6 invisible">
+        <div class="flex gap-6">
           <label
             class="flex items-center gap-2 cursor-pointer text-gray-700 hover:text-blue-500"
           >
@@ -61,9 +64,10 @@
           >
             <option value="" disabled selected>Choose Ticket ID</option>
             <option
-              v-for="ticket in ticketOptions"
+              v-for="(ticket, index) in ticketOptions"
               :key="ticket"
               :value="ticket"
+              :selected="index === 0"
             >
               {{ ticket }}
             </option>
@@ -84,7 +88,7 @@
       </div>
 
       <!-- Footer -->
-      <div class="mt-6 flex justify-end gap-3 border-t pt-4">
+      <div class="flex justify-end gap-3">
         <button
           @click="qrcodeStore.qrCodetoggleModal"
           class="px-5 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition"
