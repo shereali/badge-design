@@ -45,6 +45,7 @@
         </div>
         <!-- Back Side -->
         <div
+          v-if="store.backBoxes.length > 0"
           ref="backPageRef"
           class="design-page bg-white shadow-md rounded-lg border-none"
           :style="{
