@@ -131,6 +131,21 @@ const preloadImages = async (boxes) => {
   }
 };
 
+// Function to calculate content dimensions
+const getContentDimensions = (boxes) => {
+  let maxWidth = pageStore.presetWidth || 85.6;
+  let maxHeight = pageStore.presetHeight || 54;
+  boxes.forEach((box) => {
+    if (box.visible) {
+      const boxRight = box.position.left + box.properties.size.width;
+      const boxBottom = box.position.top + box.properties.size.height;
+      maxWidth = Math.max(maxWidth, boxRight / 3.78); // Convert px to mm
+      maxHeight = Math.max(maxHeight, boxBottom / 3.78); // Convert px to mm
+    }
+  });
+  return { width: maxWidth, height: maxHeight };
+};
+
 // Function to download the design as PDF
 const downloadPDF = async () => {
   try {
@@ -140,16 +155,26 @@ const downloadPDF = async () => {
       );
     }
 
+    // Determine PDF dimensions based on content
+    const frontDimensions = getContentDimensions(store.frontBoxes);
+    const backDimensions =
+      store.backBoxes.length > 0
+        ? getContentDimensions(store.backBoxes)
+        : { width: 0, height: 0 };
+    const hasBackSide = store.backBoxes.length > 0;
+    const pdfWidth = Math.max(
+      pageStore.presetWidth || 85.6,
+      frontDimensions.width,
+      backDimensions.width
+    );
+    const pdfHeight = hasBackSide
+      ? Math.max(pageStore.presetHeight || 54, frontDimensions.height) * 2 + 10
+      : Math.max(pageStore.presetHeight || 54, frontDimensions.height);
+
     const pdf = new $jsPDF({
-      orientation:
-        pageStore.presetWidth > pageStore.presetHeight
-          ? "landscape"
-          : "portrait",
+      orientation: pdfWidth > pdfHeight ? "landscape" : "portrait",
       unit: "mm",
-      format: [
-        pageStore.presetWidth || 85.6,
-        (pageStore.presetHeight || 54) * 2 + 10,
-      ],
+      format: [pdfWidth, pdfHeight],
       compress: true,
     });
 
@@ -168,16 +193,17 @@ const downloadPDF = async () => {
       element.style.display = "block";
       element.style.visibility = "visible";
 
+      const dimensions = side === "front" ? frontDimensions : backDimensions;
       const canvas = await $html2canvas(element, {
         scale: 3,
         useCORS: true,
         backgroundColor: "#ffffff",
         logging: true,
         allowTaint: false,
-        width: (pageStore.presetWidth || 85.6) * 3.78, // Convert mm to pixels (1mm ≈ 3.78px at 96 DPI)
-        height: (pageStore.presetHeight || 54) * 3.78,
+        width: dimensions.width * 3.78, // Convert mm to pixels (1mm ≈ 3.78px at 96 DPI)
+        height: dimensions.height * 3.78,
         onclone: (clonedDoc) => {
-          // Ensure fonts are applied in the cloned document
+          // Ensure fonts and text styles are applied
           const textElements = clonedDoc.querySelectorAll(
             "h1, h2, h3, h4, h6, p, a, span"
           );
@@ -191,23 +217,39 @@ const downloadPDF = async () => {
               el.style.fontSize =
                 box.properties.fontSize && box.properties.fontSize !== "Auto"
                   ? `${box.properties.fontSize}px`
-                  : el.style.fontSize;
+                  : el.style.fontSize ||
+                    `${Math.max(12, box.properties.size.height * 0.2)}px`;
               el.style.fontFamily = box.properties.font
                 ? box.properties.font.includes(",")
                   ? box.properties.font
                   : `"${box.properties.font}", sans-serif`
-                : el.style.fontFamily;
+                : el.style.fontFamily || "poppins, sans-serif";
+              el.style.lineHeight = "1.2"; // Set a tight line height to avoid extra spacing
+              el.style.whiteSpace = "normal";
+              el.style.wordBreak = "break-word";
+              el.style.overflow = "visible";
+              el.style.width = `${box.properties.size.width}px`;
+              el.style.height = `${box.properties.size.height}px`;
+              el.style.margin = "0"; // Remove any margins that might add spacing
+              el.style.padding = "0"; // Remove any padding that might add spacing
             }
           });
-          // Remove borders from design page in cloned document
+          // Remove borders and adjust design page
           const designPage = clonedDoc.querySelector(".design-page");
           if (designPage) {
             designPage.style.border = "none";
             designPage.style.boxShadow = "none";
-            designPage.style.width = `${pageStore.presetWidth}mm`;
-            designPage.style.height = `${pageStore.presetHeight}mm`;
-            designPage.style.minWidth = `${pageStore.presetWidth}mm`;
-            designPage.style.minHeight = `${pageStore.presetHeight}mm`;
+            designPage.style.width = `${dimensions.width}mm`;
+            designPage.style.height = `${dimensions.height}mm`;
+            designPage.style.minWidth = `${dimensions.width}mm`;
+            designPage.style.minHeight = `${dimensions.height}mm`;
+            designPage.style.overflow = "visible";
+          }
+          const card = clonedDoc.querySelector(".card");
+          if (card) {
+            card.style.width = `${dimensions.width}mm`;
+            card.style.height = `${dimensions.height}mm`;
+            card.style.overflow = "visible";
           }
         },
       });
@@ -226,9 +268,9 @@ const downloadPDF = async () => {
       frontCanvas = await captureElement(frontRef.value, "front");
     }
 
-    // Capture back side
+    // Capture back side only if it has content
     let backCanvas = null;
-    if (backRef.value) {
+    if (hasBackSide && backRef.value) {
       await nextTick(); // Ensure DOM is updated
       backCanvas = await captureElement(backRef.value, "back");
     }
@@ -241,23 +283,23 @@ const downloadPDF = async () => {
         "PNG",
         0,
         0,
-        pageStore.presetWidth || 85.6,
-        pageStore.presetHeight || 54,
+        frontDimensions.width,
+        frontDimensions.height,
         undefined,
         "MEDIUM"
       );
     }
 
-    // Add back side to PDF (always include)
+    // Add back side to PDF only if it has content
     if (backCanvas) {
       const imgData = backCanvas.toDataURL("image/png");
       pdf.addImage(
         imgData,
         "PNG",
         0,
-        (pageStore.presetHeight || 54) + 10,
-        pageStore.presetWidth || 85.6,
-        pageStore.presetHeight || 54,
+        frontDimensions.height + 10,
+        backDimensions.width,
+        backDimensions.height,
         undefined,
         "MEDIUM"
       );
@@ -286,12 +328,13 @@ const downloadPDF = async () => {
 .design-page {
   border: none !important;
   box-shadow: none !important;
-  overflow: hidden; /* Prevent content from overflowing */
+  overflow: visible; /* Allow content to be fully captured */
 }
 .card {
   width: 100%;
   height: 100%;
   position: relative;
+  overflow: visible; /* Ensure no clipping */
 }
 .front,
 .back {
@@ -300,5 +343,6 @@ const downloadPDF = async () => {
   position: absolute;
   top: 0;
   left: 0;
+  overflow: visible; /* Prevent text clipping */
 }
 </style>
