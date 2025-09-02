@@ -95,6 +95,7 @@
             zIndex: box.zIndex || 0,
           }"
           @mousedown.stop="activateElement(index, $event)"
+          @dblclick="handleDoubleClick(box, index)"
           @keydown="deleteItem($event)"
         >
           <!-- Selected-only elements -->
@@ -105,6 +106,17 @@
               class="absolute -top-5 left-0 px-1 text-xs text-white bg-blue-600"
             >
               {{ box.label }}
+            </div>
+
+            <!-- Delete Button -->
+            <div
+              class="absolute -top-6 right-0 text-xs text-ceter text-white bg-red-600 cursor-pointer"
+              @click.stop="deleteElement(index)"
+            >
+              <Icon
+                name="mdi:close"
+                class="text-lg flex items-center justify-center place-content-center"
+              />
             </div>
 
             <!-- Distance (Only on Drag) -->
@@ -163,7 +175,6 @@
           </template>
 
           <!-- Content -->
-
           <component
             v-if="
               checkElementTypes.find((item) =>
@@ -181,8 +192,13 @@
                     'whitespace-normal',
                     verticalToJustifyClass(box),
                     horizontalToTextAlignClass(box),
+                    { 'cursor-text': box.isSelected },
                   ]
-                : [verticalAlignClass(box), horizontalAlignClass(box)]
+                : [
+                    verticalAlignClass(box),
+                    horizontalAlignClass(box),
+                    { 'cursor-text': box.isSelected },
+                  ]
             "
             :style="textStyles(box)"
             :ref="(el) => setTextElementRef(box.id, el)"
@@ -202,7 +218,7 @@
             @error="handleImageError"
           />
 
-          <!-- Static Image  -->
+          <!-- Static Image -->
           <img
             v-if="box.type === 'background'"
             :src="box.properties.src.url"
@@ -213,8 +229,6 @@
           />
 
           <!-- Avatar -->
-          <!-- {{ box.properties.avatar }} -->
-
           <div
             v-if="box.type === 'avatar' && box.key === 'avatar'"
             :class="[
@@ -243,7 +257,6 @@
             ]"
             :style="box.properties.avatar.containerStyle"
           >
-            <!-- {{ box.text }} -->
             <img
               :src="box.text"
               class="object-cover"
@@ -252,7 +265,6 @@
           </div>
 
           <!-- QR Code -->
-
           <Qrcode
             v-if="box.type === 'qrcode'"
             :value="box.properties.qrcode.value"
@@ -297,7 +309,6 @@ let dragOffset = { x: 0, y: 0 };
 let selectedBoxIndex = -1;
 const textElements = ref({});
 
-// Add these new functions
 function verticalToJustifyClass(box) {
   let align = "justify-center";
   if (box.properties.verticalAlign === "top") align = "justify-start";
@@ -315,20 +326,6 @@ function horizontalToTextAlignClass(box) {
   return "text-center";
 }
 
-onMounted(() => {
-  const resizeObserver = new ResizeObserver(() => {
-    canvasWidth.value = canvas.value?.offsetWidth;
-    canvasHeight.value = canvas.value?.offsetHeight;
-  });
-  resizeObserver.observe(canvas.value);
-});
-
-function setTextElementRef(id, el) {
-  if (el) {
-    textElements.value[id] = el;
-  }
-}
-
 function handleCanvasClick() {
   store.boxes.forEach((b) => (b.isSelected = false));
   selectedBoxIndex = -1;
@@ -344,14 +341,6 @@ function activateElement(index, event) {
   store.selectedElementType = store.boxes[index].type;
   store.activeTab = "properties";
   store.updateProperties();
-  console.log("element type", store.boxes[index]);
-
-  if (["h1", "p"].includes(store.boxes[index].type)) {
-    nextTick(() => {
-      const el = textElements.value[store.boxes[index].id];
-      if (el) el.focus();
-    });
-  }
 }
 
 function deleteItem(event) {
@@ -362,13 +351,58 @@ function deleteItem(event) {
     if (index !== -1) {
       store.boxes.splice(index, 1);
       store.selectedElement = null;
+      store.updateProperties();
     }
   }
 }
 
+function deleteElement(index) {
+  const box = store.boxes[index];
+  if (box) {
+    store.boxes.splice(index, 1);
+    store.selectedElement = null;
+    store.updateProperties();
+  }
+}
+
+function handleDoubleClick(box, index) {
+  if (checkElementTypes.includes(box.type)) {
+    store.boxes.forEach((b, i) => (b.isSelected = i === index));
+    selectedBoxIndex = index;
+    store.selectedElement = box.id;
+    store.selectedElementType = box.type;
+    store.activeTab = "properties";
+    store.updateProperties();
+
+    nextTick(() => {
+      const el = textElements.value[box.id];
+      if (el) {
+        el.focus();
+        const range = document.createRange();
+        const selection = window.getSelection();
+        range.selectNodeContents(el);
+        range.collapse(false);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+    });
+  }
+}
+
 onMounted(() => {
+  const resizeObserver = new ResizeObserver(() => {
+    canvasWidth.value = canvas.value?.offsetWidth;
+    canvasHeight.value = canvas.value?.offsetHeight;
+  });
+  resizeObserver.observe(canvas.value);
   document.addEventListener("keydown", deleteItem);
 });
+
+function setTextElementRef(id, el) {
+  if (el) {
+    textElements.value[id] = el;
+  }
+}
 
 function startDrag(index, event) {
   const box = store.boxes[index];
@@ -396,17 +430,14 @@ function onDrag(event) {
     Math.min(canvasRect.height - box.properties.size.height, newTop)
   );
 
-  // Update position
   box.position.left = newLeft;
   box.position.top = newTop;
 
-  // Update currentProperties with position and preserve existing avatar properties
   store.currentProperties.x = newLeft;
   store.currentProperties.y = newTop;
   store.currentProperties.avatar = {
-    ...box.properties.avatar, // Preserve existing avatar properties
+    ...box.properties.avatar,
   };
-
   store.updateProperties(store.currentProperties);
 }
 
@@ -428,55 +459,36 @@ function onResize(event) {
   let newLeft = box.position.left;
   let newTop = box.position.top;
 
-  // Horizontal resizing
   if (resizeDir.includes("right")) {
     newWidth = Math.max(minSize, newWidth + dx);
   }
   if (resizeDir.includes("left")) {
     const prevWidth = newWidth;
     newWidth = Math.max(minSize, newWidth - dx);
-
-    // Adjust left only if width didn't hit minSize
     if (newWidth > minSize || prevWidth > minSize) {
       newLeft += dx;
     }
   }
 
-  // Vertical resizing
   if (resizeDir.includes("bottom")) {
     newHeight = Math.max(minSize, newHeight + dy);
   }
   if (resizeDir.includes("top")) {
     const prevHeight = newHeight;
     newHeight = Math.max(minSize, newHeight - dy);
-
-    // Adjust top only if height didn't hit minSize
     if (newHeight > minSize || prevHeight > minSize) {
       newTop += dy;
     }
   }
 
-  // Update box properties
   box.properties.size.width = newWidth;
   box.properties.size.height = newHeight;
   box.position.left = newLeft;
   box.position.top = newTop;
 
-  // Update store properties
-  store.currentProperties.avatar = {
-    ...box.properties.avatar,
-    containerStyle: {
-      ...(box.properties.avatar?.containerStyle || {}),
-      width: newWidth,
-      height: newHeight,
-    },
-  };
-  console.log("avatar size", store.currentProperties.avatar.containerStyle);
-
   store.currentProperties.size = { ...box.properties.size };
   store.currentProperties.x = newLeft;
   store.currentProperties.y = newTop;
-
   store.updateProperties(store.currentProperties);
 }
 
@@ -503,7 +515,7 @@ function startRotate(index, event) {
     box.properties.rotation = (initialRotation + delta + 360) % 360;
     store.currentProperties.rotation = Math.floor(box.properties.rotation);
     store.currentProperties.avatar = {
-      ...box.properties.avatar, // Preserve existing avatar properties
+      ...box.properties.avatar,
     };
     store.updateProperties(store.currentProperties);
   }
@@ -617,38 +629,38 @@ function verticalAlignClass(box) {
 function objectPositionClass(box) {
   switch (box.properties.imagePosition || box.properties.objectFit) {
     case "top-left":
-      return "object-top-left ...";
+      return "object-top-left";
     case "top":
-      return "object-top ...";
+      return "object-top";
     case "top-right":
-      return "object-top-right ...";
+      return "object-top-right";
     case "left":
-      return "object-left ...";
+      return "object-left";
     case "center":
-      return "object-center ...";
+      return "object-center";
     case "right":
-      return "object-right ...";
+      return "object-right";
     case "bottom-left":
-      return "object-bottom-left ...";
+      return "object-bottom-left";
     case "bottom":
-      return "object-bottom ...";
+      return "object-bottom";
     case "bottom-right":
-      return "object-bottom-right ...";
+      return "object-bottom-right";
   }
 }
 
 function objectFitPositionClass(box) {
   switch (box.properties.objectFit) {
     case "contain":
-      return "object-contain ...";
+      return "object-contain";
     case "cover":
-      return "object-cover ...";
+      return "object-cover";
     case "fill":
-      return "object-fill ...";
+      return "object-fill";
     case "none":
-      return "object-none ...";
+      return "object-none";
     case "scale-down":
-      return "object-scale-down ...";
+      return "object-scale-down";
   }
 }
 

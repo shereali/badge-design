@@ -27,6 +27,9 @@ interface Position {
 interface Avatar {
   showBorder: boolean;
   showRing: boolean;
+  shape: string;
+  radius: number;
+  customClipPath: string;
   containerStyle: any;
   avatar_src: string;
   imageStyle: any;
@@ -100,6 +103,12 @@ export const useCanvasStore = defineStore("canvasStore", {
     punchArea: false,
     punchCircle: "" as string,
     punchLong: "" as string,
+    avatarSize: 150,
+    avatarRadius: 32,
+    avatarShape: "circle",
+    avatarCustomClipPath: "",
+    avatarShowBorder: false,
+    avatarShowRing: false,
   }),
   getters: {
     boxes: (state): CanvasElement[] =>
@@ -108,20 +117,136 @@ export const useCanvasStore = defineStore("canvasStore", {
       state.activeSide === "front"
         ? state.frontBackground
         : state.backBackground,
+    getAvatarContainerStyle(state) {
+      const base = {};
+      let style = {};
+      switch (state.avatarShape) {
+        case "circle":
+          style = { borderRadius: "9999px" };
+          break;
+        case "rounded":
+          style = { borderRadius: `${state.avatarRadius}px` };
+          break;
+        case "squircle":
+          style = {
+            borderRadius: `${Math.min(state.avatarRadius, 100)}% / ${Math.min(
+              state.avatarRadius + 10,
+              100
+            )}%`,
+          };
+          break;
+        case "diamond":
+          style = { clipPath: "polygon(50% 0, 100% 50%, 50% 100%, 0 50%)" };
+          break;
+        case "hex":
+          style = {
+            clipPath:
+              "polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0 50%)",
+          };
+          break;
+        case "triangle":
+          style = { clipPath: "polygon(50% 0, 0 100%, 100% 100%)" };
+          break;
+        case "blob":
+          style = {
+            clipPath:
+              'path("M74.7 12.9c11.8 7.3 20.2 20 23 34.2 2.7 14.2-.3 29.9-8.6 39.8-8.3 9.9-21.8 14-35.6 12.2-13.8-1.7-27.8-10.3-35.1-22.8-7.3-12.5-7.8-28.8-2.5-41.4 5.3-12.6 16.4-21.5 28.4-25C56.2 6.6 68.9 5.7 74.7 12.9z")',
+          };
+          break;
+        case "custom":
+          style = state.avatarCustomClipPath
+            ? { clipPath: state.avatarCustomClipPath }
+            : {};
+          break;
+        default:
+          style = { borderRadius: `${state.avatarRadius}px` };
+      }
+      return { ...base, ...style };
+    },
+    getAvatarImageStyle(state) {
+      return {
+        width: "100%",
+        height: "100%",
+        display: "block",
+        objectFit: "cover",
+      };
+    },
   },
   actions: {
-    // setReplaceTextValues(pdfData: any) {
-    //   if (pdfData) {
-    //     this.$state = { ...this.$state, ...pdfData };
-    //   }
-    // },
+    computeContainerStyle(avatar: Avatar) {
+      const { shape = "circle", radius = 32, customClipPath = "" } = avatar;
+      const base = {};
+      let style = {};
+      switch (shape) {
+        case "circle":
+          style = { borderRadius: "9999px" };
+          break;
+        case "rounded":
+          style = { borderRadius: `${radius}px` };
+          break;
+        case "squircle":
+          style = {
+            borderRadius: `${Math.min(radius, 100)}% / ${Math.min(
+              radius + 10,
+              100
+            )}%`,
+          };
+          break;
+        case "diamond":
+          style = { clipPath: "polygon(50% 0, 100% 50%, 50% 100%, 0 50%)" };
+          break;
+        case "hex":
+          style = {
+            clipPath:
+              "polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0 50%)",
+          };
+          break;
+        case "triangle":
+          style = { clipPath: "polygon(50% 0, 0 100%, 100% 100%)" };
+          break;
+        case "blob":
+          style = {
+            clipPath:
+              'path("M74.7 12.9c11.8 7.3 20.2 20 23 34.2 2.7 14.2-.3 29.9-8.6 39.8-8.3 9.9-21.8 14-35.6 12.2-13.8-1.7-27.8-10.3-35.1-22.8-7.3-12.5-7.8-28.8-2.5-41.4 5.3-12.6 16.4-21.5 28.4-25C56.2 6.6 68.9 5.7 74.7 12.9z")',
+          };
+          break;
+        case "custom":
+          style = customClipPath ? { clipPath: customClipPath } : {};
+          break;
+        default:
+          style = { borderRadius: `${radius}px` };
+      }
+      return { ...base, ...style };
+    },
+    computeImageStyle() {
+      return {
+        width: "100%",
+        height: "100%",
+        display: "block",
+        objectFit: "cover",
+      };
+    },
+    syncAvatarToCurrent() {
+      if (this.selectedElementType !== "avatar") return;
+      this.currentProperties.size = {
+        width: this.avatarSize,
+        height: this.avatarSize,
+      };
+      this.currentProperties.avatar = {
+        ...this.currentProperties.avatar,
+        shape: this.avatarShape,
+        radius: this.avatarRadius,
+        customClipPath: this.avatarCustomClipPath,
+        showBorder: this.avatarShowBorder,
+        showRing: this.avatarShowRing,
+      };
+      this.updateProperties(this.currentProperties);
+    },
     setCavasElementData(canvasData: any) {
       console.log("setCavasElementData called with:", canvasData);
       const pageStore = usePageStore();
       if (!canvasData) return;
       if (canvasData.data.badge_json) {
-        // this.frontBoxes = canvasData.data.badge_json;
-        // this.backBoxes = canvasData.data.badge_json;
         pageStore.$state = {
           ...pageStore.$state,
           ...canvasData.data.badge_json.page_config,
@@ -180,17 +305,24 @@ export const useCanvasStore = defineStore("canvasStore", {
           avatar: {
             showBorder: false,
             showRing: false,
-            containerStyle: [],
+            shape: "circle",
+            radius: 32,
+            customClipPath: "",
             avatar_src:
               "https://ui-avatars.com/api/?background=c8c9ca&color=6c757d&size=200",
-            imageStyle: [],
+            containerStyle: {},
+            imageStyle: {},
           },
         },
         isSelected: true,
         isDragging: false,
         visible: true,
       };
-
+      if (newElement.type === "avatar") {
+        newElement.properties.avatar.containerStyle =
+          this.computeContainerStyle(newElement.properties.avatar);
+        newElement.properties.avatar.imageStyle = this.computeImageStyle();
+      }
       return newElement;
     },
     addElementFromDrag(item: any, position: Position) {
@@ -229,131 +361,61 @@ export const useCanvasStore = defineStore("canvasStore", {
       const position = { left: 123, top: 204 };
       this.pendingImagePosition = position;
       this.pendingImageSide = this.activeSide;
-      //   return;
-      // }
-
-      const pageStore = usePageStore();
-      const customPosition = {
-        left: 198,
-        top: 277,
-      };
-      const canvasWidth =
-        this.dropzone?.offsetWidth || pageStore.presetWidth * 3.78;
-      const canvasHeight =
-        this.dropzone?.offsetHeight || pageStore.presetHeight * 3.78;
-      const elementWidth =
-        this.imageItem.type === "background"
-          ? pageStore.presetWidth * 3.78
-          : 150;
-      const elementHeight =
-        this.imageItem.type === "background"
-          ? pageStore.presetHeight * 3.78
-          : 150;
-
-      // Ensure position is within drop zone
-      const adjustedPosition = {
-        left: Math.max(
-          0,
-          Math.min(
-            this.imageItem.type === "background"
-              ? customPosition.left
-              : this.pendingImagePosition.left,
-            canvasWidth - elementWidth
-          )
-        ),
-        top: Math.max(
-          0,
-          Math.min(
-            this.imageItem.type === "background"
-              ? customPosition.top
-              : this.pendingImagePosition.top,
-            canvasHeight - elementHeight
-          )
-        ),
-      };
-
-      const data = {
-        item: {
-          text: this.imageItem.label,
-          type: this.imageItem.type,
-          key: this.imageItem.type === "background" ? "background_img" : "img",
-          label: this.imageItem.type === "background" ? "background" : "Image",
-        },
-        position: adjustedPosition,
-        dataUrl: dataUrl,
-        width: elementWidth,
-        height: elementHeight,
-      };
-
-      const newElement = this.elementMachanism(data);
-
-      if (this.pendingImageSide === "front") {
-        this.frontBoxes.push(newElement);
-      } else {
-        this.backBoxes.push(newElement);
-      }
-      this.pendingImagePosition = null;
-      this.pendingImageSide = null;
-      this.selectedElement = newElement.id;
-      this.updateProperties();
+      const item = { type: "img" }; // Example, adjust as needed
+      this.addElementFromDrag(item, position);
     },
-
     addElement(element: CanvasElement) {
-      if (this.activeSide === "front") {
-        this.frontBoxes.push(element);
-      } else {
-        this.backBoxes.push(element);
-      }
+      const boxes =
+        this.activeSide === "front" ? this.frontBoxes : this.backBoxes;
+      boxes.push(element);
     },
-
-    handleQRCodeGenerator(qrcodeValue: string) {
-      const qrcodeData = {
-        value: qrcodeValue,
-        variant: "pixelated",
-        radius: 1,
-        blackColor: "#000000", // 'var(--ui-text-highlighted)' if you are using `@nuxt/ui` v3
-        whiteColor: "transparent",
-      };
-      const data = {
-        item: {
-          text: "",
-          type: "qrcode",
-          key: "qrcode",
-          label: "QR Code",
-        },
-        position: {
-          left: 43,
-          top: 188,
-        },
-        width: 150,
-        height: 150,
-        qrcode: qrcodeData,
-      };
-
-      const newElement = this.elementMachanism(data);
-
-      this.addElement(newElement);
-      this.selectedElement = newElement.id;
-      this.updateProperties();
-    },
-
-    updateProperties(newProperties?: Partial<ElementProperties>) {
+    updateProperties(newProps?: Partial<ElementProperties>) {
       if (this.selectedElement === null) {
         this.currentProperties = {};
         return;
       }
-      const element = this.boxes.find((e) => e.id === this.selectedElement);
+      const boxes =
+        this.activeSide === "front" ? this.frontBoxes : this.backBoxes;
+      const element = boxes.find((e) => e.id === this.selectedElement);
       if (!element) return;
 
-      if (newProperties) {
-        element.position.left = newProperties.x ?? element.position.left;
-        element.position.top = newProperties.y ?? element.position.top;
-        element.properties = { ...element.properties, ...newProperties };
-        element.text = newProperties.text ?? element.text;
+      if (newProps) {
+        Object.assign(element.properties, newProps);
+        if (newProps.size) {
+          element.properties.size = { ...newProps.size };
+        }
+        if (newProps.qrcode) {
+          element.properties.qrcode = { ...newProps.qrcode };
+        }
+        if (newProps.avatar) {
+          element.properties.avatar = { ...newProps.avatar };
+        }
+        element.position.left = newProps.x ?? element.position.left;
+        element.position.top = newProps.y ?? element.position.top;
+
+        if (element.type === "avatar") {
+          element.properties.avatar.containerStyle = this.computeContainerStyle(
+            element.properties.avatar
+          );
+          element.properties.avatar.imageStyle = this.computeImageStyle();
+        }
+      } else {
+        this.currentProperties = this.getElementProperties(element);
+        if (element.type === "avatar") {
+          this.avatarSize = Math.round(
+            (element.properties.size.width + element.properties.size.height) / 2
+          );
+          this.avatarShape = element.properties.avatar.shape || "circle";
+          this.avatarRadius = element.properties.avatar.radius || 32;
+          this.avatarCustomClipPath =
+            element.properties.avatar.customClipPath || "";
+          this.avatarShowBorder = element.properties.avatar.showBorder;
+          this.avatarShowRing = element.properties.avatar.showRing;
+        }
       }
-      this.currentProperties = {
-        x: Math.floor(element.position.left),
-        y: Math.floor(element.position.top),
+    },
+    getElementProperties(element: CanvasElement): Partial<ElementProperties> {
+      return {
         size: { ...element.properties.size },
         rotation: element.properties.rotation,
         font: element.properties.font,
@@ -361,10 +423,9 @@ export const useCanvasStore = defineStore("canvasStore", {
         fontStyle: element.properties.fontStyle,
         fontSize: element.properties.fontSize,
         fillColor: element.properties.fillColor,
+        fillTransparency: element.properties.fillTransparency,
         imagePosition: element.properties.imagePosition,
         objectFit: element.properties.objectFit,
-
-        fillTransparency: element.properties.fillTransparency,
         textDecoration: element.properties.textDecoration,
         color: element.properties.color,
         textAlign: element.properties.textAlign,
@@ -380,14 +441,19 @@ export const useCanvasStore = defineStore("canvasStore", {
         displayOption: element.properties.displayOption,
         qrcode: element.properties.qrcode,
         direction: element.properties.direction,
-        avatar: {
-          showBorder: false,
-          showRing: false,
-          containerStyle: [],
-          avatar_src:
-            "https://ui-avatars.com/api/?background=c8c9ca&color=6c757d&size=200",
-          imageStyle: [],
-        },
+        avatar: element.properties.avatar
+          ? { ...element.properties.avatar }
+          : {
+              showBorder: false,
+              showRing: false,
+              shape: "circle",
+              radius: 32,
+              customClipPath: "",
+              containerStyle: [],
+              avatar_src:
+                "https://ui-avatars.com/api/?background=c8c9ca&color=6c757d&size=200",
+              imageStyle: [],
+            },
       };
     },
 

@@ -14,7 +14,6 @@
       <!-- Punch Area Indicators -->
       <div class="punch-area">
         <div class="punch-long">
-          <!-- {{ store.punchLong }} -->
           <div
             v-if="store.punchLong == 'long-left-right'"
             class="w-16 h-4 bg-transparent border border-gray-200 rounded-xl absolute top-5 right-5 z-10"
@@ -69,7 +68,7 @@
       </template>
 
       <!-- Draggable Elements -->
-      <template v-for="(box, index) in store.boxes" :key="box.id">
+      <template v-for="(box, index) in props.modelValue" :key="box.id">
         <div
           v-if="box.visible"
           class="absolute border group border-blue-500"
@@ -94,17 +93,9 @@
             zIndex: box.zIndex || 0,
           }"
         >
-          <!-- Selected-only elements -->
-
           <!-- Content -->
-          <!-- {{ box.properties.size.width }} x {{ box.properties.size.height }} -->
-
           <component
-            v-if="
-              checkElementTypes.find((item) =>
-                checkElementTypes.includes(box.type)
-              )
-            "
+            v-if="checkElementTypes.includes(box.type)"
             :is="box.type"
             contenteditable
             class="focus:border focus:outline-none focus:border-blue-500 cursor-move leading-tight w-full h-full flex"
@@ -139,9 +130,7 @@
             :class="[objectPositionClass(box), objectFitPositionClass(box)]"
           />
 
-          <!-- {{ box.text }} -->
           <!-- Avatar -->
-
           <div
             v-if="box.type === 'avatar'"
             :class="[
@@ -193,8 +182,6 @@ let dragOffset = { x: 0, y: 0 };
 let selectedBoxIndex = -1;
 const textElements = ref({});
 
-console.log("store box", store.boxes);
-
 onMounted(() => {
   const resizeObserver = new ResizeObserver(() => {
     canvasWidth.value = canvas.value?.offsetWidth;
@@ -234,7 +221,6 @@ function textStyles(box) {
   };
 }
 
-// Add these new functions
 function verticalToJustifyClass(box) {
   let align = "justify-center";
   if (box.properties.verticalAlign === "top") align = "justify-start";
@@ -271,38 +257,38 @@ function verticalAlignClass(box) {
 function objectPositionClass(box) {
   switch (box.properties.imagePosition || box.properties.objectFit) {
     case "top-left":
-      return "object-top-left ...";
+      return "object-top-left";
     case "top":
-      return "object-top ...";
+      return "object-top";
     case "top-right":
-      return "object-top-right ...";
+      return "object-top-right";
     case "left":
-      return "object-left ...";
+      return "object-left";
     case "center":
-      return "object-center ...";
+      return "object-center";
     case "right":
-      return "object-right ...";
+      return "object-right";
     case "bottom-left":
-      return "object-bottom-left ...";
+      return "object-bottom-left";
     case "bottom":
-      return "object-bottom ...";
+      return "object-bottom";
     case "bottom-right":
-      return "object-bottom-right ...";
+      return "object-bottom-right";
   }
 }
 
 function objectFitPositionClass(box) {
   switch (box.properties.objectFit) {
     case "contain":
-      return "object-contain ...";
+      return "object-contain";
     case "cover":
-      return "object-cover ...";
+      return "object-cover";
     case "fill":
-      return "object-fill ...";
+      return "object-fill";
     case "none":
-      return "object-none ...";
+      return "object-none";
     case "scale-down":
-      return "object-scale-down ...";
+      return "object-scale-down";
   }
 }
 
@@ -310,7 +296,7 @@ watch(
   () => store.selectedElement,
   (newId) => {
     if (newId) {
-      const box = store.boxes.find((b) => b.id === newId);
+      const box = props.modelValue.find((b) => b.id === newId);
       if (box && ["h1", "p"].includes(box.type)) {
         nextTick(() => {
           const el = textElements.value[newId];
