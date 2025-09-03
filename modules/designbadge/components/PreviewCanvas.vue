@@ -90,11 +90,19 @@
           </component>
           <!-- Images and Background -->
           <img
-            v-if="box.type === 'img' || box.type === 'background'"
+            v-if="box.type === 'img'"
             :src="box.properties.src"
             class="w-full h-full cursor-pointer select-none"
             :class="[objectPositionClass(box), objectFitPositionClass(box)]"
           />
+
+          <img
+            v-if="box.type === 'background'"
+            :src="box.properties.src.url"
+            class="w-full h-full transition-all duration-300 cursor-pointer select-none"
+            :class="[objectPositionClass(box), objectFitPositionClass(box)]"
+          />
+
           <!-- Avatar -->
           <div
             v-if="box.type === 'avatar'"
