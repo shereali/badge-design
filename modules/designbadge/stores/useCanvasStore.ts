@@ -105,7 +105,7 @@ export const useCanvasStore = defineStore("canvasStore", {
     punchLong: "" as string,
     avatarSize: 150,
     avatarRadius: 32,
-    avatarShape: "circle",
+    avatarShape: "rounded",
     avatarCustomClipPath: "",
     avatarShowBorder: false,
     avatarShowRing: false,
@@ -174,8 +174,38 @@ export const useCanvasStore = defineStore("canvasStore", {
   },
   actions: {
     computeContainerStyle(avatar: Avatar) {
-      const { shape = "circle", radius = 32, customClipPath = "" } = avatar;
-      const base = {};
+      const {
+        shape = "circle",
+        radius = 32,
+        customClipPath = "",
+        showBorder,
+        showRing,
+      } = avatar;
+      let base: any = {
+        overflow: "hidden",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "#f3f4f6",
+      };
+
+      let shadows = ["0 1px 2px 0 rgba(0, 0, 0, 0.05)"];
+      if (showRing) {
+        const offsetWidth = 2;
+        const ringWidth = 2;
+        const offsetColor = "#ffffff";
+        const ringColor = "#9ca3af";
+        shadows.push(`0 0 0 ${offsetWidth}px ${offsetColor}`);
+        shadows.push(`0 0 0 ${offsetWidth + ringWidth}px ${ringColor}`);
+      }
+      base.boxShadow = shadows.join(", ");
+
+      if (showBorder) {
+        base.borderWidth = "1px";
+        base.borderStyle = "solid";
+        base.borderColor = "#d1d5db";
+      }
+
       let style = {};
       switch (shape) {
         case "circle":

@@ -114,8 +114,8 @@
               @click.stop="deleteElement(index)"
             >
               <Icon
-                name="fluent-emoji-flat:cross-mark"
-                class="text-md flex items-center justify-center place-content-center"
+                name="bitcoin-icons:trash-outline"
+                class="text-lg flex items-center justify-center place-content-center text-red-600"
               />
             </div>
 

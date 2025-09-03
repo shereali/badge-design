@@ -22,13 +22,11 @@
             v-if="store.punchLong == 'long-left-right'"
             class="w-16 h-4 bg-transparent border border-gray-200 rounded-xl absolute top-5 left-5 z-10"
           ></div>
-
           <div
             v-if="store.punchLong == 'long-center'"
             class="w-16 h-4 bg-transparent border border-gray-200 rounded-xl absolute top-5 left-1/2 -translate-x-1/2 z-10"
           ></div>
         </div>
-
         <div class="punch-circle">
           <div
             v-if="store.punchCircle == 'circle-left-right'"
@@ -38,35 +36,12 @@
             v-if="store.punchCircle == 'circle-left-right'"
             class="w-5 h-5 bg-transparent border border-gray-200 rounded-xl absolute top-5 right-5 z-10"
           ></div>
-
           <div
             v-if="store.punchCircle == 'circle-center'"
             class="w-5 h-5 bg-transparent border border-gray-200 rounded-xl absolute top-5 left-1/2 -translate-x-1/2 z-10"
           ></div>
         </div>
       </div>
-      <!-- Vertical & Horizontal Guide Lines -->
-      <template v-if="selectedBox && selectedBox.isDragging">
-        <div
-          class="absolute top-0 bottom-0 w-px bg-blue-500 z-0"
-          :style="{
-            left:
-              selectedBox.position.left +
-              selectedBox.properties.size.width / 2 +
-              'px',
-          }"
-        ></div>
-        <div
-          class="absolute left-0 right-0 h-px bg-blue-500 z-0"
-          :style="{
-            top:
-              selectedBox.position.top +
-              selectedBox.properties.size.height / 2 +
-              'px',
-          }"
-        ></div>
-      </template>
-
       <!-- Draggable Elements -->
       <template v-for="(box, index) in props.modelValue" :key="box.id">
         <div
@@ -97,9 +72,8 @@
           <component
             v-if="checkElementTypes.includes(box.type)"
             :is="box.type"
-            contenteditable
-            class="focus:border focus:outline-none focus:border-blue-500 cursor-move leading-tight w-full h-full flex"
-            :class="
+            class="leading-tight w-full h-full flex"
+            :class="[
               box.type === 'p'
                 ? [
                     'flex-col',
@@ -108,47 +82,83 @@
                     verticalToJustifyClass(box),
                     horizontalToTextAlignClass(box),
                   ]
-                : [verticalAlignClass(box), horizontalAlignClass(box)]
-            "
+                : [verticalAlignClass(box), horizontalAlignClass(box)],
+            ]"
             :style="textStyles(box)"
-            :ref="(el) => setTextElementRef(box.id, el)"
           >
             {{ box.text }}
           </component>
-
-          <!-- Images and QR Code -->
+          <!-- Images and Background -->
           <img
-            v-if="box.type === 'img'"
-            :src="box.properties.src.url"
+            v-if="box.type === 'img' || box.type === 'background'"
+            :src="box.properties.src"
             class="w-full h-full cursor-pointer select-none"
             :class="[objectPositionClass(box), objectFitPositionClass(box)]"
           />
-          <img
-            v-if="box.type === 'background'"
-            :src="box.properties.src.url"
-            class="w-full h-full transition-all duration-300 cursor-pointer select-none"
-            :class="[objectPositionClass(box), objectFitPositionClass(box)]"
-          />
-
           <!-- Avatar -->
           <div
             v-if="box.type === 'avatar'"
+            class="relative w-full h-full overflow-hidden"
             :class="[
-              'overflow-hidden shadow-sm transition-transform hover:scale-[1.02] flex items-center justify-center bg-gray-100',
               box.properties.avatar.showBorder ? 'border border-gray-300' : '',
               box.properties.avatar.showRing
                 ? 'ring-2 ring-offset-2 ring-gray-400'
                 : '',
             ]"
-            :style="box.properties.avatar.containerStyle"
           >
-            <img
-              :src="box.text"
-              class="object-cover"
-              :style="box.properties.avatar.imageStyle"
-            />
+            <svg
+              class="absolute w-full h-full"
+              preserveAspectRatio="xMidYMid meet"
+            >
+              <clipPath
+                :id="`clip-${box.id}`"
+                clipPathUnits="objectBoundingBox"
+              >
+                <path
+                  v-if="box.properties.avatar.shape === 'circle'"
+                  d="M0.5,0.5 A0.5,0.5 0 1,1 0.5,0 A0.5,0.5 0 1,1 0.5,0.5 Z"
+                />
+                <path
+                  v-if="box.properties.avatar.shape === 'rounded'"
+                  d="M0.2,0 H0.8 A0.2,0.2 0 0,1 1,0.2 V0.8 A0.2,0.2 0 0,1 0.8,1 H0.2 A0.2,0.2 0 0,1 0,0.8 V0.2 A0.2,0.2 0 0,1 0.2,0 Z"
+                />
+                <path
+                  v-if="box.properties.avatar.shape === 'squircle'"
+                  d="M0.2,0 H0.8 A0.3,0.3 0 0,1 1,0.2 V0.8 A0.3,0.3 0 0,1 0.8,1 H0.2 A0.3,0.3 0 0,1 0,0.8 V0.2 A0.3,0.3 0 0,1 0.2,0 Z"
+                />
+                <path
+                  v-if="box.properties.avatar.shape === 'diamond'"
+                  d="M0.5,0 L1,0.5 L0.5,1 L0,0.5 Z"
+                />
+                <path
+                  v-if="box.properties.avatar.shape === 'hex'"
+                  d="M0.25,0.05 L0.75,0.05 L1,0.5 L0.75,0.95 L0.25,0.95 L0,0.5 Z"
+                />
+                <path
+                  v-if="box.properties.avatar.shape === 'triangle'"
+                  d="M0.5,0 L0,1 L1,1 Z"
+                />
+                <path
+                  v-if="box.properties.avatar.shape === 'blob'"
+                  d="M0.747,0.129 C0.865,0.202 0.949,0.35 0.977,0.492 C1.004,0.634 0.997,0.799 0.914,0.898 C0.831,0.997 0.682,1.04 0.558,1.022 C0.434,1.005 0.27,0.927 0.197,0.802 C0.124,0.677 0.122,0.512 0.175,0.386 C0.228,0.26 0.336,0.165 0.464,0.11 C0.592,0.055 0.689,0.057 0.747,0.129 Z"
+                />
+                <path
+                  v-if="box.properties.avatar.shape === 'custom'"
+                  :d="box.properties.avatar.customClipPath"
+                  transform="scale(0.01)"
+                />
+              </clipPath>
+              <image
+                :xlink:href="box.text"
+                width="100%"
+                height="100%"
+                :clip-path="`url(#clip-${box.id})`"
+                preserveAspectRatio="xMidYMid slice"
+                :style="box.properties.avatar.imageStyle"
+              />
+            </svg>
           </div>
-
+          <!-- QR Code -->
           <Qrcode
             v-if="box.type === 'qrcode'"
             :value="box.properties.qrcode.value"
@@ -156,6 +166,7 @@
             :radius="box.properties.qrcode.radius"
             :blackColor="box.properties.qrcode.blackColor"
             :whiteColor="box.properties.qrcode.whiteColor"
+            class="w-full h-full"
           />
         </div>
       </template>
@@ -165,7 +176,7 @@
 
 <script setup>
 import { useCanvasStore } from "@/stores/useCanvasStore";
-import { ref, computed, watch, nextTick } from "vue";
+import { ref, computed, watch, nextTick, onMounted } from "vue";
 
 const store = useCanvasStore();
 const props = defineProps({
@@ -174,18 +185,12 @@ const props = defineProps({
 
 const canvas = ref(null);
 const checkElementTypes = ["h1", "h2", "h3", "h4", "h6", "p", "a", "span"];
-
-const canvasWidth = ref(0);
-const canvasHeight = ref(0);
-let resizeDir = "";
-let dragOffset = { x: 0, y: 0 };
-let selectedBoxIndex = -1;
 const textElements = ref({});
 
 onMounted(() => {
   const resizeObserver = new ResizeObserver(() => {
-    canvasWidth.value = canvas.value?.offsetWidth;
-    canvasHeight.value = canvas.value?.offsetHeight;
+    canvas.value?.offsetWidth;
+    canvas.value?.offsetHeight;
   });
   resizeObserver.observe(canvas.value);
 });
