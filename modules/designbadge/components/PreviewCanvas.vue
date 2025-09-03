@@ -106,18 +106,18 @@
           <div
             v-if="box.type === 'avatar'"
             :class="[
-              'w-full h-full overflow-hidden shadow-sm transition-transform hover:scale-[1.02] flex items-center justify-center bg-gray-100',
+              'overflow-hidden shadow-sm transition-transform hover:scale-[1.02] flex items-center justify-center bg-gray-100',
               box.properties.avatar.showBorder ? 'border border-gray-300' : '',
               box.properties.avatar.showRing
                 ? 'ring-2 ring-offset-2 ring-gray-400'
                 : '',
             ]"
+            :style="box.properties.avatar.containerStyle"
           >
             <img
               :src="box.text"
-              class="w-full h-full object-cover"
+              class="object-cover"
               :style="box.properties.avatar.imageStyle"
-              @load="handleImageLoad"
             />
           </div>
           <!-- QR Code -->
