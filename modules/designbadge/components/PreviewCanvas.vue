@@ -89,13 +89,15 @@
             {{ box.text }}
           </component>
           <!-- Images and Background -->
+
+          <!-- Static Image -->
           <img
             v-if="box.type === 'img'"
-            :src="box.properties.src"
+            :src="box.properties.src.url"
             class="w-full h-full cursor-pointer select-none"
             :class="[objectPositionClass(box), objectFitPositionClass(box)]"
           />
-
+          <!-- Background -->
           <img
             v-if="box.type === 'background'"
             :src="box.properties.src.url"
