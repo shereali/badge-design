@@ -109,18 +109,20 @@
           <div
             v-if="box.type === 'avatar'"
             :class="[
-              'overflow-hidden shadow-sm transition-transform hover:scale-[1.02] flex items-center justify-center bg-gray-100',
+              'overflow-hidden shadow-sm transition-transform flex items-center justify-center bg-gray-100',
               box.properties.avatar.showBorder ? 'border border-gray-300' : '',
               box.properties.avatar.showRing
                 ? 'ring-2 ring-offset-2 ring-gray-400'
                 : '',
             ]"
-            :style="box.properties.avatar.containerStyle"
+            :style="getAvatarContainerStyle(box.properties.avatar)"
           >
             <img
               :src="box.text"
               class="object-cover"
-              :style="box.properties.avatar.imageStyle"
+              :style="getAvatarImageStyle()"
+              @load="handleImageLoad"
+              @error="handleImageError"
             />
           </div>
           <!-- QR Code -->
@@ -187,6 +189,95 @@ function handleImageError(event) {
   if (loadedImageCount.value >= totalImages.value) {
     imagesLoaded.value = true;
   }
+}
+
+// Compute avatar container style based on store data
+function getAvatarContainerStyle(avatar) {
+  const {
+    shape = "rounded",
+    radius = 32,
+    customClipPath = "",
+    showBorder = false,
+    showRing = false,
+  } = avatar || {};
+
+  // Base styles
+  let styles = {
+    overflow: "hidden",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#f3f4f6",
+  };
+
+  // Handle shadow and ring
+  let shadows = ["0 1px 2px 0 rgba(0, 0, 0, 0.05)"];
+  if (showRing) {
+    shadows.push("0 0 0 2px #ffffff");
+    shadows.push("0 0 0 4px #9ca3af");
+  }
+  styles.boxShadow = shadows.join(", ");
+
+  // Handle border
+  if (showBorder) {
+    styles.borderWidth = "1px";
+    styles.borderStyle = "solid";
+    styles.borderColor = "#d1d5db";
+  }
+
+  // Handle shape-specific styles with PDF-compatible fallbacks
+  switch (avatar.shape) {
+    case "circle":
+      styles = { borderRadius: "9999px" };
+      break;
+    case "rounded":
+      styles = { borderRadius: `${avatar.avatarRadius}px` };
+      break;
+    case "squircle":
+      styles = {
+        borderRadius: `${Math.min(avatar.avatarRadius, 100)}% / ${Math.min(
+          avatar.avatarRadius + 10,
+          100
+        )}%`,
+      };
+      break;
+    case "diamond":
+      styles = { clipPath: "polygon(50% 0, 100% 50%, 50% 100%, 0 50%)" };
+      break;
+    case "hex":
+      styles = {
+        clipPath: "polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0 50%)",
+      };
+      break;
+    case "triangle":
+      styles = { clipPath: "polygon(50% 0, 0 100%, 100% 100%)" };
+      break;
+    case "blob":
+      styles = {
+        clipPath:
+          'path("M74.7 12.9c11.8 7.3 20.2 20 23 34.2 2.7 14.2-.3 29.9-8.6 39.8-8.3 9.9-21.8 14-35.6 12.2-13.8-1.7-27.8-10.3-35.1-22.8-7.3-12.5-7.8-28.8-2.5-41.4 5.3-12.6 16.4-21.5 28.4-25C56.2 6.6 68.9 5.7 74.7 12.9z")',
+      };
+      break;
+    case "custom":
+      styles = avatar.avatarCustomClipPath
+        ? { clipPath: avatar.avatarCustomClipPath }
+        : {};
+      break;
+    default:
+      styles = { borderRadius: `${avatar.avatarRadius}px` };
+  }
+
+  return styles;
+}
+
+// Compute avatar image style
+function getAvatarImageStyle() {
+  return {
+    width: "100%",
+    height: "100%",
+    display: "block",
+    objectFit: "cover",
+  };
 }
 
 function setTextElementRef(id, el) {
