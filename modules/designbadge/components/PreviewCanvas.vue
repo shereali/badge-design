@@ -94,13 +94,16 @@
             :src="box.properties.src.url"
             class="w-full h-full cursor-pointer select-none"
             :class="[objectPositionClass(box), objectFitPositionClass(box)]"
+            @load="handleImageLoad"
+            @error="handleImageError"
           />
-
           <img
             v-if="box.type === 'background'"
             :src="box.properties.src.url"
             class="w-full h-full transition-all duration-300 cursor-pointer select-none"
             :class="[objectPositionClass(box), objectFitPositionClass(box)]"
+            @load="handleImageLoad"
+            @error="handleImageError"
           />
           <!-- Avatar -->
           <div
@@ -118,6 +121,8 @@
               :src="box.text"
               class="object-cover"
               :style="box.properties.avatar.imageStyle"
+              @load="handleImageLoad"
+              @error="handleImageError"
             />
           </div>
           <!-- QR Code -->
@@ -138,7 +143,7 @@
 
 <script setup>
 import { useCanvasStore } from "@/stores/useCanvasStore";
-import { ref, computed, watch, nextTick, onMounted } from "vue";
+import { ref, watch, nextTick, onMounted } from "vue";
 
 const store = useCanvasStore();
 const props = defineProps({
@@ -149,8 +154,19 @@ const canvas = ref(null);
 const checkElementTypes = ["h1", "h2", "h3", "h4", "h6", "p", "a", "span"];
 const textElements = ref({});
 const imagesLoaded = ref(false);
+let loadedImageCount = ref(0);
+let totalImages = ref(0);
 
 onMounted(() => {
+  // Count total images
+  totalImages.value = props.modelValue.filter((box) =>
+    ["img", "background", "avatar"].includes(box.type)
+  ).length;
+
+  if (totalImages.value === 0) {
+    imagesLoaded.value = true; // No images to load
+  }
+
   const resizeObserver = new ResizeObserver(() => {
     canvas.value?.offsetWidth;
     canvas.value?.offsetHeight;
@@ -158,9 +174,21 @@ onMounted(() => {
   resizeObserver.observe(canvas.value);
 });
 
-// Ensure avatar images are loaded before PDF generation
+// Handle image load
 function handleImageLoad() {
-  imagesLoaded.value = true;
+  loadedImageCount.value += 1;
+  if (loadedImageCount.value >= totalImages.value) {
+    imagesLoaded.value = true; // All images loaded
+  }
+}
+
+// Handle image load errors
+function handleImageError(event) {
+  console.error(`Failed to load image: ${event.target.src}`);
+  loadedImageCount.value += 1; // Count failed images to avoid blocking PDF generation
+  if (loadedImageCount.value >= totalImages.value) {
+    imagesLoaded.value = true;
+  }
 }
 
 function setTextElementRef(id, el) {
