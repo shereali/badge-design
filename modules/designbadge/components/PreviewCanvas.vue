@@ -108,19 +108,28 @@
           <!-- Avatar -->
           <div
             v-if="box.type === 'avatar'"
-            :class="[
-              'overflow-hidden shadow-sm transition-transform hover:scale-[1.02] flex items-center justify-center bg-gray-100',
-              box.properties.avatar.showBorder ? 'border border-gray-300' : '',
-              box.properties.avatar.showRing
-                ? 'ring-2 ring-offset-2 ring-gray-400'
-                : '',
-            ]"
-            :style="box.properties.avatar.containerStyle"
+            class="w-full h-full box-border"
+            :style="{
+              border: box.properties.avatar.showBorder
+                ? '1px solid #d1d5db'
+                : 'none',
+              boxShadow: box.properties.avatar.showRing
+                ? '0 0 0 2px #e5e7eb, 0 0 0 4px #9ca3af'
+                : '0 0 0 1px #e5e7eb',
+              backgroundColor: '#f3f4f6',
+              overflow: 'hidden',
+              borderRadius:
+                box.properties.avatar.containerStyle.borderRadius || '0',
+            }"
           >
             <img
               :src="box.text"
-              class="object-cover"
-              :style="box.properties.avatar.imageStyle"
+              class="w-full h-full"
+              :style="{
+                objectFit: 'cover',
+                borderRadius:
+                  box.properties.avatar.imageStyle.borderRadius || '0',
+              }"
               @load="handleImageLoad"
               @error="handleImageError"
             />
