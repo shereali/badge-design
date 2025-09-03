@@ -16,7 +16,7 @@
 
         <!-- Desktop Navigation Links -->
         <div class="hidden md:flex items-center space-x-6">
-          <a
+          <!-- <a
             href="/design-badge"
             class="hover:text-gray-300 px-3 py-2 rounded-md text-sm font-medium transition-colors"
             >Home</a
@@ -35,10 +35,10 @@
             href="/design-page"
             class="hover:text-gray-300 px-3 py-2 rounded-md text-sm font-medium transition-colors"
             >Dashboard</a
-          >
+          > -->
         </div>
 
-        <!-- User Profile -->
+        <!-- User Profile
         <div class="hidden md:flex items-center space-x-4">
           <div class="relative">
             <button
@@ -87,10 +87,10 @@
               >
             </div>
           </div>
-        </div>
+        </div> -->
 
         <!-- Mobile Menu Button -->
-        <div class="md:hidden">
+        <!-- <div class="md:hidden">
           <button @click="toggleMobileMenu" class="focus:outline-none p-2">
             <svg
               class="w-6 h-6"
@@ -115,12 +115,12 @@
               ></path>
             </svg>
           </button>
-        </div>
+        </div> -->
       </div>
     </div>
 
     <!-- Mobile Navigation Menu -->
-    <div
+    <!-- <div
       v-if="isMobileMenuOpen"
       class="md:hidden bg-gray-800 border-t border-gray-700"
     >
@@ -161,7 +161,7 @@
           >Logout</a
         >
       </div>
-    </div>
+    </div> -->
   </nav>
 </template>
 

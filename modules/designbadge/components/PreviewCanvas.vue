@@ -1,4 +1,3 @@
-```vue
 <template>
   <div>
     <div
@@ -107,18 +106,18 @@
           <div
             v-if="box.type === 'avatar'"
             :class="[
-              'overflow-hidden shadow-sm transition-transform hover:scale-[1.02] flex items-center justify-center bg-gray-100',
+              'w-full h-full overflow-hidden shadow-sm transition-transform hover:scale-[1.02] flex items-center justify-center bg-gray-100',
               box.properties.avatar.showBorder ? 'border border-gray-300' : '',
               box.properties.avatar.showRing
                 ? 'ring-2 ring-offset-2 ring-gray-400'
                 : '',
             ]"
-            :style="box.properties.avatar.containerStyle"
           >
             <img
               :src="box.text"
-              class="object-cover"
+              class="w-full h-full object-cover"
               :style="box.properties.avatar.imageStyle"
+              @load="handleImageLoad"
             />
           </div>
           <!-- QR Code -->
@@ -149,6 +148,7 @@ const props = defineProps({
 const canvas = ref(null);
 const checkElementTypes = ["h1", "h2", "h3", "h4", "h6", "p", "a", "span"];
 const textElements = ref({});
+const imagesLoaded = ref(false);
 
 onMounted(() => {
   const resizeObserver = new ResizeObserver(() => {
@@ -157,6 +157,11 @@ onMounted(() => {
   });
   resizeObserver.observe(canvas.value);
 });
+
+// Ensure avatar images are loaded before PDF generation
+function handleImageLoad() {
+  imagesLoaded.value = true;
+}
 
 function setTextElementRef(id, el) {
   if (el) {
@@ -282,6 +287,11 @@ watch(
     }
   }
 );
+
+// Expose imagesLoaded for PDF generation
+defineExpose({
+  imagesLoaded,
+});
 </script>
 
 <style scoped>
@@ -357,4 +367,3 @@ watch(
   overflow: hidden;
 }
 </style>
-```
