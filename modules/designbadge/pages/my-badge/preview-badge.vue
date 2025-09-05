@@ -114,14 +114,20 @@ const { $html2canvas, $jsPDF } = useNuxtApp();
 // Function to preload images to ensure they are loaded before PDF generation
 const preloadImages = async (boxes) => {
   const imagePromises = boxes
-    .filter((box) => box.type === "img" && box.properties.src?.url)
+    .filter((box) => box.type === "img" || box.type === "avatar")
     .map((box) => {
       return new Promise((resolve, reject) => {
         const img = new Image();
-        img.src = box.properties.src.url;
+        img.src = box.type === "avatar" ? box.text : box.properties.src.url;
         img.onload = () => resolve(img);
         img.onerror = () =>
-          reject(new Error(`Failed to load image: ${box.properties.src.url}`));
+          reject(
+            new Error(
+              `Failed to load image: ${
+                box.type === "avatar" ? box.text : box.properties.src.url
+              }`
+            )
+          );
       });
     });
   try {
@@ -224,16 +230,101 @@ const downloadPDF = async () => {
                   ? box.properties.font
                   : `"${box.properties.font}", sans-serif`
                 : el.style.fontFamily || "poppins, sans-serif";
-              el.style.lineHeight = "1.2"; // Set a tight line height to avoid extra spacing
+              el.style.lineHeight = "1.2";
               el.style.whiteSpace = "normal";
               el.style.wordBreak = "break-word";
               el.style.overflow = "visible";
               el.style.width = `${box.properties.size.width}px`;
               el.style.height = `${box.properties.size.height}px`;
-              el.style.margin = "0"; // Remove any margins that might add spacing
-              el.style.padding = "0"; // Remove any padding that might add spacing
+              el.style.margin = "0";
+              el.style.padding = "0";
             }
           });
+
+          // Apply avatar-specific styles
+          const avatarElements =
+            clonedDoc.querySelectorAll(".avatar-container");
+          avatarElements.forEach((el) => {
+            const box = boxes.find(
+              (b) =>
+                b.type === "avatar" && b.text === el.querySelector("img")?.src
+            );
+            if (box && box.properties.avatar) {
+              const avatar = box.properties.avatar;
+              let styles = {
+                overflow: "hidden",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: "#f3f4f6",
+              };
+
+              // Handle shadow and ring
+              let shadows = ["0 1px 2px 0 rgba(0, 0, 0, 0.05)"];
+              if (avatar.showRing) {
+                shadows.push("0 0 0 2px #ffffff");
+                shadows.push("0 0 0 4px #9ca3af");
+              }
+              styles.boxShadow = shadows.join(", ");
+
+              // Handle border
+              if (avatar.showBorder) {
+                styles.borderWidth = "1px";
+                styles.borderStyle = "solid";
+                styles.borderColor = "#d1d5db";
+              }
+
+              // Handle shape-specific styles
+              switch (avatar.shape) {
+                case "circle":
+                  styles.borderRadius = "9999px";
+                  break;
+                case "rounded":
+                  styles.borderRadius = `${avatar.radius}px`;
+                  break;
+                case "squircle":
+                  styles.borderRadius = `${Math.min(
+                    avatar.radius,
+                    100
+                  )}% / ${Math.min(avatar.radius + 10, 100)}%`;
+                  break;
+                case "diamond":
+                  styles.clipPath = "polygon(50% 0, 100% 50%, 50% 100%, 0 50%)";
+                  break;
+                case "hex":
+                  styles.clipPath =
+                    "polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0 50%)";
+                  break;
+                case "triangle":
+                  styles.clipPath = "polygon(50% 0, 0 100%, 100% 100%)";
+                  break;
+                case "blob":
+                  styles.clipPath =
+                    'path("M74.7 12.9c11.8 7.3 20.2 20 23 34.2 2.7 14.2-.3 29.9-8.6 39.8-8.3 9.9-21.8 14-35.6 12.2-13.8-1.7-27.8-10.3-35.1-22.8-7.3-12.5-7.8-28.8-2.5-41.4 5.3-12.6 16.4-21.5 28.4-25C56.2 6.6 68.9 5.7 74.7 12.9z")';
+                  break;
+                case "custom":
+                  if (avatar.customClipPath) {
+                    styles.clipPath = avatar.customClipPath;
+                  }
+                  break;
+                default:
+                  styles.borderRadius = `${avatar.radius}px`;
+              }
+
+              // Apply styles to the avatar container
+              Object.assign(el.style, styles);
+
+              // Ensure the image inside the avatar has correct styles
+              const img = el.querySelector("img");
+              if (img) {
+                img.style.width = "100%";
+                img.style.height = "100%";
+                img.style.display = "block";
+                img.style.objectFit = "cover";
+              }
+            }
+          });
+
           // Remove borders and adjust design page
           const designPage = clonedDoc.querySelector(".design-page");
           if (designPage) {
@@ -328,13 +419,13 @@ const downloadPDF = async () => {
 .design-page {
   border: none !important;
   box-shadow: none !important;
-  overflow: visible; /* Allow content to be fully captured */
+  overflow: visible;
 }
 .card {
   width: 100%;
   height: 100%;
   position: relative;
-  overflow: visible; /* Ensure no clipping */
+  overflow: visible;
 }
 .front,
 .back {
@@ -343,6 +434,6 @@ const downloadPDF = async () => {
   position: absolute;
   top: 0;
   left: 0;
-  overflow: visible; /* Prevent text clipping */
+  overflow: visible;
 }
 </style>
