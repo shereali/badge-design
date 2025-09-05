@@ -206,7 +206,7 @@ const downloadPDF = async () => {
         backgroundColor: "#ffffff",
         logging: true,
         allowTaint: false,
-        width: dimensions.width * 3.78, // Convert mm to pixels (1mm ≈ 3.78px at 96 DPI)
+        width: dimensions.width * 3.78,
         height: dimensions.height * 3.78,
         onclone: (clonedDoc) => {
           // Ensure fonts and text styles are applied
@@ -242,13 +242,27 @@ const downloadPDF = async () => {
           });
 
           // Apply avatar-specific styles
-          const avatarElements =
-            clonedDoc.querySelectorAll(".avatar-container");
+          const avatarElements = clonedDoc.querySelectorAll(
+            'div[class*="overflow-hidden shadow-sm"][style*="position: absolute"]'
+          );
           avatarElements.forEach((el) => {
-            const box = boxes.find(
-              (b) =>
-                b.type === "avatar" && b.text === el.querySelector("img")?.src
-            );
+            // Find the corresponding box by matching position and size
+            const elStyle = window.getComputedStyle(el);
+            const elLeft = parseFloat(elStyle.left);
+            const elTop = parseFloat(elStyle.top);
+            const elWidth = parseFloat(elStyle.width);
+            const elHeight = parseFloat(elStyle.height);
+
+            const box = boxes.find((b) => {
+              return (
+                b.type === "avatar" &&
+                Math.abs(b.position.left - elLeft) < 1 &&
+                Math.abs(b.position.top - elTop) < 1 &&
+                Math.abs(b.properties.size.width - elWidth) < 1 &&
+                Math.abs(b.properties.size.height - elHeight) < 1
+              );
+            });
+
             if (box && box.properties.avatar) {
               const avatar = box.properties.avatar;
               let styles = {
@@ -257,6 +271,8 @@ const downloadPDF = async () => {
                 alignItems: "center",
                 justifyContent: "center",
                 backgroundColor: "#f3f4f6",
+                width: `${box.properties.size.width}px`,
+                height: `${box.properties.size.height}px`,
               };
 
               // Handle shadow and ring
