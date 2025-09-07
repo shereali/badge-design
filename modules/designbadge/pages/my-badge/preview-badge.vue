@@ -1,29 +1,25 @@
 <template>
-  <div
-    class="flex flex-col md:flex-row h-screen bg-gray-100 sm:overflow-y-auto"
-  >
+  <div class="flex flex-col h-screen bg-gray-100">
     <!-- Main Content Area -->
-    <div class="flex-1 flex flex-col items-center p-4 order-2 md:order-1">
+    <div class="flex-1 flex flex-col items-center p-4">
       <!-- Top Controls -->
-      <div class="w-full">
-        <div class="flex items-center justify-center gap-3 w-full">
-          <button
-            @click="downloadPDF"
-            class="flex gap-1 border border-slate-200 px-5 py-2 text-sm bg-blue-200 text-blue-500 rounded-lg font-medium transition-colors focus:outline-none focus:ring-1 focus:ring-blue-300"
-          >
-            <Icon name="tdesign:file-pdf" class="text-xl" />
-            <span>Download</span>
-          </button>
-        </div>
+      <div class="w-full flex justify-center">
+        <button
+          @click="downloadPDF"
+          class="flex gap-1 border border-slate-200 px-5 py-2 text-sm bg-blue-200 text-blue-500 rounded-lg font-medium transition-colors focus:outline-none focus:ring-1 focus:ring-blue-300"
+        >
+          <Icon name="tdesign:file-pdf" class="text-xl" />
+          <span>Download</span>
+        </button>
       </div>
       <!-- Design Pages -->
       <div
-        class="flex-1 w-full flex flex-col items-center overflow-auto mt-3 border-none space-y-4"
+        class="flex-1 w-full flex flex-col items-center overflow-auto mt-3 space-y-4"
       >
         <!-- Front Side -->
         <div
           ref="frontPageRef"
-          class="design-page bg-white shadow-md rounded-lg border-none"
+          class="design-page bg-white shadow-md rounded-lg"
           :style="{
             width: `${pageStore.presetWidth}mm`,
             height: `${pageStore.presetHeight}mm`,
@@ -32,12 +28,11 @@
             transform: `scale(${zoomScale})`,
             transformOrigin: 'center top',
           }"
-          :class="{ 'grid-overlay': showGrid }"
         >
           <div class="card w-full h-full relative">
             <div
               ref="frontRef"
-              class="front w-full h-full absolute top-0 left-0 border-none"
+              class="front w-full h-full absolute top-0 left-0"
             >
               <PreviewCanvas :modelValue="store.frontBoxes" />
             </div>
@@ -47,7 +42,7 @@
         <div
           v-if="store.backBoxes.length > 0"
           ref="backPageRef"
-          class="design-page bg-white shadow-md rounded-lg border-none"
+          class="design-page bg-white shadow-md rounded-lg"
           :style="{
             width: `${pageStore.presetWidth}mm`,
             height: `${pageStore.presetHeight}mm`,
@@ -56,13 +51,9 @@
             transform: `scale(${zoomScale})`,
             transformOrigin: 'center top',
           }"
-          :class="{ 'grid-overlay': showGrid }"
         >
           <div class="card w-full h-full relative">
-            <div
-              ref="backRef"
-              class="back w-full h-full absolute top-0 left-0 border-none"
-            >
+            <div ref="backRef" class="back w-full h-full absolute top-0 left-0">
               <PreviewCanvas :modelValue="store.backBoxes" />
             </div>
           </div>
@@ -73,65 +64,66 @@
 </template>
 
 <script setup>
-import { useBadgeEditor } from "@/composables/useBadgeEditor";
 import { useCanvasStore } from "@/stores/useCanvasStore";
 import { usePageStore } from "@/stores/usePageStore";
 import { ref, nextTick } from "vue";
 
-// Initialize composable and stores
-const {
-  dropzone,
-  zoomLevel,
-  showGrid,
-  isFlipping,
-  zoomScale,
-  selectedLayer,
-  layers,
-  displayOption,
-  selectedElementType,
-  sendData,
-  switchSideTab,
-  zoom,
-  toggleGrid,
-  onDragStart,
-  onDragEnd,
-  handleDrop,
-  handleImageUploaded,
-} = useBadgeEditor();
-
 const store = useCanvasStore();
 const pageStore = usePageStore();
+const { zoomScale } = useBadgeEditor();
 
-// Refs for DOM elements
 const frontPageRef = ref(null);
 const frontRef = ref(null);
 const backPageRef = ref(null);
 const backRef = ref(null);
 
-// Access plugin utilities with fallback
 const { $html2canvas, $jsPDF } = useNuxtApp();
 
-// Function to preload images to ensure they are loaded before PDF generation
-const preloadImages = async (boxes) => {
-  const imagePromises = boxes
-    .filter((box) => box.type === "img" && box.properties.src?.url)
-    .map((box) => {
-      return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.src = box.properties.src.url;
-        img.onload = () => resolve(img);
-        img.onerror = () =>
-          reject(new Error(`Failed to load image: ${box.properties.src.url}`));
-      });
-    });
+// Proxy function to bypass CORS, skipping data and blob URLs
+const proxyImage = async (url) => {
+  if (url.startsWith("data:") || url.startsWith("blob:")) {
+    return url;
+  }
   try {
-    await Promise.all(imagePromises);
+    const response = await fetch(
+      `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`
+    );
+    const blob = await response.blob();
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.readAsDataURL(blob);
+    });
   } catch (error) {
-    console.error("Image preload error:", error);
+    console.error(`Failed to proxy image: ${url}`, error);
+    return url; // Fallback
   }
 };
 
-// Function to calculate content dimensions
+// Preload images with proxy
+const preloadImages = async (boxes) => {
+  const imagePromises = boxes
+    .filter((box) => {
+      if (box.type === "img" || box.type === "background")
+        return box.properties?.src?.url;
+      if (box.type === "avatar") return box.text;
+      return false;
+    })
+    .map(async (box) => {
+      const url = box.type === "avatar" ? box.text : box.properties.src.url;
+      const proxiedUrl = await proxyImage(url);
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.src = proxiedUrl;
+        img.crossOrigin = "anonymous";
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error(`Failed to load image: ${url}`));
+      });
+    });
+  await Promise.allSettled(imagePromises); // Use allSettled to continue even if some fail
+};
+
+// Calculate content dimensions
 const getContentDimensions = (boxes) => {
   let maxWidth = pageStore.presetWidth || 85.6;
   let maxHeight = pageStore.presetHeight || 54;
@@ -139,23 +131,20 @@ const getContentDimensions = (boxes) => {
     if (box.visible) {
       const boxRight = box.position.left + box.properties.size.width;
       const boxBottom = box.position.top + box.properties.size.height;
-      maxWidth = Math.max(maxWidth, boxRight / 3.78); // Convert px to mm
-      maxHeight = Math.max(maxHeight, boxBottom / 3.78); // Convert px to mm
+      maxWidth = Math.max(maxWidth, boxRight / 3.78);
+      maxHeight = Math.max(maxHeight, boxBottom / 3.78);
     }
   });
   return { width: maxWidth, height: maxHeight };
 };
 
-// Function to download the design as PDF
+// Download the design as PDF
 const downloadPDF = async () => {
   try {
     if (!$html2canvas || !$jsPDF) {
-      throw new Error(
-        "PDF utilities not available. Ensure the PDF plugin is loaded."
-      );
+      throw new Error("PDF utilities not available.");
     }
 
-    // Determine PDF dimensions based on content
     const frontDimensions = getContentDimensions(store.frontBoxes);
     const backDimensions =
       store.backBoxes.length > 0
@@ -178,32 +167,23 @@ const downloadPDF = async () => {
       compress: true,
     });
 
-    // Helper function to capture a DOM element as canvas
+    // Capture a DOM element as canvas
     const captureElement = async (element, side) => {
       if (!element) return null;
-      // Temporarily reset transform to avoid zoom scaling in PDF
       const originalTransform = element.style.transform;
       element.style.transform = "scale(1)";
-
-      // Preload images for the given side
       const boxes = side === "front" ? store.frontBoxes : store.backBoxes;
       await preloadImages(boxes);
-
-      // Ensure the element is visible for capture
       element.style.display = "block";
       element.style.visibility = "visible";
 
       const dimensions = side === "front" ? frontDimensions : backDimensions;
       const canvas = await $html2canvas(element, {
         scale: 3,
-        useCORS: true,
         backgroundColor: "#ffffff",
-        logging: true,
-        allowTaint: false,
-        width: dimensions.width * 3.78, // Convert mm to pixels (1mm ≈ 3.78px at 96 DPI)
+        width: dimensions.width * 3.78,
         height: dimensions.height * 3.78,
-        onclone: (clonedDoc) => {
-          // Ensure fonts and text styles are applied
+        onclone: async (clonedDoc) => {
           const textElements = clonedDoc.querySelectorAll(
             "h1, h2, h3, h4, h6, p, a, span"
           );
@@ -217,24 +197,29 @@ const downloadPDF = async () => {
               el.style.fontSize =
                 box.properties.fontSize && box.properties.fontSize !== "Auto"
                   ? `${box.properties.fontSize}px`
-                  : el.style.fontSize ||
-                    `${Math.max(12, box.properties.size.height * 0.2)}px`;
+                  : `${Math.max(12, box.properties.size.height * 0.2)}px`;
               el.style.fontFamily = box.properties.font
-                ? box.properties.font.includes(",")
-                  ? box.properties.font
-                  : `"${box.properties.font}", sans-serif`
-                : el.style.fontFamily || "poppins, sans-serif";
-              el.style.lineHeight = "1.2"; // Set a tight line height to avoid extra spacing
+                ? `"${box.properties.font}", sans-serif`
+                : "poppins, sans-serif";
+              el.style.lineHeight = "1.2";
               el.style.whiteSpace = "normal";
               el.style.wordBreak = "break-word";
-              el.style.overflow = "visible";
               el.style.width = `${box.properties.size.width}px`;
               el.style.height = `${box.properties.size.height}px`;
-              el.style.margin = "0"; // Remove any margins that might add spacing
-              el.style.padding = "0"; // Remove any padding that might add spacing
+              el.style.margin = "0";
+              el.style.padding = "0";
             }
           });
-          // Remove borders and adjust design page
+
+          // Proxy images in the cloned document
+          const images = clonedDoc.querySelectorAll("img");
+          for (const img of images) {
+            if (img.src) {
+              img.src = await proxyImage(img.src);
+              img.crossOrigin = "anonymous";
+            }
+          }
+
           const designPage = clonedDoc.querySelector(".design-page");
           if (designPage) {
             designPage.style.border = "none";
@@ -254,7 +239,6 @@ const downloadPDF = async () => {
         },
       });
 
-      // Restore original transform and styles
       element.style.transform = originalTransform;
       element.style.display = "";
       element.style.visibility = "";
@@ -264,14 +248,14 @@ const downloadPDF = async () => {
     // Capture front side
     let frontCanvas = null;
     if (frontRef.value) {
-      await nextTick(); // Ensure DOM is updated
+      await nextTick();
       frontCanvas = await captureElement(frontRef.value, "front");
     }
 
-    // Capture back side only if it has content
+    // Capture back side
     let backCanvas = null;
     if (hasBackSide && backRef.value) {
-      await nextTick(); // Ensure DOM is updated
+      await nextTick();
       backCanvas = await captureElement(backRef.value, "back");
     }
 
@@ -290,7 +274,7 @@ const downloadPDF = async () => {
       );
     }
 
-    // Add back side to PDF only if it has content
+    // Add back side to PDF
     if (backCanvas) {
       const imgData = backCanvas.toDataURL("image/png");
       pdf.addImage(
@@ -312,14 +296,10 @@ const downloadPDF = async () => {
       fullName && fullName.trim() !== ""
         ? fullName.toLowerCase().replace(/\s+/g, "_")
         : `${Date.now()}`;
-
-    // Save the PDF
     pdf.save(`${badgeName}-my-badges.pdf`);
   } catch (error) {
     console.error("Error generating PDF:", error);
-    alert(
-      "Failed to generate PDF. Please ensure all images are accessible and try again."
-    );
+    alert("Failed to generate PDF. Please try again.");
   }
 };
 </script>
@@ -328,21 +308,14 @@ const downloadPDF = async () => {
 .design-page {
   border: none !important;
   box-shadow: none !important;
-  overflow: visible; /* Allow content to be fully captured */
+  overflow: visible;
 }
-.card {
-  width: 100%;
-  height: 100%;
-  position: relative;
-  overflow: visible; /* Ensure no clipping */
-}
+.card,
 .front,
 .back {
   width: 100%;
   height: 100%;
-  position: absolute;
-  top: 0;
-  left: 0;
-  overflow: visible; /* Prevent text clipping */
+  position: relative;
+  overflow: visible;
 }
 </style>
