@@ -564,6 +564,8 @@ export const useCanvasStore = defineStore("canvasStore", {
         strokeWidth: element.properties.strokeWidth,
         associatedData: element.properties.associatedData,
         content: element.properties.content,
+        x: element.properties.x,
+        y: element.properties.y,
         text: element.text,
         displayOption: element.properties.displayOption,
         qrcode: element.properties.qrcode,

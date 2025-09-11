@@ -97,7 +97,6 @@
             class="draggable-item flex items-center p-2 bg-white rounded hover:bg-slate-100 max-w-sm"
             :class="{
               'cursor-move':
-                item.type !== 'qrcode' &&
                 item.type !== 'img' &&
                 item.type !== 'background' &&
                 item.type !== 'gradient' &&
@@ -108,7 +107,6 @@
                 item.type !== 'long-center' &&
                 item.type !== 'long-left-right',
               'cursor-pointer':
-                item.type === 'qrcode' ||
                 item.type === 'img' ||
                 item.type === 'background' ||
                 item.type === 'gradient' ||
@@ -125,7 +123,6 @@
             <div
               v-if="item.type === 'qrcode'"
               class="flex items-center flex-row"
-              @click="qrcodeStore.qrCodetoggleModal"
             >
               <Icon
                 :name="item.icon"
