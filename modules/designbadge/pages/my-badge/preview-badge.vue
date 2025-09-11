@@ -194,10 +194,20 @@ const downloadPDF = async () => {
                 b.text === el.innerText
             );
             if (box && box.properties) {
+              // Match the exact calculation from PreviewCanvas.vue's textStyles
+              const calculatedSize = Math.max(
+                12,
+                Math.min(
+                  48,
+                  box.type === "p"
+                    ? box.properties.size.height * 0.2
+                    : box.properties.size.height * 0.4
+                )
+              );
               el.style.fontSize =
                 box.properties.fontSize && box.properties.fontSize !== "Auto"
                   ? `${box.properties.fontSize}px`
-                  : `${Math.max(12, box.properties.size.height * 0.2)}px`;
+                  : `${calculatedSize}px`;
               el.style.fontFamily = box.properties.font
                 ? `"${box.properties.font}", sans-serif`
                 : "poppins, sans-serif";
