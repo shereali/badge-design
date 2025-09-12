@@ -386,7 +386,7 @@ export const useCanvasStore = defineStore("canvasStore", {
 
       if (item.type == "qrcode") {
         data.qrcode = {
-          value: "",
+          value: "QRCode",
           variant: "pixelated",
           radius: 1,
           blackColor: "#000000", // 'var(--ui-text-highlighted)' if you are using `@nuxt/ui` v3
@@ -492,7 +492,7 @@ export const useCanvasStore = defineStore("canvasStore", {
       };
       const data = {
         item: {
-          text: "",
+          text: "QRCode",
           type: "qrcode",
           key: "qrcode",
           label: "QR Code",
