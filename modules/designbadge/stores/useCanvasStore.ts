@@ -357,6 +357,10 @@ export const useCanvasStore = defineStore("canvasStore", {
     },
     addElementFromDrag(item: any, position: Position) {
       // Ensure position is within drop zone
+      // if (item.type == "qrcode") {
+      //   this.handleQRCodeGenerator("Attendee");
+      //   // return false;
+      // }
       const pageStore = usePageStore();
       const canvasWidth =
         this.dropzone?.offsetWidth || pageStore.presetWidth * 3.78;
@@ -373,9 +377,22 @@ export const useCanvasStore = defineStore("canvasStore", {
       const data = {
         item: item,
         position: adjustedPosition,
-        width: item.type == "avatar" ? 150 : elementWidth,
-        height: item.type == "avatar" ? 150 : elementHeight,
+        width:
+          item.type == "avatar" || item.type == "qrcode" ? 150 : elementWidth,
+        height:
+          item.type == "avatar" || item.type == "qrcode" ? 150 : elementHeight,
+        qrcode: {},
       };
+
+      if (item.type == "qrcode") {
+        data.qrcode = {
+          value: "",
+          variant: "pixelated",
+          radius: 1,
+          blackColor: "#000000", // 'var(--ui-text-highlighted)' if you are using `@nuxt/ui` v3
+          whiteColor: "transparent",
+        };
+      }
 
       const newElement = this.elementMachanism(data);
 
@@ -539,6 +556,9 @@ export const useCanvasStore = defineStore("canvasStore", {
           this.avatarShowBorder = element.properties.avatar.showBorder;
           this.avatarShowRing = element.properties.avatar.showRing;
         }
+
+        if (element.type == "qrcode") {
+        }
       }
     },
     getElementProperties(element: CanvasElement): Partial<ElementProperties> {
@@ -660,6 +680,13 @@ export const useCanvasStore = defineStore("canvasStore", {
         this.updateProperties(this.currentProperties);
       }
     },
+
+    // makeQRCodeTransparent() {
+    //   console.log("it works");
+
+    //   this.currentProperties.qrcode.whiteColor = "transparent";
+    //   this.updateProperties(this.currentProperties);
+    // },
 
     applyTextAlign(align: string) {
       this.currentProperties.textAlign = align;

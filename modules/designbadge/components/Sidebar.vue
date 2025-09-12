@@ -25,12 +25,10 @@
     </div>
 
     <!-- Design Tab Content -->
-
     <div
       v-if="store.activeTab === 'design' && pending == false"
       class="space-y-1"
     >
-      <!-- {{ sidebarInfo.data.openGroups }} -->
       <div class="py-3 px-2 flex">
         <Icon name="quill:paper" class="text-2xl text-blue-600" />
         <span
@@ -79,7 +77,6 @@
             v-for="item in group.items"
             :key="item.type"
             :draggable="
-              item.type !== 'qrcode' &&
               item.type !== 'img' &&
               item.type !== 'background' &&
               item.type !== 'gradient' &&
@@ -202,16 +199,15 @@
               <span class="leading-none">{{ item.label }}</span>
             </div>
 
-            <!-- Punching Area -->
             <!-- Circle Center -->
             <button
               @click="setPunchingArea('circle-center')"
-              class="m-auto w-full border rounded-md p-1 border-gray-300 flex items-center justify-center"
+              class="w-full border rounded-md py-1 px-5 border-gray-300 flex items-center justify-center"
               :class="selectedPunchArea(item.type)"
               v-else-if="item.type === 'circle-center'"
             >
               <div
-                class="w-5 h-5 bg-transparent border border-gray-300 rounded-xl"
+                class="w-5 h-5 bg-transparent border border-gray-300 rounded-xl z-10"
               ></div>
             </button>
             <!-- Circle Left Right -->
@@ -224,7 +220,6 @@
               <div
                 class="w-5 h-5 bg-transparent border border-gray-300 rounded-xl z-10"
               ></div>
-
               <div
                 class="w-5 h-5 bg-transparent border border-gray-300 rounded-xl z-10"
               ></div>
@@ -232,7 +227,7 @@
             <!-- Long Center -->
             <button
               @click="setPunchingArea('long-center')"
-              class="m-auto w-full border rounded-md p-1 border-gray-300 flex items-center justify-center"
+              class="w-full border rounded-md py-1 px-5 border-gray-300 flex items-center justify-center"
               :class="selectedPunchArea(item.type)"
               v-else-if="item.type === 'long-center'"
             >
@@ -250,7 +245,6 @@
               <div
                 class="w-16 h-4 bg-transparent border border-gray-300 rounded-xl z-10"
               ></div>
-
               <div
                 class="w-16 h-4 bg-transparent border border-gray-300 rounded-xl z-10"
               ></div>
@@ -291,7 +285,6 @@
               <Icon name="mdi:drag" class="text-xl" />
               <span> {{ layer.name }} ({{ layer.type }})</span>
             </div>
-
             <button
               @click.stop="store.toggleLayerVisibility(layer.id)"
               class="text-blue-500"
@@ -328,7 +321,7 @@ defineProps({
   displayOption: String,
 });
 
-const emit = defineEmits(["drag-start", "drag-end"]); // Reduced emits
+const emit = defineEmits(["drag-start", "drag-end"]);
 
 function startLayerDrag(event, index) {
   event.dataTransfer.setData("text/plain", index);
@@ -373,7 +366,6 @@ const queryBadge = ref(route.query.badge);
 const queryToken = ref(route.query.token);
 
 const event_id = atob(queryEvent.value);
-// const badgeId = atob(queryBadge.value);
 const token = atob(queryToken.value);
 
 const { data, pending, refresh, error } = await useFetch(
@@ -395,7 +387,6 @@ if (!pending.value) {
   console.log("Sidebar Info", sidebarInfo.value);
 }
 
-// Existing functions (unchanged)
 function startSidebarDrag(event, item) {
   emit("drag-start", item);
 }
@@ -429,7 +420,6 @@ function removeBackground() {
 }
 
 function setPunchingArea(area) {
-  // console.log("Setting punch area:", area);
   selectedPunchArea(area);
   store.setPunchArea(area, store.activeSide);
 }

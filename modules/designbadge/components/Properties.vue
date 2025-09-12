@@ -289,7 +289,39 @@
           </div>
 
           <!-- Background Color Picker -->
-          <div>
+
+          <div class="flex items-center gap-3">
+            <div class="w-full">
+              <span class="block text-sm font-medium text-gray-600"
+                >Background Color</span
+              >
+              <div class="flex items-center border rounded overflow-hidden">
+                <input
+                  type="color"
+                  v-model="store.currentProperties.qrcode.blackColor"
+                  class="w-8 h-8 p-0 border-none cursor-pointer"
+                />
+                <input
+                  type="text"
+                  v-model="store.currentProperties.qrcode.blackColor"
+                  class="w-full px-2 py-1 border-l text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  placeholder="#000000"
+                />
+                <button
+                  class="w-8 h-8 bg-gray-100 hover:bg-gray-200 flex items-center justify-center"
+                  @click="store.currentProperties.qrcode.blackColor = '#000000'"
+                >
+                  <Icon
+                    name="streamline-plump:transparent"
+                    class="text-xl text-gray-600"
+                    aria-hidden="true"
+                  />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- <div>
             <label class="block text-sm font-medium mb-2"
               >Background Color</label
             >
@@ -298,10 +330,44 @@
               v-model="store.currentProperties.qrcode.blackColor"
               class="w-full h-10 p-1 border rounded-lg cursor-pointer"
             />
-          </div>
+          </div> -->
 
           <!-- Foreground Color Picker -->
-          <div>
+
+          <div class="flex items-center gap-3">
+            <div class="w-full">
+              <span class="block text-sm font-medium text-gray-600"
+                >Foreground Color</span
+              >
+              <div class="flex items-center border rounded overflow-hidden">
+                <input
+                  type="color"
+                  v-model="store.currentProperties.qrcode.whiteColor"
+                  class="w-8 h-8 p-0 border-none cursor-pointer"
+                />
+                <input
+                  type="text"
+                  v-model="store.currentProperties.qrcode.whiteColor"
+                  class="w-full px-2 py-1 border-l text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  placeholder="#000000"
+                />
+                <button
+                  class="w-8 h-8 bg-gray-100 hover:bg-gray-200 flex items-center justify-center"
+                  @click="
+                    store.currentProperties.qrcode.whiteColor = 'transparent'
+                  "
+                >
+                  <Icon
+                    name="streamline-plump:transparent"
+                    class="text-xl text-gray-600"
+                    aria-hidden="true"
+                  />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- <div>
             <label class="block text-sm font-medium mb-2"
               >Foreground Color</label
             >
@@ -310,7 +376,17 @@
               v-model="store.currentProperties.qrcode.whiteColor"
               class="w-full h-10 p-1 border rounded-lg cursor-pointer"
             />
-          </div>
+          </div> -->
+          <!-- Foreground Color Picker -->
+          <!-- <div>
+            <label class="block text-sm font-medium mb-2">Transparent</label>
+            <button
+              class="btn btn-secondary"
+              @click="store.currentProperties.qrcode.whiteColor = 'transparent'"
+            >
+              <Icon name="streamline-sharp:transparent-solid" />
+            </button>
+          </div> -->
 
           <!-- Border Radius -->
           <div>
