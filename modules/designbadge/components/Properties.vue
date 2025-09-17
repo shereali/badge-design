@@ -1054,6 +1054,10 @@ const fonts = [
   { name: "Assistant", value: '"Assistant", sans-serif' },
 ];
 
+const fontSizes = ref([
+  6, 8, 10, 12, 14, 16, 18, 20, 24, 28, 32, 36, 40, 48, 56, 64, 72, 80, 96, 102,
+]);
+
 // Filtered fonts based on search
 const filteredFonts = computed(() => {
   if (!fontSearch.value) return fonts;
