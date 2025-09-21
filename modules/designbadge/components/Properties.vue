@@ -1054,9 +1054,54 @@ const fonts = [
   { name: "Assistant", value: '"Assistant", sans-serif' },
 ];
 
-const fontSizes = ref([
-  6, 8, 10, 12, 14, 16, 18, 20, 24, 28, 32, 36, 40, 48, 56, 64, 72, 80, 96, 102,
-]);
+const positions = [
+  "top-left",
+  "top",
+  "top-right",
+  "left",
+  "center",
+  "right",
+  "bottom-left",
+  "bottom",
+  "bottom-right",
+];
+
+const formatPositionName = (position) => {
+  return position
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
+
+const fits = ["cover", "contain", "fill", "scale-down", "none"];
+
+const formatFitName = (fit) => {
+  return fit
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
+
+const fitIconName = (fit) => {
+  switch (fit) {
+    case "cover":
+      return "ix:align-object-dimensions";
+    case "contain":
+      return "tabler:container";
+    case "fill":
+      return "icon-park-outline:fill";
+    case "none":
+      return "radix-icons:view-none";
+    case "scale-down":
+      return "mage:scale-down";
+  }
+};
+
+// Extended professional font sizes
+const fontSizes = [
+  6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 24, 26, 28,
+  30, 32, 34, 36, 38, 40, 44, 48, 52, 56, 60, 64, 72, 80,
+];
 
 // Filtered fonts based on search
 const filteredFonts = computed(() => {
