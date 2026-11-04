@@ -25,3 +25,4 @@ EXPOSE 3000
 
 ENTRYPOINT ["dumb-init", "--"]
 CMD ["node", ".output/server/index.mjs"]
+

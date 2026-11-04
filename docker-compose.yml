@@ -12,7 +12,7 @@ services:
       - APP_NAME=${APP_NAME:-porichoyid}
       - APP_ENV=production
       - DB_CONNECTION=mysql
-      - DB_HOST=db
+      - DB_HOST=${DB_HOST:-porichoyid-db-1}
       - DB_PORT=3306
       - DB_DATABASE=${DB_DATABASE:-porichoyid_db}
       - DB_USERNAME=${DB_USERNAME:-porichoyid_user}
@@ -71,7 +71,9 @@ services:
       timeout: 5s
       retries: 10
     networks:
-      - default
+      default:
+        aliases:
+          - porichoyid-db-1
     logging:
       driver: json-file
       options:

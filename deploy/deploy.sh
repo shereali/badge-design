@@ -53,12 +53,20 @@ EOF
     chmod 600 "$DIR/.env"
 fi
 
+PASSED_IMAGE_TAG="${IMAGE_TAG:-}"
+PASSED_SERVICES="${SERVICES:-}"
+PASSED_RUN_MIGRATIONS="${RUN_MIGRATIONS:-}"
+
 # Source environment variables
 if [ -f "$DIR/.env" ]; then
     set -a
     . "$DIR/.env"
     set +a
 fi
+
+[ -n "$PASSED_IMAGE_TAG" ] && IMAGE_TAG="$PASSED_IMAGE_TAG"
+[ -n "$PASSED_SERVICES" ] && SERVICES="$PASSED_SERVICES"
+[ -n "$PASSED_RUN_MIGRATIONS" ] && RUN_MIGRATIONS="$PASSED_RUN_MIGRATIONS"
 
 # 1. Update .env with new IMAGE_TAG if provided
 if [ -f "$DIR/.env" ] && [ -n "$IMAGE_TAG" ]; then

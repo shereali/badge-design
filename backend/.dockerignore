@@ -11,3 +11,4 @@ storage/framework/sessions/*
 storage/framework/views/*
 phpunit.xml
 .phpunit.result.cache
+

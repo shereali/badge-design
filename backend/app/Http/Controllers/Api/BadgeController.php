@@ -170,3 +170,4 @@ class BadgeController extends Controller
         ]);
     }
 }
+
