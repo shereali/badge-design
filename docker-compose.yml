@@ -1,0 +1,35 @@
+services:
+  web:
+    image: ${IMAGE_BASE:-ghcr.io/${REPOSITORY_OWNER:-shereali}/badge-design/web}:${IMAGE_TAG:-latest}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ${APP_NAME:-porichoyid}-frontend-1
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - HOST=0.0.0.0
+      - PORT=3000
+    volumes:
+      - porichoyid_data:/app/.data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    networks:
+      - default
+      - caddy_net
+
+volumes:
+  porichoyid_data:
+
+networks:
+  default:
+    driver: bridge
+  caddy_net:
+    external: true
+
