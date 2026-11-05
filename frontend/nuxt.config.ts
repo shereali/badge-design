@@ -113,6 +113,11 @@ export default defineNuxtConfig({
         { name: "viewport", content: "width=device-width, initial-scale=1" },
         { name: "description", content: "Design and print high quality ID cards, event passes, and badges with QR codes in minutes." },
       ],
+      link: [
+        { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
+        { rel: "alternate icon", href: "/favicon.ico" },
+        { rel: "apple-touch-icon", href: "/logo.svg" },
+      ],
     },
   },
 

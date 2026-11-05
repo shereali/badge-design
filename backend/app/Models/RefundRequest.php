@@ -33,3 +33,4 @@ class RefundRequest extends Model
         return $this->belongsTo(Subscription::class);
     }
 }
+

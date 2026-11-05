@@ -588,3 +588,4 @@ onMounted(async () => {
   await fetchBadges();
 });
 </script>
+

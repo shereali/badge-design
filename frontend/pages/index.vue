@@ -520,12 +520,11 @@
     <!-- Footer -->
     <footer class="bg-slate-900 text-slate-400 py-12 text-sm border-t border-slate-800">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div class="flex items-center space-x-2">
-          <div class="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-xs">
-            P
-          </div>
-          <span class="text-white font-bold">PorichoyID</span>
-          <span>© {{ new Date().getFullYear() }} Softcredible. All rights reserved.</span>
+        <div class="flex items-center space-x-3">
+          <NuxtLink to="/">
+            <Logo size="sm" :whiteText="true" :subtitle="false" />
+          </NuxtLink>
+          <span class="text-xs text-slate-500">© {{ new Date().getFullYear() }} Softcredible. All rights reserved.</span>
         </div>
         <div class="flex items-center space-x-6 text-xs">
           <NuxtLink to="/#features" class="hover:text-white transition-colors">Features</NuxtLink>

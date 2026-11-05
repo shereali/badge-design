@@ -2,13 +2,13 @@
   <div class="min-h-[85vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-md w-full space-y-8 bg-white p-8 sm:p-10 rounded-2xl shadow-xl border border-slate-100">
       <div class="text-center">
-        <NuxtLink to="/" class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-indigo-600 text-white shadow-md shadow-indigo-200 mb-4">
-          <Icon name="mdi:sparkles" class="text-3xl" />
+        <NuxtLink to="/" class="inline-block mb-3">
+          <Logo size="lg" />
         </NuxtLink>
         <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900">
           Create Your Studio Account
         </h2>
-        <p class="mt-2 text-sm text-slate-500">
+        <p class="mt-1 text-sm text-slate-500">
           Start designing professional badges and IDs for free in seconds
         </p>
       </div>

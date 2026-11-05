@@ -4,18 +4,8 @@
       <div class="flex items-center justify-between h-16 sm:h-20">
         <!-- Brand Logo -->
         <div class="flex items-center space-x-3">
-          <NuxtLink to="/" class="flex items-center space-x-3 group">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-blue-500 flex items-center justify-center text-white shadow-md shadow-indigo-200 group-hover:scale-105 transition-transform">
-              <Icon name="mdi:badge-account-outline" class="text-2xl" />
-            </div>
-            <div>
-              <span class="text-xl font-bold bg-gradient-to-r from-gray-900 to-indigo-900 bg-clip-text text-transparent">
-                Porichoy<span class="text-indigo-600">ID</span>
-              </span>
-              <span class="hidden sm:block text-[10px] font-semibold text-gray-500 uppercase tracking-widest -mt-1">
-                Badge Studio
-              </span>
-            </div>
+          <NuxtLink to="/">
+            <Logo size="md" />
           </NuxtLink>
         </div>
 

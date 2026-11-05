@@ -4,14 +4,10 @@
     <aside class="w-64 bg-white border-r border-slate-200/80 flex flex-col justify-between hidden md:flex">
       <div>
         <!-- Studio Logo -->
-        <div class="p-6 border-b border-slate-100 flex items-center gap-3">
-          <div class="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-md shadow-indigo-200">
-            <Icon name="mdi:badge-account-outline" class="text-xl" />
-          </div>
-          <div>
-            <h1 class="text-base font-bold text-slate-900 leading-tight">PorichoyID</h1>
-            <span class="text-[11px] text-slate-400 font-medium">Badge & ID Studio</span>
-          </div>
+        <div class="p-5 border-b border-slate-100">
+          <NuxtLink to="/">
+            <Logo size="sm" />
+          </NuxtLink>
         </div>
 
         <!-- Clean Navigation Menu -->
