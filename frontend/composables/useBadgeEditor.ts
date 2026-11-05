@@ -194,6 +194,7 @@ export function useBadgeEditor() {
       loading.value = false;
       setTimeout(() => {
         isInitialLoaded.value = true;
+        store.initHistory();
       }, 600);
     }
   };
@@ -243,6 +244,7 @@ export function useBadgeEditor() {
   if (!route.query.id) {
     setTimeout(() => {
       isInitialLoaded.value = true;
+      store.initHistory();
     }, 1500);
   }
 

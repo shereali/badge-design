@@ -59,8 +59,30 @@
           </button>
         </div>
 
-        <!-- Right Controls: Zoom, Grid & Save -->
+        <!-- Right Controls: Undo/Redo, Zoom, Grid & Save -->
         <div class="flex items-center gap-2">
+          <!-- Undo / Redo Controls -->
+          <div class="flex items-center space-x-0.5 bg-slate-50 border border-slate-200 rounded-lg p-0.5">
+            <button
+              type="button"
+              class="w-7 h-7 flex items-center justify-center text-slate-700 hover:bg-white rounded transition disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+              @click="store.undo()"
+              :disabled="!store.canUndo"
+              title="Undo (Ctrl+Z)"
+            >
+              <Icon name="mdi:undo" class="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              class="w-7 h-7 flex items-center justify-center text-slate-700 hover:bg-white rounded transition disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+              @click="store.redo()"
+              :disabled="!store.canRedo"
+              title="Redo (Ctrl+Y / Ctrl+Shift+Z)"
+            >
+              <Icon name="mdi:redo" class="w-4 h-4" />
+            </button>
+          </div>
+
           <!-- Zoom & Grid Controls -->
           <div class="flex items-center space-x-1 bg-slate-50 border border-slate-200 rounded-lg p-0.5">
             <button
@@ -335,6 +357,50 @@ const isSidebarCollapsed = ref(false);
 const isExporting = ref(false);
 const isExportMenuOpen = ref(false);
 const exportDropdownRef = ref(null);
+
+// Keyboard shortcuts (Undo: Ctrl+Z / Cmd+Z, Redo: Ctrl+Y / Ctrl+Shift+Z / Cmd+Shift+Z)
+if (process.client) {
+  onMounted(() => {
+    const handleKeydown = (e) => {
+      const target = e.target;
+      const isInput =
+        target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.isContentEditable);
+
+      const isMac =
+        typeof navigator !== "undefined" &&
+        /Mac|iPod|iPhone|iPad/.test(navigator.platform);
+      const modifier = isMac ? e.metaKey : e.ctrlKey;
+
+      if (modifier && !e.altKey) {
+        // Redo: Ctrl+Y or Ctrl+Shift+Z (Cmd+Shift+Z on Mac)
+        if (
+          (e.key.toLowerCase() === "y" && !e.shiftKey) ||
+          (e.key.toLowerCase() === "z" && e.shiftKey)
+        ) {
+          if (!isInput && store.canRedo) {
+            e.preventDefault();
+            store.redo();
+          }
+        }
+        // Undo: Ctrl+Z (Cmd+Z on Mac)
+        else if (e.key.toLowerCase() === "z" && !e.shiftKey) {
+          if (!isInput && store.canUndo) {
+            e.preventDefault();
+            store.undo();
+          }
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeydown);
+    onUnmounted(() => {
+      window.removeEventListener("keydown", handleKeydown);
+    });
+  });
+}
 
 // Close export dropdown when clicking outside
 if (process.client) {

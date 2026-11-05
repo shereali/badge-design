@@ -1,5 +1,7 @@
 import { defineStore } from "pinia";
 import { usePageStore } from "./usePageStore";
+
+let historyTimeout: any = null;
 interface Size {
   width: number;
   height: number;
@@ -109,8 +111,13 @@ export const useCanvasStore = defineStore("canvasStore", {
     avatarCustomClipPath: "",
     avatarShowBorder: false,
     avatarShowRing: false,
+    undoStack: [] as string[],
+    redoStack: [] as string[],
+    isPerformingHistoryAction: false as boolean,
   }),
   getters: {
+    canUndo: (state): boolean => state.undoStack.length > 1,
+    canRedo: (state): boolean => state.redoStack.length > 0,
     boxes: (state): CanvasElement[] =>
       state.activeSide === "front" ? state.frontBoxes : state.backBoxes,
     currentBackground: (state): string | null =>
@@ -488,6 +495,7 @@ export const useCanvasStore = defineStore("canvasStore", {
       const boxes =
         this.activeSide === "front" ? this.frontBoxes : this.backBoxes;
       boxes.push(element);
+      this.recordHistory();
     },
 
     handleQRCodeGenerator(qrcodeValue: string) {
@@ -557,6 +565,7 @@ export const useCanvasStore = defineStore("canvasStore", {
           );
           element.properties.avatar.imageStyle = this.computeImageStyle();
         }
+        this.recordHistoryDebounced();
       } else {
         this.currentProperties = this.getElementProperties(element);
         if (element.type === "avatar") {
@@ -657,6 +666,7 @@ export const useCanvasStore = defineStore("canvasStore", {
       this.currentProperties.textAlign = alignment;
       this.currentProperties.horizontalAlign = alignment;
       this.updateProperties(this.currentProperties);
+      this.recordHistory();
     },
 
     alignVertical(alignment: "top" | "middle" | "bottom") {
@@ -682,6 +692,7 @@ export const useCanvasStore = defineStore("canvasStore", {
       this.currentProperties.y = element.position.top;
       this.currentProperties.verticalAlign = alignment;
       this.updateProperties(this.currentProperties);
+      this.recordHistory();
     },
 
     makeTransparent(color: string) {
@@ -693,6 +704,7 @@ export const useCanvasStore = defineStore("canvasStore", {
         this.currentProperties.color = "transparent";
         this.updateProperties(this.currentProperties);
       }
+      this.recordHistory();
     },
 
     // makeQRCodeTransparent() {
@@ -711,6 +723,7 @@ export const useCanvasStore = defineStore("canvasStore", {
         element.properties.horizontalAlign = align;
       }
       this.updateProperties(this.currentProperties);
+      this.recordHistory();
     },
 
     applyVerticalAlign(align: string) {
@@ -720,6 +733,7 @@ export const useCanvasStore = defineStore("canvasStore", {
         element.properties.verticalAlign = align;
       }
       this.updateProperties(this.currentProperties);
+      this.recordHistory();
     },
 
     setAvatarImage(src: string) {
@@ -750,32 +764,7 @@ export const useCanvasStore = defineStore("canvasStore", {
         this.currentProperties.avatar.avatar_src = src;
       }
       this.updateProperties(this.currentProperties);
-    },
-
-    applyTheme(theme: any) {
-      if (theme.frontBackground) {
-        this.frontBackground = theme.frontBackground;
-      }
-      if (theme.backBackground) {
-        this.backBackground = theme.backBackground;
-      }
-      if (theme.frontBoxes && Array.isArray(theme.frontBoxes)) {
-        this.frontBoxes = JSON.parse(JSON.stringify(theme.frontBoxes));
-      }
-      if (theme.backBoxes && Array.isArray(theme.backBoxes)) {
-        this.backBoxes = JSON.parse(JSON.stringify(theme.backBoxes));
-      }
-      if (theme.punchArea !== undefined) {
-        this.punchArea = theme.punchArea;
-      }
-      if (theme.punchCircle !== undefined) {
-        this.punchCircle = theme.punchCircle;
-      }
-      if (theme.punchLong !== undefined) {
-        this.punchLong = theme.punchLong;
-      }
-      this.selectedElement = null;
-      this.updateProperties();
+      this.recordHistory();
     },
 
     applyTextTransform(transform: string) {
@@ -803,6 +792,7 @@ export const useCanvasStore = defineStore("canvasStore", {
       this.currentProperties.text = currentText;
 
       this.updateProperties(this.currentProperties);
+      this.recordHistory();
     },
 
     toggleTextStyle(style: "bold" | "italic" | "underline") {
@@ -819,6 +809,7 @@ export const useCanvasStore = defineStore("canvasStore", {
             : "underline";
       }
       this.updateProperties(this.currentProperties);
+      this.recordHistory();
     },
 
     toggleLayerVisibility(id: string | number) {
@@ -826,6 +817,7 @@ export const useCanvasStore = defineStore("canvasStore", {
         this.activeSide === "front" ? this.frontBoxes : this.backBoxes;
       const el = boxes.find((e) => e.id === id);
       if (el) el.visible = !el.visible;
+      this.recordHistory();
     },
 
     selectLayer(id: string | number) {
@@ -839,6 +831,7 @@ export const useCanvasStore = defineStore("canvasStore", {
         element.properties.direction = direction;
         this.currentProperties.direction = direction;
         this.updateProperties(this.currentProperties);
+        this.recordHistory();
       }
     },
 
@@ -848,6 +841,7 @@ export const useCanvasStore = defineStore("canvasStore", {
       } else {
         this.backBackground = background;
       }
+      this.recordHistory();
     },
 
     applyGradient(gradient: string, side: "front" | "back") {
@@ -871,6 +865,7 @@ export const useCanvasStore = defineStore("canvasStore", {
         this.punchCircle = area;
         this.punchLong = area;
       }
+      this.recordHistory();
     },
 
     applyTheme(theme: {
@@ -898,6 +893,119 @@ export const useCanvasStore = defineStore("canvasStore", {
       }
       this.selectedElement = null;
       this.currentProperties = {};
+      this.recordHistory();
+    },
+
+    initHistory() {
+      if (historyTimeout) {
+        clearTimeout(historyTimeout);
+        historyTimeout = null;
+      }
+      this.undoStack = [];
+      this.redoStack = [];
+      this.recordHistory();
+    },
+
+    recordHistoryDebounced() {
+      if (this.isPerformingHistoryAction) return;
+      if (historyTimeout) clearTimeout(historyTimeout);
+      historyTimeout = setTimeout(() => {
+        this.recordHistory();
+      }, 400);
+    },
+
+    recordHistory() {
+      if (historyTimeout) {
+        clearTimeout(historyTimeout);
+        historyTimeout = null;
+      }
+      if (this.isPerformingHistoryAction) return;
+
+      const snapshot = JSON.stringify({
+        frontBoxes: this.frontBoxes,
+        backBoxes: this.backBoxes,
+        frontBackground: this.frontBackground,
+        backBackground: this.backBackground,
+        punchArea: this.punchArea,
+        punchCircle: this.punchCircle,
+        punchLong: this.punchLong,
+        selectedElement: this.selectedElement,
+        activeSide: this.activeSide,
+      });
+
+      if (
+        this.undoStack.length > 0 &&
+        this.undoStack[this.undoStack.length - 1] === snapshot
+      ) {
+        return;
+      }
+
+      this.undoStack.push(snapshot);
+      if (this.undoStack.length > 50) {
+        this.undoStack.shift();
+      }
+      this.redoStack = [];
+    },
+
+    undo() {
+      if (this.undoStack.length <= 1) return;
+
+      this.isPerformingHistoryAction = true;
+      try {
+        const currentSnapshot = this.undoStack.pop();
+        if (currentSnapshot) {
+          this.redoStack.push(currentSnapshot);
+        }
+
+        const targetSnapshotStr = this.undoStack[this.undoStack.length - 1];
+        if (!targetSnapshotStr) return;
+
+        const state = JSON.parse(targetSnapshotStr);
+        this.frontBoxes = JSON.parse(JSON.stringify(state.frontBoxes || []));
+        this.backBoxes = JSON.parse(JSON.stringify(state.backBoxes || []));
+        this.frontBackground = state.frontBackground ?? null;
+        this.backBackground = state.backBackground ?? null;
+        this.punchArea = state.punchArea ?? false;
+        this.punchCircle = state.punchCircle ?? "";
+        this.punchLong = state.punchLong ?? "";
+        this.selectedElement = state.selectedElement ?? null;
+        if (state.activeSide) {
+          this.activeSide = state.activeSide;
+        }
+
+        this.updateProperties();
+      } finally {
+        this.isPerformingHistoryAction = false;
+      }
+    },
+
+    redo() {
+      if (this.redoStack.length === 0) return;
+
+      this.isPerformingHistoryAction = true;
+      try {
+        const nextSnapshotStr = this.redoStack.pop();
+        if (!nextSnapshotStr) return;
+
+        this.undoStack.push(nextSnapshotStr);
+
+        const state = JSON.parse(nextSnapshotStr);
+        this.frontBoxes = JSON.parse(JSON.stringify(state.frontBoxes || []));
+        this.backBoxes = JSON.parse(JSON.stringify(state.backBoxes || []));
+        this.frontBackground = state.frontBackground ?? null;
+        this.backBackground = state.backBackground ?? null;
+        this.punchArea = state.punchArea ?? false;
+        this.punchCircle = state.punchCircle ?? "";
+        this.punchLong = state.punchLong ?? "";
+        this.selectedElement = state.selectedElement ?? null;
+        if (state.activeSide) {
+          this.activeSide = state.activeSide;
+        }
+
+        this.updateProperties();
+      } finally {
+        this.isPerformingHistoryAction = false;
+      }
     },
   },
   // persist: true,

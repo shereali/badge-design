@@ -424,6 +424,7 @@ function onLayerDrop(event, dropIndex) {
   } else {
     store.backBoxes = [...boxes]; // Trigger reactivity for back side
   }
+  store.recordHistory();
 }
 
 function selectLayer(layerId) {

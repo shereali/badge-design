@@ -212,11 +212,11 @@
               horizontalToTextAlignClass(box),
             ]"
             :style="textStyles(box)"
-            :ref="(el) => setTextElementRef(box.id, el)"
+            :ref="(el) => setTextElementRef(box, el)"
             @focus="handleTextFocus(box, $event)"
             @blur="handleTextBlur(box, $event)"
             @input="handleTextInput(box, $event)"
-          >{{ box.text }}</component>
+          ></component>
 
           <!-- Images -->
           <img
@@ -360,6 +360,7 @@ function deleteItem(event) {
       store.boxes.splice(index, 1);
       store.selectedElement = null;
       store.updateProperties();
+      store.recordHistory();
     }
   }
 }
@@ -370,6 +371,7 @@ function deleteElement(index) {
     store.boxes.splice(index, 1);
     store.selectedElement = null;
     store.updateProperties();
+    store.recordHistory();
   }
 }
 
@@ -406,11 +408,31 @@ onMounted(() => {
   document.addEventListener("keydown", deleteItem);
 });
 
-function setTextElementRef(id, el) {
+function setTextElementRef(box, el) {
   if (el) {
-    textElements.value[id] = el;
+    textElements.value[box.id] = el;
+    const currentText = box.text ?? box.properties?.text ?? "";
+    if (activeEditingId.value !== box.id && el.innerText !== currentText) {
+      el.innerText = currentText;
+    }
+  } else {
+    delete textElements.value[box.id];
   }
 }
+
+watch(
+  () => store.boxes.map((b) => ({ id: b.id, text: b.text ?? b.properties?.text ?? "" })),
+  (boxesList) => {
+    boxesList.forEach(({ id, text }) => {
+      if (activeEditingId.value === id) return;
+      const el = textElements.value[id];
+      if (el && el.innerText !== text) {
+        el.innerText = text;
+      }
+    });
+  },
+  { deep: true, immediate: true }
+);
 
 function startDrag(index, event) {
   const box = store.boxes[index];
@@ -554,6 +576,7 @@ function startRotate(index, event) {
   function stopRotate() {
     document.removeEventListener("mousemove", rotate);
     document.removeEventListener("mouseup", stopRotate);
+    store.recordHistory();
   }
 
   document.addEventListener("mousemove", rotate);
@@ -567,6 +590,7 @@ function stopActions() {
   document.removeEventListener("mousemove", onDrag);
   document.removeEventListener("mousemove", onResize);
   document.removeEventListener("mouseup", stopActions);
+  store.recordHistory();
 }
 
 function handleTextFocus(box, event) {
@@ -594,6 +618,7 @@ function handleTextBlur(box, event) {
   if (store.selectedElement === box.id) {
     store.currentProperties.text = newText;
   }
+  store.recordHistory();
 }
 
 function avatarContainerStyle(box) {
