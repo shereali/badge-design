@@ -14,6 +14,15 @@
             <span>Badges</span>
           </NuxtLink>
 
+          <NuxtLink
+            to="/profile"
+            class="hidden sm:inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 border border-slate-200 transition"
+            title="My Profile & Subscription Plan"
+          >
+            <Icon name="mdi:account-cog-outline" class="text-sm text-indigo-600" />
+            <span>Profile</span>
+          </NuxtLink>
+
           <div class="flex items-center gap-2">
             <input
               v-model="badgeTitle"
@@ -159,6 +168,16 @@
           >
             <Icon :name="isSidebarCollapsed ? 'mdi:page-layout-sidebar-right' : 'mdi:chevron-right'" class="text-lg" />
           </button>
+
+          <!-- Direct Builder Logout Button -->
+          <button
+            type="button"
+            @click="handleBuilderLogout"
+            class="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-slate-200 hover:border-red-300 text-slate-400 hover:text-red-600 hover:bg-red-50 transition"
+            title="Log Out"
+          >
+            <Icon name="mdi:logout" class="text-base" />
+          </button>
         </div>
       </header>
 
@@ -276,8 +295,12 @@
 
 <script setup>
 import { useBadgeEditor } from "@/composables/useBadgeEditor";
+import { useAuthStore } from "@/stores/useAuthStore";
 import { useCanvasStore } from "@/stores/useCanvasStore";
 import { usePageStore } from "@/stores/usePageStore";
+
+const authStore = useAuthStore();
+const handleBuilderLogout = () => authStore.logout();
 
 const {
   dropzone,

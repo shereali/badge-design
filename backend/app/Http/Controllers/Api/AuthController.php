@@ -21,10 +21,36 @@ class AuthController extends Controller
             'password' => 'required|string|min:8',
         ]);
 
+        $isSuperAdmin = in_array(strtolower($request->email), [
+            'shere0991@gmail.com',
+            'admin@softcredible.com',
+            'admin@porichoyid.softcredible.com',
+        ]);
+
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'role' => $isSuperAdmin ? 'super_admin' : 'user',
+            'plan' => 'starter',
+            'plan_name' => 'Starter Plan',
+            'subscription_status' => 'active',
+            'subscription_ends_at' => now()->addDays(30),
+            'badge_limit' => 25,
+            'billing_cycle' => 'monthly',
+        ]);
+
+        // Record initial subscription log
+        $user->subscriptions()->create([
+            'plan' => 'starter',
+            'plan_name' => 'Starter Plan',
+            'price' => 0.00,
+            'billing_cycle' => 'monthly',
+            'status' => 'active',
+            'starts_at' => now(),
+            'ends_at' => now()->addDays(30),
+            'payment_method' => 'free_trial',
+            'transaction_id' => 'TRIAL-' . strtoupper(substr(md5(uniqid()), 0, 8)),
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;

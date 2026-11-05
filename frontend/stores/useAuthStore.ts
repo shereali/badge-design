@@ -4,6 +4,13 @@ interface User {
   id: string;
   name: string;
   email: string;
+  role?: string;
+  plan?: string;
+  plan_name?: string;
+  subscription_status?: string;
+  subscription_ends_at?: string;
+  badge_limit?: number;
+  billing_cycle?: string;
   created_at?: string;
 }
 
@@ -19,6 +26,15 @@ export const useAuthStore = defineStore(
     const error = ref<string | null>(null);
 
     const isAuthenticated = computed(() => !!token.value);
+    const isSuperAdmin = computed(() => {
+      if (!user.value) return false;
+      return (
+        user.value.role === "super_admin" ||
+        user.value.email === "shere0991@gmail.com" ||
+        user.value.email === "admin@softcredible.com" ||
+        user.value.email === "admin@porichoyid.softcredible.com"
+      );
+    });
 
     const getAuthHeaders = () => {
       const headers: Record<string, string> = {
@@ -120,6 +136,7 @@ export const useAuthStore = defineStore(
       loading,
       error,
       isAuthenticated,
+      isSuperAdmin,
       getAuthHeaders,
       login,
       register,

@@ -29,6 +29,26 @@
           </button>
 
           <NuxtLink
+            to="/profile"
+            class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition"
+          >
+            <Icon name="mdi:account-cog-outline" class="text-lg text-indigo-500" />
+            <span>Profile & Plan</span>
+            <span class="ml-auto text-[10px] font-bold uppercase text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">
+              {{ authStore.user?.plan || 'Plan' }}
+            </span>
+          </NuxtLink>
+
+          <NuxtLink
+            v-if="authStore.isSuperAdmin"
+            to="/admin"
+            class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold text-purple-700 bg-purple-50/60 hover:bg-purple-100 transition border border-purple-100"
+          >
+            <Icon name="mdi:shield-crown-outline" class="text-lg text-purple-600" />
+            <span>Super Admin</span>
+          </NuxtLink>
+
+          <NuxtLink
             to="/#templates"
             class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition"
           >
@@ -86,7 +106,33 @@
           </p>
         </div>
 
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2.5 flex-wrap">
+          <!-- Mobile Profile & Logout -->
+          <NuxtLink
+            to="/profile"
+            class="md:hidden inline-flex items-center gap-1 px-3 py-2 text-xs font-bold text-slate-700 bg-slate-100 rounded-xl hover:bg-slate-200 transition"
+          >
+            <Icon name="mdi:account-cog-outline" class="text-base text-indigo-600" />
+            <span>Profile</span>
+          </NuxtLink>
+
+          <NuxtLink
+            v-if="authStore.isSuperAdmin"
+            to="/admin"
+            class="md:hidden inline-flex items-center gap-1 px-3 py-2 text-xs font-bold text-purple-700 bg-purple-50 rounded-xl hover:bg-purple-100 transition"
+          >
+            <Icon name="mdi:shield-crown-outline" class="text-base" />
+            <span>Admin</span>
+          </NuxtLink>
+
+          <button
+            @click="authStore.logout"
+            class="md:hidden inline-flex items-center gap-1 px-3 py-2 text-xs font-bold text-red-600 bg-red-50 rounded-xl hover:bg-red-100 transition"
+          >
+            <Icon name="mdi:logout" class="text-base" />
+            <span>Logout</span>
+          </button>
+
           <button
             @click="openCreateModal"
             class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm text-white bg-indigo-600 hover:bg-indigo-700 shadow-sm shadow-indigo-300 hover:shadow transition-all"
