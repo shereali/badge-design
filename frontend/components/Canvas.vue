@@ -50,7 +50,7 @@
       <!-- Vertical & Horizontal Guide Lines -->
       <template v-if="selectedBox && selectedBox.isDragging">
         <div
-          class="absolute top-0 bottom-0 w-px bg-blue-500 z-0"
+          class="absolute top-0 bottom-0 w-px bg-blue-400/60 z-0"
           :style="{
             left:
               selectedBox.position.left +
@@ -59,7 +59,7 @@
           }"
         ></div>
         <div
-          class="absolute left-0 right-0 h-px bg-blue-500 z-0"
+          class="absolute left-0 right-0 h-px bg-blue-400/60 z-0"
           :style="{
             top:
               selectedBox.position.top +
@@ -68,6 +68,27 @@
           }"
         ></div>
       </template>
+
+      <!-- Snapping Guides (Auto-center lines with equal margins) -->
+      <div
+        v-if="isSnappedX"
+        class="absolute top-0 bottom-0 w-0.5 bg-indigo-600 z-30 pointer-events-none flex flex-col items-center"
+        :style="{ left: snapGuideX + 'px' }"
+      >
+        <span class="bg-indigo-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow mt-1 whitespace-nowrap">
+          CENTER (Equal Margins)
+        </span>
+      </div>
+
+      <div
+        v-if="isSnappedY"
+        class="absolute left-0 right-0 h-0.5 bg-indigo-600 z-30 pointer-events-none flex items-center justify-center"
+        :style="{ top: snapGuideY + 'px' }"
+      >
+        <span class="bg-indigo-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow ml-1 whitespace-nowrap">
+          MIDDLE
+        </span>
+      </div>
 
       <!-- Draggable Elements -->
       <template v-for="(box, index) in store.boxes" :key="box.id">
@@ -182,8 +203,8 @@
               )
             "
             :is="box.type"
-            contenteditable
-            class="focus:border focus:outline-none focus:border-blue-500 cursor-move leading-tight w-full h-full flex"
+            contenteditable="true"
+            class="focus:outline-none focus:ring-1 focus:ring-blue-400 cursor-text leading-snug w-full h-full flex m-0 p-0 text-inherit select-text"
             :class="
               box.type === 'p'
                 ? [
@@ -192,21 +213,18 @@
                     'whitespace-normal',
                     verticalToJustifyClass(box),
                     horizontalToTextAlignClass(box),
-                    { 'cursor-text': box.isSelected },
                   ]
                 : [
                     verticalAlignClass(box),
                     horizontalAlignClass(box),
-                    { 'cursor-text': box.isSelected },
                   ]
             "
             :style="textStyles(box)"
             :ref="(el) => setTextElementRef(box.id, el)"
-            @input="updateText(box, $event)"
-            @click="preserveCursorPosition($event)"
-          >
-            {{ box.text }}
-          </component>
+            @focus="handleTextFocus(box, $event)"
+            @blur="handleTextBlur(box, $event)"
+            @input="handleTextInput(box, $event)"
+          >{{ box.id === activeEditingId ? undefined : box.text }}</component>
 
           <!-- Images -->
           <img
@@ -308,6 +326,13 @@ let resizeDir = "";
 let dragOffset = { x: 0, y: 0 };
 let selectedBoxIndex = -1;
 const textElements = ref({});
+const activeEditingId = ref(null);
+
+// Snapping state
+const isSnappedX = ref(false);
+const isSnappedY = ref(false);
+const snapGuideX = ref(0);
+const snapGuideY = ref(0);
 
 function verticalToJustifyClass(box) {
   let align = "justify-center";
@@ -418,23 +443,46 @@ function onDrag(event) {
   if (!box) return;
 
   const canvasRect = canvas.value.getBoundingClientRect();
-  let newLeft = event.clientX - dragOffset.x;
-  let newTop = event.clientY - dragOffset.y;
+  const canvasW = canvasRect.width;
+  const canvasH = canvasRect.height;
+  const boxW = box.properties.size.width;
+  const boxH = box.properties.size.height;
 
-  newLeft = Math.max(
-    0,
-    Math.min(canvasRect.width - box.properties.size.width, newLeft)
-  );
-  newTop = Math.max(
-    0,
-    Math.min(canvasRect.height - box.properties.size.height, newTop)
-  );
+  let rawLeft = event.clientX - dragOffset.x;
+  let rawTop = event.clientY - dragOffset.y;
+
+  // Snapping threshold (pixels)
+  const threshold = 8;
+
+  // 1. Horizontal Auto-Center Snapping (Leaves exactly equal space on left & right)
+  const centerLeft = (canvasW - boxW) / 2;
+  if (Math.abs(rawLeft - centerLeft) <= threshold) {
+    rawLeft = centerLeft;
+    isSnappedX.value = true;
+    snapGuideX.value = canvasW / 2;
+  } else {
+    isSnappedX.value = false;
+  }
+
+  // 2. Vertical Auto-Center Snapping (Leaves exactly equal space on top & bottom)
+  const centerTop = (canvasH - boxH) / 2;
+  if (Math.abs(rawTop - centerTop) <= threshold) {
+    rawTop = centerTop;
+    isSnappedY.value = true;
+    snapGuideY.value = canvasH / 2;
+  } else {
+    isSnappedY.value = false;
+  }
+
+  // Keep within canvas bounds
+  const newLeft = Math.max(0, Math.min(canvasW - boxW, rawLeft));
+  const newTop = Math.max(0, Math.min(canvasH - boxH, rawTop));
 
   box.position.left = newLeft;
   box.position.top = newTop;
 
-  store.currentProperties.x = newLeft;
-  store.currentProperties.y = newTop;
+  store.currentProperties.x = Math.round(newLeft);
+  store.currentProperties.y = Math.round(newTop);
   store.currentProperties.avatar = {
     ...box.properties.avatar,
   };
@@ -530,10 +578,32 @@ function startRotate(index, event) {
 }
 
 function stopActions() {
+  isSnappedX.value = false;
+  isSnappedY.value = false;
   store.boxes.forEach((b) => (b.isDragging = false));
   document.removeEventListener("mousemove", onDrag);
   document.removeEventListener("mousemove", onResize);
   document.removeEventListener("mouseup", stopActions);
+}
+
+function handleTextFocus(box, event) {
+  activeEditingId.value = box.id;
+}
+
+function handleTextInput(box, event) {
+  const el = event.target;
+  const newText = el.innerText || "";
+  box.properties.text = newText;
+  store.currentProperties.text = newText;
+}
+
+function handleTextBlur(box, event) {
+  const el = event.target;
+  const newText = el.innerText || "";
+  activeEditingId.value = null;
+  store.updateElementText(box.id, newText);
+  store.currentProperties.text = newText;
+  store.updateProperties(store.currentProperties);
 }
 
 function preserveCursorPosition(event) {
@@ -547,38 +617,6 @@ function preserveCursorPosition(event) {
   }
 }
 
-function updateText(box, event) {
-  const el = event.target;
-  const selection = window.getSelection();
-  let cursorOffset = 0;
-  let cursorNode = null;
-
-  if (selection && selection.rangeCount > 0) {
-    const range = selection.getRangeAt(0);
-    cursorNode = range.startContainer;
-    cursorOffset = range.startOffset;
-  }
-
-  const newText = el.innerText;
-  store.updateElementText(box.id, newText);
-  store.currentProperties.text = newText;
-  store.updateProperties(store.currentProperties);
-
-  if (cursorNode && cursorOffset !== null) {
-    nextTick(() => {
-      const range = document.createRange();
-      try {
-        range.setStart(cursorNode, cursorOffset);
-        range.collapse(true);
-        selection.removeAllRanges();
-        selection.addRange(range);
-      } catch (e) {
-        console.warn("Failed to restore cursor position:", e);
-      }
-    });
-  }
-}
-
 function handleImageError(event) {
   console.error("Image failed to load:", event.target.src);
 }
@@ -586,22 +624,19 @@ function handleImageError(event) {
 const selectedBox = computed(() => store.boxes.find((b) => b.isSelected));
 
 function textStyles(box) {
-  const calculatedSize = Math.max(
-    12,
-    Math.min(
-      48,
-      box.type === "p"
-        ? box.properties.size.height * 0.2
-        : box.properties.size.height * 0.4
-    )
-  );
+  let fontSize = "16px";
+  if (box.properties.fontSize && box.properties.fontSize !== "Auto") {
+    fontSize = `${box.properties.fontSize}px`;
+  } else if (box.type === "h1") {
+    fontSize = "20px";
+  } else if (box.type === "p") {
+    fontSize = "14px";
+  }
+
   return {
-    fontSize:
-      box.properties.fontSize === "Auto" || !box.properties.fontSize
-        ? calculatedSize + "px"
-        : box.properties.fontSize + "px",
-    fontFamily: box.properties.font || "poppins, sans-serif",
-    fontWeight: box.properties.fontWeight || "normal",
+    fontSize,
+    fontFamily: box.properties.font || "Poppins, sans-serif",
+    fontWeight: box.properties.fontWeight || (box.type === "h1" ? "bold" : "normal"),
     fontStyle: box.properties.fontStyle || "normal",
     textDecoration: box.properties.textDecoration || "none",
     textTransform: box.properties.textTransform || "none",

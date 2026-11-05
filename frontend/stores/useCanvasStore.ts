@@ -293,10 +293,12 @@ export const useCanvasStore = defineStore("canvasStore", {
     elementMachanism(data?: any) {
       const item = data.item;
       const position = data.position;
+      const initialText = item.value || item.label || "Sample Text";
+      const defaultFontSize = item.type === "h1" ? 22 : (item.type === "p" ? 14 : 16);
 
       const newElement: CanvasElement = {
         id: Date.now(),
-        text: item.value,
+        text: initialText,
         type: item.type,
         key: item.key,
         label: `${item.label}`,
@@ -304,10 +306,10 @@ export const useCanvasStore = defineStore("canvasStore", {
         properties: {
           size: { width: data.width ?? "", height: data.height ?? "" },
           rotation: 0,
-          font: "",
-          fontWeight: "normal",
+          font: "Poppins, sans-serif",
+          fontWeight: item.type === "h1" ? "bold" : "normal",
           fontStyle: "normal",
-          fontSize: "Auto",
+          fontSize: defaultFontSize,
           fillColor: item.type === "rectangle" ? "blue" : "transparent",
           fillTransparency: false,
           imagePosition: "center" as string,
@@ -328,9 +330,15 @@ export const useCanvasStore = defineStore("canvasStore", {
           content: "",
           x: position.left,
           y: position.top,
-          text: item.label || "Sample Text",
+          text: initialText,
           displayOption: "both sides",
-          qrcode: data.qrcode ?? "",
+          qrcode: data.qrcode && data.qrcode.value ? data.qrcode : {
+            value: "https://porichoyid.softcredible.com",
+            variant: "pixelated",
+            radius: 1,
+            blackColor: "#000000",
+            whiteColor: "transparent",
+          },
           direction: "ltr",
           avatar: {
             showBorder: false,
@@ -525,14 +533,18 @@ export const useCanvasStore = defineStore("canvasStore", {
 
       if (newProps) {
         Object.assign(element.properties, newProps);
+        if (newProps.text !== undefined) {
+          element.text = newProps.text;
+          element.properties.text = newProps.text;
+        }
         if (newProps.size) {
           element.properties.size = { ...newProps.size };
         }
         if (newProps.qrcode) {
-          element.properties.qrcode = { ...newProps.qrcode };
+          element.properties.qrcode = { ...element.properties.qrcode, ...newProps.qrcode };
         }
         if (newProps.avatar) {
-          element.properties.avatar = { ...newProps.avatar };
+          element.properties.avatar = { ...element.properties.avatar, ...newProps.avatar };
         }
         element.position.left = newProps.x ?? element.position.left;
         element.position.top = newProps.y ?? element.position.top;
@@ -708,8 +720,86 @@ export const useCanvasStore = defineStore("canvasStore", {
       this.updateProperties(this.currentProperties);
     },
 
+    setAvatarImage(src: string) {
+      if (this.selectedElement === null) return;
+      const boxes =
+        this.activeSide === "front" ? this.frontBoxes : this.backBoxes;
+      const element = boxes.find((e) => e.id === this.selectedElement);
+      if (!element || element.type !== "avatar") return;
+
+      if (!element.properties.avatar) {
+        element.properties.avatar = {
+          showBorder: false,
+          showRing: false,
+          shape: "circle",
+          radius: 32,
+          customClipPath: "",
+          avatar_src: src,
+          containerStyle: {},
+          imageStyle: {},
+        };
+      } else {
+        element.properties.avatar.avatar_src = src;
+      }
+
+      if (!this.currentProperties.avatar) {
+        this.currentProperties.avatar = { ...element.properties.avatar };
+      } else {
+        this.currentProperties.avatar.avatar_src = src;
+      }
+      this.updateProperties(this.currentProperties);
+    },
+
+    applyTheme(theme: any) {
+      if (theme.frontBackground) {
+        this.frontBackground = theme.frontBackground;
+      }
+      if (theme.backBackground) {
+        this.backBackground = theme.backBackground;
+      }
+      if (theme.frontBoxes && Array.isArray(theme.frontBoxes)) {
+        this.frontBoxes = JSON.parse(JSON.stringify(theme.frontBoxes));
+      }
+      if (theme.backBoxes && Array.isArray(theme.backBoxes)) {
+        this.backBoxes = JSON.parse(JSON.stringify(theme.backBoxes));
+      }
+      if (theme.punchArea !== undefined) {
+        this.punchArea = theme.punchArea;
+      }
+      if (theme.punchCircle !== undefined) {
+        this.punchCircle = theme.punchCircle;
+      }
+      if (theme.punchLong !== undefined) {
+        this.punchLong = theme.punchLong;
+      }
+      this.selectedElement = null;
+      this.updateProperties();
+    },
+
     applyTextTransform(transform: string) {
+      if (this.selectedElement === null) return;
+      const boxes =
+        this.activeSide === "front" ? this.frontBoxes : this.backBoxes;
+      const element = boxes.find((e) => e.id === this.selectedElement);
+      if (!element) return;
+
       this.currentProperties.textTransform = transform;
+      element.properties.textTransform = transform;
+
+      let currentText = element.text || element.properties.text || "";
+      if (transform === "uppercase") {
+        currentText = currentText.toUpperCase();
+      } else if (transform === "lowercase") {
+        currentText = currentText.toLowerCase();
+      } else if (transform === "capitalize") {
+        currentText = currentText
+          .toLowerCase()
+          .replace(/(?:^|\s|\/|-)\S/g, (c) => c.toUpperCase());
+      }
+      element.text = currentText;
+      element.properties.text = currentText;
+      this.currentProperties.text = currentText;
+
       this.updateProperties(this.currentProperties);
     },
 
@@ -779,6 +869,33 @@ export const useCanvasStore = defineStore("canvasStore", {
         this.punchCircle = area;
         this.punchLong = area;
       }
+    },
+
+    applyTheme(theme: {
+      name: string;
+      punchArea?: string;
+      frontBackground?: string;
+      backBackground?: string;
+      frontBoxes?: any[];
+      backBoxes?: any[];
+    }) {
+      if (theme.punchArea !== undefined) {
+        this.setPunchArea(theme.punchArea, "front");
+      }
+      if (theme.frontBackground !== undefined) {
+        this.frontBackground = theme.frontBackground;
+      }
+      if (theme.backBackground !== undefined) {
+        this.backBackground = theme.backBackground;
+      }
+      if (theme.frontBoxes) {
+        this.frontBoxes = JSON.parse(JSON.stringify(theme.frontBoxes));
+      }
+      if (theme.backBoxes) {
+        this.backBoxes = JSON.parse(JSON.stringify(theme.backBoxes));
+      }
+      this.selectedElement = null;
+      this.currentProperties = {};
     },
   },
   // persist: true,

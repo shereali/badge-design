@@ -10,56 +10,78 @@
       <!-- Alignment Section -->
       <div class="bg-white p-3 border-b border-gray-200">
         <div class="grid grid-cols-6 gap-1">
-          <Icon
+          <button
+            type="button"
             @click="store.alignHorizontal('left')"
-            name="solar:align-left-linear"
-            class="text-xl p-1 hover:text-blue-600 cursor-pointer"
+            class="flex items-center justify-center p-1.5 rounded hover:bg-slate-100 transition"
             :class="{
-              'text-blue-700': store.currentProperties.textAlign === 'left',
+              'bg-indigo-100 text-indigo-700': store.currentProperties.textAlign === 'left',
+              'text-slate-600': store.currentProperties.textAlign !== 'left',
             }"
-          />
-          <Icon
+            title="Align Left"
+          >
+            <Icon name="mdi:format-horizontal-align-left" class="text-lg" />
+          </button>
+          <button
+            type="button"
             @click="store.alignHorizontal('center')"
-            name="streamline-ultimate:align-center"
-            class="text-xl p-1 hover:text-blue-600 cursor-pointer"
+            class="flex items-center justify-center p-1.5 rounded hover:bg-slate-100 transition"
             :class="{
-              'text-blue-700': store.currentProperties.textAlign === 'center',
+              'bg-indigo-100 text-indigo-700': store.currentProperties.textAlign === 'center',
+              'text-slate-600': store.currentProperties.textAlign !== 'center',
             }"
-          />
-          <Icon
+            title="Align Center"
+          >
+            <Icon name="mdi:format-horizontal-align-center" class="text-lg" />
+          </button>
+          <button
+            type="button"
             @click="store.alignHorizontal('right')"
-            name="solar:align-right-linear"
-            class="text-xl p-1 hover:text-blue-600 cursor-pointer"
+            class="flex items-center justify-center p-1.5 rounded hover:bg-slate-100 transition"
             :class="{
-              'text-blue-700': store.currentProperties.textAlign === 'right',
+              'bg-indigo-100 text-indigo-700': store.currentProperties.textAlign === 'right',
+              'text-slate-600': store.currentProperties.textAlign !== 'right',
             }"
-          />
-          <Icon
+            title="Align Right"
+          >
+            <Icon name="mdi:format-horizontal-align-right" class="text-lg" />
+          </button>
+          <button
+            type="button"
             @click="store.alignVertical('top')"
-            name="solar:align-top-linear"
-            class="text-xl p-1 hover:text-blue-600 cursor-pointer"
+            class="flex items-center justify-center p-1.5 rounded hover:bg-slate-100 transition"
             :class="{
-              'text-blue-700': store.currentProperties.verticalAlign === 'top',
+              'bg-indigo-100 text-indigo-700': store.currentProperties.verticalAlign === 'top',
+              'text-slate-600': store.currentProperties.verticalAlign !== 'top',
             }"
-          />
-          <Icon
+            title="Align Top"
+          >
+            <Icon name="mdi:format-vertical-align-top" class="text-lg" />
+          </button>
+          <button
+            type="button"
             @click="store.alignVertical('middle')"
-            name="streamline-ultimate:align-middle"
-            class="text-xl p-1 hover:text-blue-600 cursor-pointer"
+            class="flex items-center justify-center p-1.5 rounded hover:bg-slate-100 transition"
             :class="{
-              'text-blue-700':
-                store.currentProperties.verticalAlign === 'middle',
+              'bg-indigo-100 text-indigo-700': store.currentProperties.verticalAlign === 'middle',
+              'text-slate-600': store.currentProperties.verticalAlign !== 'middle',
             }"
-          />
-          <Icon
+            title="Align Middle"
+          >
+            <Icon name="mdi:format-vertical-align-center" class="text-lg" />
+          </button>
+          <button
+            type="button"
             @click="store.alignVertical('bottom')"
-            name="solar:align-bottom-linear"
-            class="text-xl p-1 hover:text-blue-600 cursor-pointer"
+            class="flex items-center justify-center p-1.5 rounded hover:bg-slate-100 transition"
             :class="{
-              'text-blue-700':
-                store.currentProperties.verticalAlign === 'bottom',
+              'bg-indigo-100 text-indigo-700': store.currentProperties.verticalAlign === 'bottom',
+              'text-slate-600': store.currentProperties.verticalAlign !== 'bottom',
             }"
-          />
+            title="Align Bottom"
+          >
+            <Icon name="mdi:format-vertical-align-bottom" class="text-lg" />
+          </button>
         </div>
       </div>
 
@@ -70,7 +92,7 @@
           @click="toggleSection('geometry')"
         >
           <div class="flex items-center">
-            <Icon name="tabler:geometry" class="text-xl p-1 text-gray-600" />
+            <Icon name="mdi:vector-square" class="text-xl p-1 text-gray-600" />
             <span class="font-semibold text-gray-700">Geometry</span>
           </div>
           <Icon
@@ -147,8 +169,8 @@
           @click="toggleSection('avatar')"
         >
           <div class="flex items-center">
-            <Icon name="tabler:avatar" class="text-xl p-1 text-gray-600" />
-            <span class="font-semibold text-gray-700">Avatar</span>
+            <Icon name="mdi:account-circle-outline" class="text-xl p-1 text-gray-600" />
+            <span class="font-semibold text-gray-700">Photo / Avatar</span>
           </div>
           <Icon
             :name="openSections.avatar ? 'mdi:chevron-up' : 'mdi:chevron-down'"
@@ -156,100 +178,209 @@
           />
         </div>
 
-        <div v-show="openSections.avatar" class="mt-3 grid grid-cols-1 gap-2">
-          <div class="p-4 bg-white rounded-2xl shadow">
-            <label class="block text-sm font-medium text-gray-700 mb-2"
-              >Size (px)</label
-            >
-            <input
-              type="range"
-              min="40"
-              max="800"
-              v-model.number="store.avatarSize"
-              class="w-full"
-              @input="store.syncAvatarToCurrent"
-            />
-            <div class="mt-2 text-sm text-gray-500">
-              {{ store.avatarSize }}px
+        <div v-show="openSections.avatar" class="mt-3 space-y-3">
+          <!-- Photo Upload & Preview -->
+          <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+            <div class="flex items-center gap-3">
+              <div class="w-14 h-14 rounded-full border border-slate-300 overflow-hidden bg-slate-200 flex-shrink-0 flex items-center justify-center shadow-inner">
+                <img
+                  v-if="store.currentProperties.avatar?.avatar_src"
+                  :src="store.currentProperties.avatar.avatar_src"
+                  class="w-full h-full object-cover"
+                />
+                <Icon v-else name="mdi:account" class="text-3xl text-slate-400" />
+              </div>
+
+              <div class="flex-1 space-y-1">
+                <input
+                  type="file"
+                  ref="avatarFileInput"
+                  class="hidden"
+                  accept="image/*"
+                  @change="handleAvatarFileUpload"
+                />
+                <button
+                  type="button"
+                  @click="avatarFileInput?.click()"
+                  class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold shadow-sm transition"
+                >
+                  <Icon name="mdi:cloud-upload-outline" class="text-sm" />
+                  <span>Upload Photo</span>
+                </button>
+                <p class="text-[10px] text-slate-500">PNG, JPG, WebP up to 5MB</p>
+              </div>
+            </div>
+
+            <!-- Avatar URL direct input -->
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 uppercase mb-1">Image URL</label>
+              <input
+                type="text"
+                :value="store.currentProperties.avatar?.avatar_src"
+                @input="store.setAvatarImage($event.target.value)"
+                placeholder="https://example.com/avatar.jpg"
+                class="w-full text-xs px-2.5 py-1.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none"
+              />
+            </div>
+
+            <!-- Quick Preset Avatars -->
+            <div>
+              <span class="block text-[10px] font-semibold text-slate-500 uppercase mb-1">Sample Avatars</span>
+              <div class="flex items-center gap-1.5 overflow-x-auto pb-1">
+                <button
+                  v-for="(src, idx) in presetAvatars"
+                  :key="idx"
+                  type="button"
+                  @click="store.setAvatarImage(src)"
+                  class="w-7 h-7 rounded-full border border-slate-300 overflow-hidden hover:scale-110 transition flex-shrink-0"
+                >
+                  <img :src="src" class="w-full h-full object-cover" />
+                </button>
+              </div>
             </div>
           </div>
 
+          <!-- Size Control -->
+          <div class="p-3 bg-white border border-slate-200 rounded-xl space-y-1.5">
+            <div class="flex items-center justify-between">
+              <label class="text-xs font-semibold text-slate-700">Size (px)</label>
+              <div class="flex items-center border border-slate-300 rounded px-1.5 py-0.5 bg-slate-50">
+                <input
+                  type="number"
+                  min="30"
+                  max="400"
+                  v-model.number="store.avatarSize"
+                  class="w-12 text-xs font-semibold text-right bg-transparent focus:outline-none"
+                  @input="store.syncAvatarToCurrent"
+                />
+                <span class="text-[10px] text-slate-400 ml-1">px</span>
+              </div>
+            </div>
+            <input
+              type="range"
+              min="30"
+              max="300"
+              v-model.number="store.avatarSize"
+              class="w-full accent-indigo-600 cursor-pointer"
+              @input="store.syncAvatarToCurrent"
+            />
+          </div>
+
+          <!-- Border Radius (Point 6 Redesigned) -->
           <div
-            class="p-4 bg-white rounded-2xl shadow"
+            class="p-3 bg-white border border-slate-200 rounded-xl space-y-2"
             v-if="
               store.avatarShape === 'rounded' ||
               store.avatarShape === 'squircle' ||
               store.avatarShape === 'custom'
             "
           >
-            <label class="block text-sm font-medium text-gray-700 mb-2"
-              >Border Radius (px)</label
-            >
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-1.5">
+                <Icon name="mdi:rounded-corner" class="text-indigo-600 text-base" />
+                <label class="text-xs font-semibold text-slate-700">Border Radius</label>
+              </div>
+              <div class="flex items-center border border-slate-300 rounded px-1.5 py-0.5 bg-slate-50">
+                <input
+                  type="number"
+                  min="0"
+                  max="150"
+                  v-model.number="store.avatarRadius"
+                  class="w-10 text-xs font-semibold text-right bg-transparent focus:outline-none"
+                  @input="store.syncAvatarToCurrent"
+                />
+                <span class="text-[10px] text-slate-400 ml-1">px</span>
+              </div>
+            </div>
             <input
               type="range"
               min="0"
-              max="400"
+              max="150"
               v-model.number="store.avatarRadius"
-              class="w-full"
+              class="w-full accent-indigo-600 cursor-pointer"
               @input="store.syncAvatarToCurrent"
             />
-            <div class="mt-2 text-sm text-gray-500">
-              {{ store.avatarRadius }}px
+            <div class="flex items-center gap-1 pt-1">
+              <button
+                type="button"
+                @click="store.avatarRadius = 0; store.syncAvatarToCurrent()"
+                class="flex-1 py-1 text-[10px] font-semibold rounded border border-slate-200 hover:bg-slate-100 transition"
+              >
+                0px (Square)
+              </button>
+              <button
+                type="button"
+                @click="store.avatarRadius = 12; store.syncAvatarToCurrent()"
+                class="flex-1 py-1 text-[10px] font-semibold rounded border border-slate-200 hover:bg-slate-100 transition"
+              >
+                12px
+              </button>
+              <button
+                type="button"
+                @click="store.avatarRadius = 24; store.syncAvatarToCurrent()"
+                class="flex-1 py-1 text-[10px] font-semibold rounded border border-slate-200 hover:bg-slate-100 transition"
+              >
+                24px
+              </button>
+              <button
+                type="button"
+                @click="store.avatarRadius = 9999; store.syncAvatarToCurrent()"
+                class="flex-1 py-1 text-[10px] font-semibold rounded border border-slate-200 hover:bg-slate-100 transition"
+              >
+                Pill
+              </button>
             </div>
           </div>
 
-          <div class="p-4 bg-white rounded-2xl shadow">
-            <label class="block text-sm font-medium text-gray-700 mb-2"
-              >Shape</label
-            >
+          <!-- Shape Selection -->
+          <div class="p-3 bg-white border border-slate-200 rounded-xl space-y-1.5">
+            <label class="block text-xs font-semibold text-slate-700">Shape</label>
             <select
               v-model="store.avatarShape"
-              class="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:outline-none"
+              class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs focus:ring-2 focus:ring-indigo-400 focus:outline-none"
               @change="store.syncAvatarToCurrent"
             >
-              <option value="circle">Circle</option>
-              <option value="rounded">Rounded</option>
+              <option value="circle">Circle (Round)</option>
+              <option value="rounded">Rounded Square</option>
               <option value="squircle">Squircle</option>
               <option value="diamond">Diamond</option>
               <option value="hex">Hexagon</option>
               <option value="triangle">Triangle</option>
-              <option value="blob">Blob</option>
+              <option value="blob">Organic Blob</option>
               <option value="custom">Custom (clip-path)</option>
             </select>
 
-            <div v-if="store.avatarShape === 'custom'" class="mt-3">
-              <label class="block text-xs font-medium text-gray-600 mb-1"
-                >CSS clip-path</label
-              >
+            <div v-if="store.avatarShape === 'custom'" class="mt-2">
+              <label class="block text-[11px] font-semibold text-slate-600 mb-1">CSS clip-path</label>
               <input
                 v-model="store.avatarCustomClipPath"
-                placeholder="e.g. polygon(50% 0, 100% 50%, 50% 100%, 0 50%)"
-                class="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:outline-none"
+                placeholder="polygon(50% 0, 100% 50%, 50% 100%, 0 50%)"
+                class="w-full rounded-lg border border-slate-300 px-2 py-1 text-xs focus:outline-none"
                 @input="store.syncAvatarToCurrent"
               />
-              <div class="mt-2 text-xs text-gray-500">
-                Enter a valid <code>clip-path</code> value.
-              </div>
             </div>
           </div>
 
-          <div
-            class="p-4 bg-white rounded-2xl shadow grid grid-cols-2 gap-3 items-center"
-          >
-            <label class="text-sm font-medium text-gray-700">Border</label>
-            <input
-              type="checkbox"
-              v-model="store.avatarShowBorder"
-              class="h-4 w-4"
-              @change="store.syncAvatarToCurrent"
-            />
-            <label class="text-sm font-medium text-gray-700">Ring</label>
-            <input
-              type="checkbox"
-              v-model="store.avatarShowRing"
-              class="h-4 w-4"
-              @change="store.syncAvatarToCurrent"
-            />
+          <!-- Border & Ring Toggles -->
+          <div class="p-3 bg-white border border-slate-200 rounded-xl grid grid-cols-2 gap-3 items-center">
+            <label class="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-700">
+              <input
+                type="checkbox"
+                v-model="store.avatarShowBorder"
+                class="h-4 w-4 rounded text-indigo-600 focus:ring-indigo-500"
+                @change="store.syncAvatarToCurrent"
+              />
+              <span>Outer Border</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-700">
+              <input
+                type="checkbox"
+                v-model="store.avatarShowRing"
+                class="h-4 w-4 rounded text-indigo-600 focus:ring-indigo-500"
+                @change="store.syncAvatarToCurrent"
+              />
+              <span>Accent Ring</span>
+            </label>
           </div>
         </div>
       </div>
@@ -263,7 +394,7 @@
           @click="toggleSection('qrcode')"
         >
           <div class="flex items-center">
-            <Icon name="tabler:qrcode" class="text-xl p-1 text-gray-600" />
+            <Icon name="mdi:qrcode" class="text-xl p-1 text-gray-600" />
             <span class="font-semibold text-gray-700">QR Code</span>
           </div>
           <Icon
@@ -272,137 +403,138 @@
           />
         </div>
 
-        <div v-show="openSections.qrcode" class="mt-3 space-y-6">
+        <div v-show="openSections.qrcode" class="mt-3 space-y-4">
+          <!-- QR Code Content / Value (Point 4 Fix) -->
+          <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+            <div class="flex items-center justify-between">
+              <label class="block text-xs font-semibold text-slate-700">QR Value / Target</label>
+              <span class="text-[10px] text-indigo-600 font-mono">Live Sync</span>
+            </div>
+            <textarea
+              v-model="store.currentProperties.qrcode.value"
+              rows="3"
+              class="w-full text-xs font-mono p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none bg-white"
+              placeholder="e.g. https://porichoyid.softcredible.com or Attendee ID"
+              @input="store.updateProperties(store.currentProperties)"
+            ></textarea>
+            <div class="flex flex-wrap gap-1">
+              <button
+                type="button"
+                @click="store.currentProperties.qrcode.value = 'https://porichoyid.softcredible.com'; store.updateProperties(store.currentProperties)"
+                class="text-[10px] bg-white hover:bg-indigo-50 hover:text-indigo-600 px-2 py-0.5 rounded border border-slate-200 font-medium transition"
+              >
+                Website URL
+              </button>
+              <button
+                type="button"
+                @click="store.currentProperties.qrcode.value = 'PID-' + Math.floor(100000 + Math.random() * 900000); store.updateProperties(store.currentProperties)"
+                class="text-[10px] bg-white hover:bg-indigo-50 hover:text-indigo-600 px-2 py-0.5 rounded border border-slate-200 font-medium transition"
+              >
+                ID Code
+              </button>
+              <button
+                type="button"
+                @click="store.currentProperties.qrcode.value = 'MECARD:N:John Doe;ORG:SoftCredible;TEL:+8801700000000;;'; store.updateProperties(store.currentProperties)"
+                class="text-[10px] bg-white hover:bg-indigo-50 hover:text-indigo-600 px-2 py-0.5 rounded border border-slate-200 font-medium transition"
+              >
+                vCard Contact
+              </button>
+            </div>
+          </div>
+
           <!-- Variant Dropdown -->
-          <div>
-            <label class="block text-sm font-medium mb-2">Variant</label>
+          <div class="p-3 bg-white border border-slate-200 rounded-xl space-y-1.5">
+            <label class="block text-xs font-semibold text-slate-700">Style Pattern</label>
             <select
               v-model="store.currentProperties.qrcode.variant"
-              class="w-full outline-none border rounded-lg p-1 focus:ring focus:ring-blue-300"
+              class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-indigo-400 focus:outline-none"
+              @change="store.updateProperties(store.currentProperties)"
             >
-              <option value="defualt">Default</option>
-              <option value="circle">Circle</option>
+              <option value="pixelated">Pixelated (Crisp Modern)</option>
+              <option value="circle">Circles</option>
               <option value="dots">Dots</option>
               <option value="rounded">Rounded</option>
-              <option value="pixelated">Pixelated</option>
+              <option value="default">Default</option>
             </select>
           </div>
 
-          <!-- Background Color Picker -->
-
-          <div class="flex items-center gap-3">
-            <div class="w-full">
-              <span class="block text-sm font-medium text-gray-600"
-                >Background Color</span
-              >
-              <div class="flex items-center border rounded overflow-hidden">
+          <!-- QR Colors -->
+          <div class="p-3 bg-white border border-slate-200 rounded-xl space-y-3">
+            <div>
+              <span class="block text-xs font-semibold text-slate-700 mb-1">QR Modules Color</span>
+              <div class="flex items-center border border-slate-300 rounded-lg overflow-hidden bg-slate-50">
                 <input
                   type="color"
                   v-model="store.currentProperties.qrcode.blackColor"
                   class="w-8 h-8 p-0 border-none cursor-pointer"
+                  @input="store.updateProperties(store.currentProperties)"
                 />
                 <input
                   type="text"
                   v-model="store.currentProperties.qrcode.blackColor"
-                  class="w-full px-2 py-1 border-l text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  class="w-full px-2 py-1 text-xs border-l border-slate-200 bg-white font-mono focus:outline-none"
                   placeholder="#000000"
+                  @input="store.updateProperties(store.currentProperties)"
+                />
+              </div>
+            </div>
+
+            <div>
+              <span class="block text-xs font-semibold text-slate-700 mb-1">Background Color</span>
+              <div class="flex items-center border border-slate-300 rounded-lg overflow-hidden bg-slate-50">
+                <input
+                  type="color"
+                  v-model="store.currentProperties.qrcode.whiteColor"
+                  class="w-8 h-8 p-0 border-none cursor-pointer"
+                  @input="store.updateProperties(store.currentProperties)"
+                />
+                <input
+                  type="text"
+                  v-model="store.currentProperties.qrcode.whiteColor"
+                  class="w-full px-2 py-1 text-xs border-l border-slate-200 bg-white font-mono focus:outline-none"
+                  placeholder="transparent or #ffffff"
+                  @input="store.updateProperties(store.currentProperties)"
                 />
                 <button
-                  class="w-8 h-8 bg-gray-100 hover:bg-gray-200 flex items-center justify-center"
-                  @click="store.currentProperties.qrcode.blackColor = '#000000'"
+                  type="button"
+                  class="px-2 py-1 text-[11px] font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border-l border-slate-200 flex items-center gap-1"
+                  @click="store.currentProperties.qrcode.whiteColor = 'transparent'; store.updateProperties(store.currentProperties)"
+                  title="Make Background Transparent"
                 >
-                  <Icon
-                    name="streamline-plump:transparent"
-                    class="text-xl text-gray-600"
-                    aria-hidden="true"
-                  />
+                  <Icon name="mdi:circle-off-outline" class="text-sm" />
+                  <span>Clear</span>
                 </button>
               </div>
             </div>
           </div>
 
-          <!-- <div>
-            <label class="block text-sm font-medium mb-2"
-              >Background Color</label
-            >
-            <input
-              type="color"
-              v-model="store.currentProperties.qrcode.blackColor"
-              class="w-full h-10 p-1 border rounded-lg cursor-pointer"
-            />
-          </div> -->
-
-          <!-- Foreground Color Picker -->
-
-          <div class="flex items-center gap-3">
-            <div class="w-full">
-              <span class="block text-sm font-medium text-gray-600"
-                >Foreground Color</span
-              >
-              <div class="flex items-center border rounded overflow-hidden">
+          <!-- Border Radius (Point 6 Redesigned) -->
+          <div class="p-3 bg-white border border-slate-200 rounded-xl space-y-2">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-1.5">
+                <Icon name="mdi:rounded-corner" class="text-indigo-600 text-base" />
+                <label class="text-xs font-semibold text-slate-700">QR Corner Radius</label>
+              </div>
+              <div class="flex items-center border border-slate-300 rounded px-1.5 py-0.5 bg-slate-50">
                 <input
-                  type="color"
-                  v-model="store.currentProperties.qrcode.whiteColor"
-                  class="w-8 h-8 p-0 border-none cursor-pointer"
+                  type="number"
+                  min="0"
+                  max="10"
+                  v-model.number="store.currentProperties.qrcode.radius"
+                  class="w-8 text-xs font-semibold text-right bg-transparent focus:outline-none"
+                  @input="store.updateProperties(store.currentProperties)"
                 />
-                <input
-                  type="text"
-                  v-model="store.currentProperties.qrcode.whiteColor"
-                  class="w-full px-2 py-1 border-l text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
-                  placeholder="#000000"
-                />
-                <button
-                  class="w-8 h-8 bg-gray-100 hover:bg-gray-200 flex items-center justify-center"
-                  @click="
-                    store.currentProperties.qrcode.whiteColor = 'transparent'
-                  "
-                >
-                  <Icon
-                    name="streamline-plump:transparent"
-                    class="text-xl text-gray-600"
-                    aria-hidden="true"
-                  />
-                </button>
+                <span class="text-[10px] text-slate-400 ml-1">px</span>
               </div>
             </div>
-          </div>
-
-          <!-- <div>
-            <label class="block text-sm font-medium mb-2"
-              >Foreground Color</label
-            >
-            <input
-              type="color"
-              v-model="store.currentProperties.qrcode.whiteColor"
-              class="w-full h-10 p-1 border rounded-lg cursor-pointer"
-            />
-          </div> -->
-          <!-- Foreground Color Picker -->
-          <!-- <div>
-            <label class="block text-sm font-medium mb-2">Transparent</label>
-            <button
-              class="btn btn-secondary"
-              @click="store.currentProperties.qrcode.whiteColor = 'transparent'"
-            >
-              <Icon name="streamline-sharp:transparent-solid" />
-            </button>
-          </div> -->
-
-          <!-- Border Radius -->
-          <div>
-            <label class="block text-sm font-medium mb-2"
-              >Border Radius (1–10)</label
-            >
             <input
               type="range"
-              min="1"
+              min="0"
               max="10"
-              v-model="store.currentProperties.qrcode.radius"
-              class="w-full"
+              v-model.number="store.currentProperties.qrcode.radius"
+              class="w-full accent-indigo-600 cursor-pointer"
+              @input="store.updateProperties(store.currentProperties)"
             />
-            <p class="text-sm text-gray-500 mt-1">
-              {{ store.currentProperties.qrcode.radius }}px
-            </p>
           </div>
         </div>
       </div>
@@ -724,7 +856,7 @@
           >
             <div class="flex items-center">
               <Icon
-                name="streamline:interface-text-formatting-paragraph-alignment-paragraph-formatting-text"
+                name="mdi:format-align-justify"
                 class="text-xl p-1 text-gray-600"
               />
               <span class="font-semibold text-gray-700">Text Alignment</span>
@@ -803,7 +935,7 @@
           </div>
         </div>
 
-        <!-- Text Transform Section -->
+        <!-- Text Transform Section (Point 2 Fix) -->
         <div
           v-if="store.selectedElementType !== 'rectangle'"
           class="bg-white p-3 border-b border-gray-200"
@@ -814,10 +946,10 @@
           >
             <div class="flex items-center">
               <Icon
-                name="mdi:format-letter-case-upper"
+                name="mdi:format-letter-case"
                 class="text-xl p-1 text-gray-600"
               />
-              <span class="font-semibold text-gray-700">Text Transform</span>
+              <span class="font-semibold text-gray-700">Text Casing</span>
             </div>
             <Icon
               :name="
@@ -829,37 +961,63 @@
             />
           </div>
 
-          <div v-show="openSections.textTransform" class="mt-2 flex gap-2">
-            <Icon
-              name="mdi:format-letter-case-upper"
-              class="p-1 text-xl cursor-pointer transition-colors"
-              @click="store.applyTextTransform('uppercase')"
+          <div v-show="openSections.textTransform" class="mt-2 grid grid-cols-4 gap-1.5">
+            <button
+              type="button"
+              @click="store.applyTextTransform('none')"
+              class="flex flex-col items-center justify-center p-2 rounded-lg border text-xs font-semibold transition"
               :class="
-                store.currentProperties.textTransform === 'uppercase'
-                  ? 'bg-blue-500 text-white'
-                  : 'text-gray-600 hover:text-blue-600'
+                !store.currentProperties.textTransform || store.currentProperties.textTransform === 'none'
+                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                  : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
               "
-            />
-            <Icon
-              name="mdi:format-letter-case-lower"
-              class="p-1 text-xl cursor-pointer transition-colors"
-              @click="store.applyTextTransform('lowercase')"
-              :class="
-                store.currentProperties.textTransform === 'lowercase'
-                  ? 'bg-blue-500 text-white'
-                  : 'text-gray-600 hover:text-blue-600'
-              "
-            />
-            <Icon
-              name="mdi:format-letter-case"
-              class="p-1 text-xl cursor-pointer transition-colors"
+              title="Normal / Original casing"
+            >
+              <Icon name="mdi:format-color-text" class="text-base mb-0.5" />
+              <span class="text-[10px]">Normal</span>
+            </button>
+            <button
+              type="button"
               @click="store.applyTextTransform('capitalize')"
+              class="flex flex-col items-center justify-center p-2 rounded-lg border text-xs font-semibold transition"
               :class="
                 store.currentProperties.textTransform === 'capitalize'
-                  ? 'bg-blue-500 text-white'
-                  : 'text-gray-600 hover:text-blue-600'
+                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                  : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
               "
-            />
+              title="Capitalize Each Word"
+            >
+              <Icon name="mdi:format-letter-case" class="text-base mb-0.5" />
+              <span class="text-[10px]">Title</span>
+            </button>
+            <button
+              type="button"
+              @click="store.applyTextTransform('uppercase')"
+              class="flex flex-col items-center justify-center p-2 rounded-lg border text-xs font-semibold transition"
+              :class="
+                store.currentProperties.textTransform === 'uppercase'
+                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                  : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+              "
+              title="ALL UPPERCASE"
+            >
+              <Icon name="mdi:format-letter-case-upper" class="text-base mb-0.5" />
+              <span class="text-[10px]">UPPER</span>
+            </button>
+            <button
+              type="button"
+              @click="store.applyTextTransform('lowercase')"
+              class="flex flex-col items-center justify-center p-2 rounded-lg border text-xs font-semibold transition"
+              :class="
+                store.currentProperties.textTransform === 'lowercase'
+                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                  : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+              "
+              title="all lowercase"
+            >
+              <Icon name="mdi:format-letter-case-lower" class="text-base mb-0.5" />
+              <span class="text-[10px]">lower</span>
+            </button>
           </div>
         </div>
 
@@ -1073,6 +1231,28 @@ const formatPositionName = (position) => {
     .join(" ");
 };
 
+const avatarFileInput = ref(null);
+
+function handleAvatarFileUpload(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    if (e.target?.result) {
+      store.setAvatarImage(e.target.result);
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+const presetAvatars = [
+  "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80",
+];
+
 const fits = ["cover", "contain", "fill", "scale-down", "none"];
 
 const formatFitName = (fit) => {
@@ -1085,15 +1265,17 @@ const formatFitName = (fit) => {
 const fitIconName = (fit) => {
   switch (fit) {
     case "cover":
-      return "ix:align-object-dimensions";
+      return "mdi:arrow-expand-all";
     case "contain":
-      return "tabler:container";
+      return "mdi:arrow-collapse-all";
     case "fill":
-      return "icon-park-outline:fill";
+      return "mdi:stretch-to-page-outline";
     case "none":
-      return "radix-icons:view-none";
+      return "mdi:close-circle-outline";
     case "scale-down":
-      return "mage:scale-down";
+      return "mdi:magnify-minus-outline";
+    default:
+      return "mdi:crop";
   }
 };
 

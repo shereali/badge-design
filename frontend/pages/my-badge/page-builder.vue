@@ -81,6 +81,64 @@
             </button>
           </div>
 
+          <!-- Export Dropdown -->
+          <div class="relative" ref="exportDropdownRef">
+            <button
+              type="button"
+              @click="isExportMenuOpen = !isExportMenuOpen"
+              :disabled="isExporting"
+              class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-lg shadow-sm transition focus:outline-none disabled:opacity-60"
+            >
+              <Icon v-if="isExporting" name="mdi:loading" class="animate-spin text-base text-indigo-600" />
+              <Icon v-else name="mdi:download-outline" class="text-base text-indigo-600" />
+              <span>Export</span>
+              <Icon name="mdi:chevron-down" class="text-sm text-slate-400" />
+            </button>
+
+            <!-- Dropdown Menu -->
+            <div
+              v-if="isExportMenuOpen"
+              class="absolute right-0 mt-1.5 w-52 bg-white border border-slate-200 rounded-xl shadow-xl z-50 p-1.5 space-y-1"
+            >
+              <div class="px-2 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                Download Badge
+              </div>
+              <button
+                type="button"
+                @click="exportAs('pdf')"
+                class="w-full flex items-center gap-2.5 px-2.5 py-2 text-xs font-semibold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition text-left"
+              >
+                <Icon name="mdi:file-pdf-box" class="text-lg text-red-500" />
+                <div>
+                  <div class="font-bold">PDF Document (.pdf)</div>
+                  <div class="text-[10px] text-slate-400">Print-ready standard</div>
+                </div>
+              </button>
+              <button
+                type="button"
+                @click="exportAs('png')"
+                class="w-full flex items-center gap-2.5 px-2.5 py-2 text-xs font-semibold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition text-left"
+              >
+                <Icon name="mdi:file-image" class="text-lg text-blue-500" />
+                <div>
+                  <div class="font-bold">PNG Image (.png)</div>
+                  <div class="text-[10px] text-slate-400">High-resolution lossless</div>
+                </div>
+              </button>
+              <button
+                type="button"
+                @click="exportAs('jpg')"
+                class="w-full flex items-center gap-2.5 px-2.5 py-2 text-xs font-semibold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition text-left"
+              >
+                <Icon name="mdi:file-jpg-box" class="text-lg text-emerald-500" />
+                <div>
+                  <div class="font-bold">JPG / JPEG Image (.jpg)</div>
+                  <div class="text-[10px] text-slate-400">Standard web image</div>
+                </div>
+              </button>
+            </div>
+          </div>
+
           <!-- Save Button -->
           <button
             @click="sendData"
@@ -90,6 +148,16 @@
             <Icon v-if="loading" name="mdi:loading" class="animate-spin text-base" />
             <Icon v-else name="mdi:content-save-outline" class="text-base" />
             <span>Save</span>
+          </button>
+
+          <!-- Sidebar Collapse/Expand Toggle Button (Header) -->
+          <button
+            type="button"
+            @click="isSidebarCollapsed = !isSidebarCollapsed"
+            class="hidden md:inline-flex items-center justify-center w-8 h-8 rounded-lg border border-slate-300 hover:bg-slate-100 text-slate-600 transition"
+            :title="isSidebarCollapsed ? 'Open Sidebar' : 'Collapse Sidebar'"
+          >
+            <Icon :name="isSidebarCollapsed ? 'mdi:page-layout-sidebar-right' : 'mdi:chevron-right'" class="text-lg" />
           </button>
         </div>
       </header>
@@ -130,18 +198,54 @@
       </div>
     </div>
 
-    <!-- Right Sidebar for Elements & Layers -->
-    <div class="w-full md:w-80 bg-white border-t md:border-t-0 md:border-l border-slate-200 order-1 md:order-2 overflow-y-auto flex flex-col">
-      <Sidebar
-        :selected-element="store.selectedElement"
-        :selected-element-type="selectedElementType"
-        :layers="layers"
-        :selected-layer="selectedLayer"
-        :current-properties="store.currentProperties"
-        :display-option="displayOption"
-        @drag-start="onDragStart"
-        @drag-end="onDragEnd"
-      />
+    <!-- Right Sidebar Container with Persistent Caret Button -->
+    <div
+      class="relative flex-shrink-0 transition-all duration-300 ease-in-out order-1 md:order-2 flex"
+      :class="isSidebarCollapsed ? 'w-0' : 'w-full md:w-80'"
+    >
+      <!-- Always Visible Caret Toggle Button at the top-left of the sidebar -->
+      <button
+        type="button"
+        @click="isSidebarCollapsed = !isSidebarCollapsed"
+        class="absolute top-4 -left-3.5 z-40 w-7 h-7 bg-white text-slate-700 hover:text-indigo-600 border border-slate-300 rounded-full shadow-md flex items-center justify-center transition hover:scale-110 active:scale-95 focus:outline-none"
+        :title="isSidebarCollapsed ? 'Open Sidebar (Expand)' : 'Collapse Sidebar'"
+      >
+        <Icon
+          :name="isSidebarCollapsed ? 'mdi:chevron-left' : 'mdi:chevron-right'"
+          class="text-lg"
+        />
+      </button>
+
+      <!-- Sidebar Body -->
+      <div
+        class="w-full md:w-80 bg-white border-t md:border-t-0 md:border-l border-slate-200 overflow-y-auto flex flex-col h-full"
+        :class="{ 'hidden md:hidden': isSidebarCollapsed }"
+      >
+        <!-- Top bar with explicit caret and label -->
+        <div class="flex items-center justify-between px-3 pt-2.5 pb-1 border-b border-slate-100">
+          <button
+            type="button"
+            @click="isSidebarCollapsed = true"
+            class="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-indigo-600 p-1 rounded hover:bg-slate-100 transition"
+            title="Collapse Sidebar"
+          >
+            <Icon name="mdi:chevron-right" class="text-base" />
+            <span>Collapse</span>
+          </button>
+          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Properties & Tools</span>
+        </div>
+
+        <Sidebar
+          :selected-element="store.selectedElement"
+          :selected-element-type="selectedElementType"
+          :layers="layers"
+          :selected-layer="selectedLayer"
+          :current-properties="store.currentProperties"
+          :display-option="displayOption"
+          @drag-start="onDragStart"
+          @drag-end="onDragEnd"
+        />
+      </div>
     </div>
 
     <!-- Modals -->
@@ -200,6 +304,134 @@ const {
 
 const store = useCanvasStore();
 const pageStore = usePageStore();
+
+const isSidebarCollapsed = ref(false);
+const isExporting = ref(false);
+const isExportMenuOpen = ref(false);
+const exportDropdownRef = ref(null);
+
+// Close export dropdown when clicking outside
+if (process.client) {
+  onMounted(() => {
+    const handleOutsideClick = (e) => {
+      if (
+        exportDropdownRef.value &&
+        !exportDropdownRef.value.contains(e.target)
+      ) {
+        isExportMenuOpen.value = false;
+      }
+    };
+    window.addEventListener("click", handleOutsideClick);
+    onUnmounted(() => {
+      window.removeEventListener("click", handleOutsideClick);
+    });
+  });
+}
+
+const captureCanvas = async (side = store.activeSide) => {
+  const { $html2canvas } = useNuxtApp();
+  const html2canvasFn = $html2canvas || (await import("html2canvas")).default;
+  const canvasEl = dropzone.value?.querySelector(".card") || dropzone.value;
+  if (!canvasEl) return null;
+
+  // Temporarily reset zoom transform on dropzone for clean 1:1 capture
+  const originalTransform = dropzone.value.style.transform;
+  dropzone.value.style.transform = "none";
+
+  // Deselect element so handles and snap guides don't get exported
+  store.selectedElement = null;
+
+  await nextTick();
+  await new Promise((resolve) => setTimeout(resolve, 80));
+
+  try {
+    const renderedCanvas = await html2canvasFn(canvasEl, {
+      scale: 3,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: null,
+    });
+    return renderedCanvas;
+  } finally {
+    dropzone.value.style.transform = originalTransform;
+  }
+};
+
+const exportAs = async (format) => {
+  isExportMenuOpen.value = false;
+  if (isExporting.value) return;
+  isExporting.value = true;
+
+  try {
+    const title = (badgeTitle.value || "badge-design")
+      .toLowerCase()
+      .replace(/[^a-z0-9_-]/g, "-");
+    const canvas = await captureCanvas(store.activeSide);
+    if (!canvas) {
+      alert("Unable to capture badge canvas.");
+      return;
+    }
+
+    if (format === "png") {
+      const link = document.createElement("a");
+      link.download = `${title}-${store.activeSide}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    } else if (format === "jpg" || format === "jpeg") {
+      const jpgCanvas = document.createElement("canvas");
+      jpgCanvas.width = canvas.width;
+      jpgCanvas.height = canvas.height;
+      const ctx = jpgCanvas.getContext("2d");
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, jpgCanvas.width, jpgCanvas.height);
+      ctx.drawImage(canvas, 0, 0);
+
+      const link = document.createElement("a");
+      link.download = `${title}-${store.activeSide}.jpg`;
+      link.href = jpgCanvas.toDataURL("image/jpeg", 0.95);
+      link.click();
+    } else if (format === "pdf") {
+      const { $jsPDF } = useNuxtApp();
+      const jsPDFFn = $jsPDF || (await import("jspdf")).default;
+
+      const widthMM = pageStore.presetWidth || 105;
+      const heightMM = pageStore.presetHeight || 148;
+      const orientation = widthMM > heightMM ? "landscape" : "portrait";
+
+      const pdf = new jsPDFFn({
+        orientation,
+        unit: "mm",
+        format: [widthMM, heightMM],
+        compress: true,
+      });
+
+      const imgData = canvas.toDataURL("image/jpeg", 0.98);
+      pdf.addImage(imgData, "JPEG", 0, 0, widthMM, heightMM);
+
+      // If back side has content, capture and add page 2
+      if (store.backBoxes && store.backBoxes.length > 0) {
+        const prevSide = store.activeSide;
+        store.activeSide = "back";
+        await nextTick();
+        const backCanvas = await captureCanvas("back");
+        store.activeSide = prevSide;
+
+        if (backCanvas) {
+          pdf.addPage([widthMM, heightMM], orientation);
+          const backImgData = backCanvas.toDataURL("image/jpeg", 0.98);
+          pdf.addImage(backImgData, "JPEG", 0, 0, widthMM, heightMM);
+        }
+      }
+
+      pdf.save(`${title}.pdf`);
+    }
+  } catch (err) {
+    console.error("Export failed:", err);
+    alert("Export failed: " + (err.message || err));
+  } finally {
+    isExporting.value = false;
+  }
+};
 </script>
 
 <style scoped>

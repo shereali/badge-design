@@ -1,23 +1,30 @@
 <template>
   <div v-if="sidebarInfo?.data?.designGroups?.length">
-    <div class="flex mb-4">
+    <div class="flex mb-3 border-b border-gray-200 bg-gray-100 p-1 rounded-xl">
       <button
-        class="flex-1 p-2"
-        :class="{ 'bg-blue-500 text-white': store.activeTab === 'design' }"
+        class="flex-1 py-1.5 px-2 text-xs font-bold rounded-lg transition"
+        :class="store.activeTab === 'design' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'"
         @click="store.activeTab = 'design'"
       >
         Design
       </button>
       <button
-        class="flex-1 p-2"
-        :class="{ 'bg-blue-500 text-white': store.activeTab === 'properties' }"
+        class="flex-1 py-1.5 px-2 text-xs font-bold rounded-lg transition"
+        :class="store.activeTab === 'themes' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'"
+        @click="store.activeTab = 'themes'"
+      >
+        Themes
+      </button>
+      <button
+        class="flex-1 py-1.5 px-2 text-xs font-bold rounded-lg transition"
+        :class="store.activeTab === 'properties' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'"
         @click="store.activeTab = 'properties'"
       >
         Properties
       </button>
       <button
-        class="flex-1 p-2"
-        :class="{ 'bg-blue-500 text-white': store.activeTab === 'layers' }"
+        class="flex-1 py-1.5 px-2 text-xs font-bold rounded-lg transition"
+        :class="store.activeTab === 'layers' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'"
         @click="store.activeTab = 'layers'"
       >
         Layers
@@ -277,6 +284,63 @@
         </div>
       </div>
     </div>
+    <!-- Themes Tab Content -->
+    <div v-if="store.activeTab === 'themes'" class="space-y-3 p-1">
+      <div class="flex items-center justify-between pb-1 border-b border-slate-100">
+        <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Ready-Made Badge Themes</h3>
+        <span class="text-[10px] bg-indigo-50 text-indigo-700 font-bold px-2 py-0.5 rounded-full">{{ badgeThemes.length }} Themes</span>
+      </div>
+      <p class="text-xs text-slate-500">
+        Select a pre-designed template to instantly style your badge with matching fonts, colors, punch holes, and layout.
+      </p>
+
+      <div class="space-y-3">
+        <div
+          v-for="theme in badgeThemes"
+          :key="theme.id"
+          class="group border border-slate-200 hover:border-indigo-400 rounded-xl overflow-hidden shadow-sm hover:shadow transition bg-white cursor-pointer"
+          @click="applyBadgeTheme(theme)"
+        >
+          <!-- Theme Preview Banner -->
+          <div
+            class="h-24 w-full p-3 flex flex-col justify-between relative overflow-hidden text-white"
+            :style="{ background: theme.previewBg }"
+          >
+            <div class="flex items-center justify-between z-10">
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider backdrop-blur-sm bg-black/30">
+                {{ theme.badge }}
+              </span>
+              <span v-if="theme.punchArea && theme.punchArea !== 'none'" class="w-3.5 h-3.5 rounded-full bg-white/70 shadow-inner"></span>
+            </div>
+
+            <div class="z-10 flex items-center gap-2.5">
+              <div class="w-9 h-9 rounded-full border-2 border-white/80 overflow-hidden flex-shrink-0 bg-white/20">
+                <img :src="theme.previewAvatar" class="w-full h-full object-cover" />
+              </div>
+              <div class="truncate">
+                <div class="text-xs font-bold leading-tight drop-shadow truncate">{{ theme.previewName }}</div>
+                <div class="text-[10px] opacity-90 truncate">{{ theme.previewRole }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Theme Details -->
+          <div class="p-3 bg-white flex items-center justify-between">
+            <div>
+              <div class="text-xs font-bold text-slate-800">{{ theme.name }}</div>
+              <div class="text-[11px] text-slate-500">{{ theme.description }}</div>
+            </div>
+            <button
+              type="button"
+              class="px-2.5 py-1 text-xs font-bold text-indigo-600 bg-indigo-50 group-hover:bg-indigo-600 group-hover:text-white rounded-lg transition"
+            >
+              Apply
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Properties Tab Content -->
     <div v-if="store.activeTab === 'properties'" class="space-y-2">
       <Properties />
@@ -513,6 +577,311 @@ const selectedPunchArea = (area) => {
       return "";
   }
 };
+const makeThemeBox = (
+  id,
+  type,
+  label,
+  text,
+  left,
+  top,
+  width,
+  height,
+  custom = {}
+) => ({
+  id,
+  key: `${type}-${id}`,
+  type,
+  label,
+  text,
+  position: { left, top },
+  isSelected: false,
+  isDragging: false,
+  visible: true,
+  properties: {
+    size: { width, height },
+    rotation: 0,
+    font: '"Cairo", sans-serif',
+    fontWeight: custom.fontWeight || (type === "h1" ? "bold" : "normal"),
+    fontStyle: custom.fontStyle || "normal",
+    fontSize: custom.fontSize || (type === "h1" ? "20px" : "13px"),
+    fillColor: custom.fillColor || "#000000",
+    fillTransparency: true,
+    imagePosition: "center",
+    objectFit: "cover",
+    textDecoration: "none",
+    color: custom.color || "#1e293b",
+    textAlign: custom.textAlign || "center",
+    verticalAlign: "middle",
+    horizontalAlign: custom.textAlign || "center",
+    textTransform: custom.textTransform || "none",
+    src: "",
+    strokeColor: "#000000",
+    strokeWidth: 0,
+    associatedData: "",
+    content: text,
+    x: left,
+    y: top,
+    text,
+    direction: "ltr",
+    qrcode: {
+      value: custom.qrValue || "https://porichoyid.softcredible.com",
+      variant: "pixelated",
+      radius: 1,
+      blackColor: custom.qrBlackColor || "#000000",
+      whiteColor: custom.qrWhiteColor || "transparent",
+    },
+    avatar: {
+      showBorder: true,
+      showRing: false,
+      shape: custom.avatarShape || "circle",
+      radius: custom.avatarRadius || 32,
+      customClipPath: "",
+      containerStyle: {},
+      avatar_src:
+        custom.avatarSrc ||
+        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80",
+      imageStyle: {},
+    },
+    ...custom,
+  },
+});
+
+const badgeThemes = [
+  {
+    id: "modern-conference",
+    name: "Modern Tech Conference",
+    description: "Vibrant blue gradient with round hole punch and keynote speaker layout",
+    badge: "CONFERENCE",
+    previewBg: "linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #06b6d4 100%)",
+    previewAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80",
+    previewName: "John Doe",
+    previewRole: "Keynote Speaker",
+    punchArea: "circle-center",
+    frontBackground: "linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #06b6d4 100%)",
+    buildFrontBoxes: (canvasW) => [
+      makeThemeBox(1, "h1", "Event Title", "TECHCON SUMMIT 2026", Math.round((canvasW - 300) / 2), 55, 300, 32, {
+        fontSize: "13px",
+        fontWeight: "bold",
+        color: "#ffffff",
+      }),
+      makeThemeBox(2, "avatar", "Profile Photo", "", Math.round((canvasW - 100) / 2), 92, 100, 100, {
+        avatarShape: "circle",
+        avatarSrc: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80",
+      }),
+      makeThemeBox(3, "h1", "Full Name", "John Doe", Math.round((canvasW - 320) / 2), 205, 320, 36, {
+        fontSize: "22px",
+        fontWeight: "bold",
+        color: "#ffffff",
+      }),
+      makeThemeBox(4, "p", "Designation", "KEYNOTE SPEAKER", Math.round((canvasW - 300) / 2), 242, 300, 26, {
+        fontSize: "12px",
+        fontWeight: "bold",
+        color: "#a5f3fc",
+        textTransform: "uppercase",
+      }),
+      makeThemeBox(5, "p", "Company", "Google DeepMind", Math.round((canvasW - 300) / 2), 268, 300, 24, {
+        fontSize: "12px",
+        color: "#e2e8f0",
+      }),
+      makeThemeBox(6, "qrcode", "QR Code", "", Math.round((canvasW - 95) / 2), 302, 95, 95, {
+        qrValue: "https://porichoyid.softcredible.com/verify/1001",
+        qrWhiteColor: "#ffffff",
+      }),
+      makeThemeBox(7, "p", "Access Tag", "★ ALL ACCESS VIP PASS ★", Math.round((canvasW - 280) / 2), 412, 280, 26, {
+        fontSize: "11px",
+        fontWeight: "bold",
+        color: "#ffffff",
+      }),
+    ],
+  },
+  {
+    id: "corporate-id",
+    name: "Corporate Employee ID",
+    description: "Clean modern company badge with employee ID, slot punch, and clear branding",
+    badge: "CORPORATE ID",
+    previewBg: "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%)",
+    previewAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80",
+    previewName: "Sarah Ahmed",
+    previewRole: "Software Architect",
+    punchArea: "long-center",
+    frontBackground: "#f8fafc",
+    buildFrontBoxes: (canvasW) => [
+      makeThemeBox(1, "h1", "Company Name", "SOFTCREDIBLE TECHNOLOGIES", Math.round((canvasW - 320) / 2), 48, 320, 32, {
+        fontSize: "14px",
+        fontWeight: "bold",
+        color: "#0f172a",
+      }),
+      makeThemeBox(2, "p", "Sub-tag", "Official Staff Identity", Math.round((canvasW - 260) / 2), 74, 260, 22, {
+        fontSize: "10px",
+        fontWeight: "bold",
+        color: "#64748b",
+        textTransform: "uppercase",
+      }),
+      makeThemeBox(3, "avatar", "Profile Photo", "", Math.round((canvasW - 105) / 2), 102, 105, 105, {
+        avatarShape: "rounded",
+        avatarRadius: 20,
+        avatarSrc: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80",
+      }),
+      makeThemeBox(4, "h1", "Full Name", "Sarah Ahmed", Math.round((canvasW - 320) / 2), 220, 320, 36, {
+        fontSize: "22px",
+        fontWeight: "bold",
+        color: "#0f172a",
+      }),
+      makeThemeBox(5, "p", "Designation", "Lead Software Architect", Math.round((canvasW - 300) / 2), 254, 300, 26, {
+        fontSize: "13px",
+        color: "#475569",
+      }),
+      makeThemeBox(6, "p", "Employee ID", "EMP ID: SC-9048", Math.round((canvasW - 260) / 2), 282, 260, 24, {
+        fontSize: "11px",
+        fontWeight: "bold",
+        color: "#4f46e5",
+      }),
+      makeThemeBox(7, "qrcode", "QR Code", "", Math.round((canvasW - 95) / 2), 316, 95, 95, {
+        qrValue: "https://porichoyid.softcredible.com/staff/SC-9048",
+        qrWhiteColor: "#ffffff",
+      }),
+    ],
+  },
+  {
+    id: "vip-executive",
+    name: "Executive VIP Gala",
+    description: "Dark luxury gold accent badge for executives, investors, and VIP guests",
+    badge: "VIP PASS",
+    previewBg: "linear-gradient(145deg, #09090b 0%, #18181b 50%, #27272a 100%)",
+    previewAvatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80",
+    previewName: "Alexander Sterling",
+    previewRole: "Managing Director",
+    punchArea: "circle-center",
+    frontBackground: "linear-gradient(145deg, #09090b 0%, #18181b 50%, #27272a 100%)",
+    buildFrontBoxes: (canvasW) => [
+      makeThemeBox(1, "h1", "VIP Header", "★ VIP EXECUTIVE GUEST ★", Math.round((canvasW - 300) / 2), 55, 300, 30, {
+        fontSize: "12px",
+        fontWeight: "bold",
+        color: "#fbbf24",
+      }),
+      makeThemeBox(2, "avatar", "Profile Photo", "", Math.round((canvasW - 105) / 2), 92, 105, 105, {
+        avatarShape: "circle",
+        avatarSrc: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&auto=format&fit=crop&q=80",
+      }),
+      makeThemeBox(3, "h1", "Full Name", "Alexander Sterling", Math.round((canvasW - 320) / 2), 210, 320, 36, {
+        fontSize: "22px",
+        fontWeight: "bold",
+        color: "#f8fafc",
+      }),
+      makeThemeBox(4, "p", "Designation", "CHIEF EXECUTIVE OFFICER", Math.round((canvasW - 300) / 2), 246, 300, 26, {
+        fontSize: "12px",
+        fontWeight: "bold",
+        color: "#fde047",
+        textTransform: "uppercase",
+      }),
+      makeThemeBox(5, "p", "Company", "Sterling Capital Group", Math.round((canvasW - 300) / 2), 272, 300, 24, {
+        fontSize: "12px",
+        color: "#cbd5e1",
+      }),
+      makeThemeBox(6, "qrcode", "QR Code", "", Math.round((canvasW - 95) / 2), 310, 95, 95, {
+        qrValue: "https://porichoyid.softcredible.com/vip/sterling",
+        qrWhiteColor: "#ffffff",
+      }),
+    ],
+  },
+  {
+    id: "minimal-seminar",
+    name: "Minimal Seminar",
+    description: "High-contrast clean typography for academic, seminar, and research badges",
+    badge: "SEMINAR",
+    previewBg: "linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)",
+    previewAvatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&auto=format&fit=crop&q=80",
+    previewName: "Dr. Farhan Tanvir",
+    previewRole: "Research Fellow",
+    punchArea: "none",
+    frontBackground: "#ffffff",
+    buildFrontBoxes: (canvasW) => [
+      makeThemeBox(1, "h1", "Event Title", "INTERNATIONAL RESEARCH SUMMIT", Math.round((canvasW - 340) / 2), 45, 340, 32, {
+        fontSize: "13px",
+        fontWeight: "bold",
+        color: "#4f46e5",
+      }),
+      makeThemeBox(2, "avatar", "Profile Photo", "", Math.round((canvasW - 105) / 2), 88, 105, 105, {
+        avatarShape: "squircle",
+        avatarRadius: 28,
+        avatarSrc: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&auto=format&fit=crop&q=80",
+      }),
+      makeThemeBox(3, "h1", "Full Name", "Dr. Farhan Tanvir", Math.round((canvasW - 320) / 2), 208, 320, 36, {
+        fontSize: "22px",
+        fontWeight: "bold",
+        color: "#1e293b",
+      }),
+      makeThemeBox(4, "p", "Designation", "Research Fellow & Speaker", Math.round((canvasW - 300) / 2), 244, 300, 26, {
+        fontSize: "13px",
+        fontWeight: "bold",
+        color: "#4f46e5",
+      }),
+      makeThemeBox(5, "p", "Company", "Institute of Advanced Studies", Math.round((canvasW - 300) / 2), 272, 300, 24, {
+        fontSize: "12px",
+        color: "#64748b",
+      }),
+      makeThemeBox(6, "qrcode", "QR Code", "", Math.round((canvasW - 95) / 2), 310, 95, 95, {
+        qrValue: "https://porichoyid.softcredible.com/speaker/farhan",
+        qrWhiteColor: "#ffffff",
+      }),
+    ],
+  },
+  {
+    id: "creative-summit",
+    name: "Creative Festival",
+    description: "Vibrant pink-violet gradient for design festivals, workshops, and creative meetups",
+    badge: "CREATIVE",
+    previewBg: "linear-gradient(135deg, #ec4899 0%, #8b5cf6 50%, #3b82f6 100%)",
+    previewAvatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80",
+    previewName: "Nadia Islam",
+    previewRole: "Workshop Leader",
+    punchArea: "circle-center",
+    frontBackground: "linear-gradient(135deg, #ec4899 0%, #8b5cf6 50%, #3b82f6 100%)",
+    buildFrontBoxes: (canvasW) => [
+      makeThemeBox(1, "h1", "Header", "✦ DESIGN & CREATIVE SUMMIT ✦", Math.round((canvasW - 320) / 2), 55, 320, 30, {
+        fontSize: "13px",
+        fontWeight: "bold",
+        color: "#ffffff",
+      }),
+      makeThemeBox(2, "avatar", "Profile Photo", "", Math.round((canvasW - 105) / 2), 92, 105, 105, {
+        avatarShape: "circle",
+        avatarSrc: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&auto=format&fit=crop&q=80",
+      }),
+      makeThemeBox(3, "h1", "Full Name", "Nadia Islam", Math.round((canvasW - 320) / 2), 210, 320, 36, {
+        fontSize: "22px",
+        fontWeight: "bold",
+        color: "#ffffff",
+      }),
+      makeThemeBox(4, "p", "Designation", "WORKSHOP LEADER", Math.round((canvasW - 300) / 2), 246, 300, 26, {
+        fontSize: "13px",
+        fontWeight: "bold",
+        color: "#fef08a",
+        textTransform: "uppercase",
+      }),
+      makeThemeBox(5, "p", "Studio", "Pixel & Canvas Collective", Math.round((canvasW - 300) / 2), 272, 300, 24, {
+        fontSize: "12px",
+        color: "#f1f5f9",
+      }),
+      makeThemeBox(6, "qrcode", "QR Code", "", Math.round((canvasW - 95) / 2), 310, 95, 95, {
+        qrValue: "https://porichoyid.softcredible.com/workshop/nadia",
+        qrWhiteColor: "#ffffff",
+      }),
+    ],
+  },
+];
+
+function applyBadgeTheme(theme) {
+  const canvasW = store.dropzone?.offsetWidth || pageStore.presetWidth * 3.78 || 396;
+  const boxes = theme.buildFrontBoxes(canvasW);
+  store.applyTheme({
+    name: theme.name,
+    punchArea: theme.punchArea,
+    frontBackground: theme.frontBackground,
+    backBackground: "#ffffff",
+    frontBoxes: boxes,
+    backBoxes: [],
+  });
+}
 </script>
 
 <style scoped>
