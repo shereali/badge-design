@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="w-full h-full relative">
     <div
       ref="canvas"
       class="absolute w-full h-full bg-white select-none"
@@ -94,10 +94,9 @@
       <template v-for="(box, index) in store.boxes" :key="box.id">
         <div
           v-if="box.visible"
-          class="absolute border group border-blue-500"
+          class="absolute group"
           :class="{
             'border-2 border-blue-500': box.isSelected,
-            'border border-transparent': !box.isSelected,
           }"
           :style="{
             top: box.position.top + 'px',
@@ -110,10 +109,13 @@
               ? 'transparent'
               : box.properties.fillColor || '#ffffff',
             border:
-              box.properties.strokeWidth > 0
+              box.isSelected
+                ? '2px solid #3b82f6'
+                : box.properties.strokeWidth > 0
                 ? `${box.properties.strokeWidth}px solid ${box.properties.strokeColor}`
                 : 'none',
             zIndex: box.zIndex || 0,
+            boxSizing: 'border-box',
           }"
           @mousedown.stop="activateElement(index, $event)"
           @dblclick="handleDoubleClick(box, index)"
@@ -204,21 +206,11 @@
             "
             :is="box.type"
             contenteditable="true"
-            class="focus:outline-none focus:ring-1 focus:ring-blue-400 cursor-text leading-snug w-full h-full flex m-0 p-0 text-inherit select-text"
-            :class="
-              box.type === 'p'
-                ? [
-                    'flex-col',
-                    'break-words',
-                    'whitespace-normal',
-                    verticalToJustifyClass(box),
-                    horizontalToTextAlignClass(box),
-                  ]
-                : [
-                    verticalAlignClass(box),
-                    horizontalAlignClass(box),
-                  ]
-            "
+            class="focus:outline-none focus:ring-1 focus:ring-blue-400 cursor-text w-full h-full flex flex-col m-0 p-0 text-inherit select-text break-words whitespace-normal"
+            :class="[
+              verticalToJustifyClass(box),
+              horizontalToTextAlignClass(box),
+            ]"
             :style="textStyles(box)"
             :ref="(el) => setTextElementRef(box.id, el)"
             @focus="handleTextFocus(box, $event)"
@@ -249,19 +241,27 @@
           <!-- Avatar / Profile Photo -->
           <div
             v-if="box.type === 'avatar'"
-            class="overflow-hidden shadow-sm flex items-center justify-center bg-slate-100 w-full h-full select-none"
+            class="overflow-hidden flex items-center justify-center bg-slate-100 w-full h-full select-none"
             :class="[
               box.properties?.avatar?.showBorder ? 'border border-gray-300' : '',
-              box.properties?.avatar?.showRing ? 'ring-2 ring-offset-2 ring-gray-400' : '',
+              box.properties?.avatar?.showRing ? 'border-2 border-indigo-500' : '',
             ]"
             :style="avatarContainerStyle(box)"
           >
-            <img
-              :src="getAvatarSrc(box)"
-              class="w-full h-full object-cover select-none pointer-events-none"
-              :style="box.properties?.avatar?.imageStyle || { width: '100%', height: '100%', objectFit: 'cover' }"
-              @error="handleAvatarError($event)"
-            />
+            <div
+              class="w-full h-full pointer-events-none select-none"
+              :style="{
+                width: '100%',
+                height: '100%',
+                backgroundImage: `url('${getAvatarSrc(box)}')`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+                borderRadius: avatarContainerStyle(box).borderRadius || '0px',
+                clipPath: avatarContainerStyle(box).clipPath || 'none',
+                boxSizing: 'border-box',
+              }"
+            ></div>
           </div>
 
           <!-- QR Code -->
@@ -325,12 +325,13 @@ function verticalToJustifyClass(box) {
 }
 
 function horizontalToTextAlignClass(box) {
-  const align = box.properties.horizontalAlign;
-  if (align === "left") return "text-left";
-  if (align === "center") return "text-center";
-  if (align === "right") return "text-right";
-  if (align === "justify") return "text-justify";
-  return "text-center";
+  const align =
+    box.properties.horizontalAlign || box.properties.textAlign || "center";
+  if (align === "left") return "text-left items-start";
+  if (align === "center") return "text-center items-center";
+  if (align === "right") return "text-right items-end";
+  if (align === "justify") return "text-justify items-stretch";
+  return "text-center items-center";
 }
 
 function handleCanvasClick() {
@@ -669,15 +670,24 @@ function textStyles(box) {
     fontSize = "14px";
   }
 
+  const textAlign =
+    box.properties.horizontalAlign || box.properties.textAlign || "center";
+
   return {
     fontSize,
+    lineHeight: box.properties.lineHeight || "1.2",
     fontFamily: box.properties.font || "Poppins, sans-serif",
-    fontWeight: box.properties.fontWeight || (box.type === "h1" ? "bold" : "normal"),
+    fontWeight:
+      box.properties.fontWeight || (box.type === "h1" ? "bold" : "normal"),
     fontStyle: box.properties.fontStyle || "normal",
     textDecoration: box.properties.textDecoration || "none",
     textTransform: box.properties.textTransform || "none",
     color: box.properties.color || "black",
     direction: box.properties.direction || "ltr",
+    textAlign,
+    margin: "0",
+    padding: "0",
+    boxSizing: "border-box",
   };
 }
 

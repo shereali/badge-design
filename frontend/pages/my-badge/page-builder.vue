@@ -357,29 +357,122 @@ if (process.client) {
 const captureCanvas = async (side = store.activeSide) => {
   const { $html2canvas } = useNuxtApp();
   const html2canvasFn = $html2canvas || (await import("html2canvas")).default;
-  const canvasEl = dropzone.value?.querySelector(".card") || dropzone.value;
-  if (!canvasEl) return null;
+  if (!dropzone.value) return null;
 
-  // Temporarily reset zoom transform on dropzone for clean 1:1 capture
-  const originalTransform = dropzone.value.style.transform;
-  dropzone.value.style.transform = "none";
+  // 1. Ensure all fonts are completely loaded before capturing
+  if (typeof document !== "undefined" && document.fonts) {
+    try {
+      await document.fonts.ready;
+    } catch (_) {}
+  }
 
-  // Deselect element so handles and snap guides don't get exported
+  // 2. Deselect element so handles and snap guides don't get exported
   store.selectedElement = null;
 
+  const cardEl = dropzone.value.querySelector(".card");
+  const backEl = dropzone.value.querySelector(".back");
+
+  // Temporarily reset zoom transform & transitions on dropzone and card for clean 1:1 capture
+  const originalDropzoneTransform = dropzone.value.style.transform;
+  const originalDropzoneTransition = dropzone.value.style.transition;
+  const originalCardTransform = cardEl ? cardEl.style.transform : "";
+  const originalCardTransition = cardEl ? cardEl.style.transition : "";
+  const originalBackTransform = backEl ? backEl.style.transform : "";
+
+  dropzone.value.style.transition = "none";
+  dropzone.value.style.transform = "none";
+  if (cardEl) {
+    cardEl.style.transition = "none";
+    cardEl.style.transform = "none";
+  }
+
+  // If capturing back side, temporarily reset .back 3D rotation so it renders flat
+  if (side === "back" && backEl) {
+    backEl.style.transform = "none";
+  }
+
   await nextTick();
-  await new Promise((resolve) => setTimeout(resolve, 80));
+  await new Promise((resolve) => setTimeout(resolve, 120));
+
+  // Ensure all images are loaded before rasterizing
+  const imgs = Array.from(dropzone.value.querySelectorAll("img"));
+  await Promise.all(
+    imgs.map((img) => {
+      if (img.complete) return Promise.resolve();
+      return new Promise((res) => {
+        img.onload = res;
+        img.onerror = res;
+        setTimeout(res, 500);
+      });
+    })
+  );
 
   try {
-    const renderedCanvas = await html2canvasFn(canvasEl, {
+    const targetW = dropzone.value.offsetWidth || 397;
+    const targetH = dropzone.value.offsetHeight || 560;
+
+    const renderedCanvas = await html2canvasFn(dropzone.value, {
       scale: 3,
       useCORS: true,
       allowTaint: true,
       backgroundColor: null,
+      width: targetW,
+      height: targetH,
+      windowWidth: targetW,
+      windowHeight: targetH,
+      x: 0,
+      y: 0,
+      scrollX: 0,
+      scrollY: 0,
+      logging: false,
+      onclone: (clonedDoc) => {
+        // Enforce clean 2D state in cloned document
+        const clonedDropzone = clonedDoc.querySelector(".design-page");
+        if (clonedDropzone) {
+          clonedDropzone.style.transform = "none";
+          clonedDropzone.style.transition = "none";
+          clonedDropzone.style.boxShadow = "none";
+        }
+        const clonedCard = clonedDoc.querySelector(".card");
+        if (clonedCard) {
+          clonedCard.style.transform = "none";
+          clonedCard.style.transition = "none";
+        }
+        const clonedBack = clonedDoc.querySelector(".back");
+        if (clonedBack) {
+          clonedBack.style.transform = "none";
+        }
+
+        // Hide grid overlay from export
+        const grid = clonedDoc.querySelector(".grid-overlay");
+        if (grid) grid.classList.remove("grid-overlay");
+
+        // Ensure all text elements have strictly identical line-height and no UA margins
+        const textElements = clonedDoc.querySelectorAll(
+          "h1, h2, h3, h4, h6, p, span, a"
+        );
+        textElements.forEach((el) => {
+          el.style.margin = "0";
+          el.style.padding = "0";
+          el.style.boxSizing = "border-box";
+          if (!el.style.lineHeight || el.style.lineHeight === "normal") {
+            el.style.lineHeight = "1.2";
+          }
+          el.style.outline = "none";
+        });
+      },
     });
     return renderedCanvas;
   } finally {
-    dropzone.value.style.transform = originalTransform;
+    dropzone.value.style.transform = originalDropzoneTransform;
+    dropzone.value.style.transition = originalDropzoneTransition;
+    if (cardEl) {
+      cardEl.style.transform = originalCardTransform;
+      cardEl.style.transition = originalCardTransition;
+    }
+    if (side === "back" && backEl) {
+      backEl.style.transform = originalBackTransform;
+    }
   }
 };
 
@@ -414,7 +507,7 @@ const exportAs = async (format) => {
 
       const link = document.createElement("a");
       link.download = `${title}-${store.activeSide}.jpg`;
-      link.href = jpgCanvas.toDataURL("image/jpeg", 0.95);
+      link.href = jpgCanvas.toDataURL("image/jpeg", 0.98);
       link.click();
     } else if (format === "pdf") {
       const { $jsPDF } = useNuxtApp();
@@ -431,8 +524,8 @@ const exportAs = async (format) => {
         compress: true,
       });
 
-      const imgData = canvas.toDataURL("image/jpeg", 0.98);
-      pdf.addImage(imgData, "JPEG", 0, 0, widthMM, heightMM);
+      const imgData = canvas.toDataURL("image/png");
+      pdf.addImage(imgData, "PNG", 0, 0, widthMM, heightMM, undefined, "FAST");
 
       // If back side has content, capture and add page 2
       if (store.backBoxes && store.backBoxes.length > 0) {
@@ -444,8 +537,8 @@ const exportAs = async (format) => {
 
         if (backCanvas) {
           pdf.addPage([widthMM, heightMM], orientation);
-          const backImgData = backCanvas.toDataURL("image/jpeg", 0.98);
-          pdf.addImage(backImgData, "JPEG", 0, 0, widthMM, heightMM);
+          const backImgData = backCanvas.toDataURL("image/png");
+          pdf.addImage(backImgData, "PNG", 0, 0, widthMM, heightMM, undefined, "FAST");
         }
       }
 
