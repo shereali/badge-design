@@ -9,78 +9,102 @@
     <template v-else>
       <!-- Alignment Section -->
       <div class="bg-white p-3 border-b border-gray-200">
+        <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-2">Canvas Alignment</div>
         <div class="grid grid-cols-6 gap-1">
+          <!-- Align Left -->
           <button
             type="button"
             @click="store.alignHorizontal('left')"
-            class="flex items-center justify-center p-1.5 rounded hover:bg-slate-100 transition"
+            class="flex items-center justify-center p-2 rounded hover:bg-slate-100 transition"
             :class="{
-              'bg-indigo-100 text-indigo-700': store.currentProperties.textAlign === 'left',
-              'text-slate-600': store.currentProperties.textAlign !== 'left',
+              'bg-indigo-100 text-indigo-700 font-bold': store.currentProperties.textAlign === 'left' || store.currentProperties.horizontalAlign === 'left',
+              'text-slate-600': store.currentProperties.textAlign !== 'left' && store.currentProperties.horizontalAlign !== 'left',
             }"
-            title="Align Left"
+            title="Align Left (Canvas)"
           >
-            <Icon name="mdi:format-horizontal-align-left" class="text-lg" />
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M4 4h2v16H4V4zm7 4v3h10v2H11v3l-4-4 4-4z" />
+            </svg>
           </button>
+
+          <!-- Align Center -->
           <button
             type="button"
             @click="store.alignHorizontal('center')"
-            class="flex items-center justify-center p-1.5 rounded hover:bg-slate-100 transition"
+            class="flex items-center justify-center p-2 rounded hover:bg-slate-100 transition"
             :class="{
-              'bg-indigo-100 text-indigo-700': store.currentProperties.textAlign === 'center',
-              'text-slate-600': store.currentProperties.textAlign !== 'center',
+              'bg-indigo-100 text-indigo-700 font-bold': store.currentProperties.textAlign === 'center' || store.currentProperties.horizontalAlign === 'center',
+              'text-slate-600': store.currentProperties.textAlign !== 'center' && store.currentProperties.horizontalAlign !== 'center',
             }"
-            title="Align Center"
+            title="Align Center (Canvas)"
           >
-            <Icon name="mdi:format-horizontal-align-center" class="text-lg" />
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19 16v-3h4v-2h-4V8l-4 4 4 4zM5 8v3H1v2h4v3l4-4-4-4zm6 12h2V4h-2v16z" />
+            </svg>
           </button>
+
+          <!-- Align Right -->
           <button
             type="button"
             @click="store.alignHorizontal('right')"
-            class="flex items-center justify-center p-1.5 rounded hover:bg-slate-100 transition"
+            class="flex items-center justify-center p-2 rounded hover:bg-slate-100 transition"
             :class="{
-              'bg-indigo-100 text-indigo-700': store.currentProperties.textAlign === 'right',
-              'text-slate-600': store.currentProperties.textAlign !== 'right',
+              'bg-indigo-100 text-indigo-700 font-bold': store.currentProperties.textAlign === 'right' || store.currentProperties.horizontalAlign === 'right',
+              'text-slate-600': store.currentProperties.textAlign !== 'right' && store.currentProperties.horizontalAlign !== 'right',
             }"
-            title="Align Right"
+            title="Align Right (Canvas)"
           >
-            <Icon name="mdi:format-horizontal-align-right" class="text-lg" />
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M13 8v3H3v2h10v3l4-4-4-4zm5-4h2v16h-2V4z" />
+            </svg>
           </button>
+
+          <!-- Align Top -->
           <button
             type="button"
             @click="store.alignVertical('top')"
-            class="flex items-center justify-center p-1.5 rounded hover:bg-slate-100 transition"
+            class="flex items-center justify-center p-2 rounded hover:bg-slate-100 transition"
             :class="{
-              'bg-indigo-100 text-indigo-700': store.currentProperties.verticalAlign === 'top',
+              'bg-indigo-100 text-indigo-700 font-bold': store.currentProperties.verticalAlign === 'top',
               'text-slate-600': store.currentProperties.verticalAlign !== 'top',
             }"
-            title="Align Top"
+            title="Align Top (Canvas)"
           >
-            <Icon name="mdi:format-vertical-align-top" class="text-lg" />
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M8 11h3v10h2V11h3l-4-4-4 4zM4 3v2h16V3H4z" />
+            </svg>
           </button>
+
+          <!-- Align Middle -->
           <button
             type="button"
             @click="store.alignVertical('middle')"
-            class="flex items-center justify-center p-1.5 rounded hover:bg-slate-100 transition"
+            class="flex items-center justify-center p-2 rounded hover:bg-slate-100 transition"
             :class="{
-              'bg-indigo-100 text-indigo-700': store.currentProperties.verticalAlign === 'middle',
+              'bg-indigo-100 text-indigo-700 font-bold': store.currentProperties.verticalAlign === 'middle',
               'text-slate-600': store.currentProperties.verticalAlign !== 'middle',
             }"
-            title="Align Middle"
+            title="Align Middle (Canvas)"
           >
-            <Icon name="mdi:format-vertical-align-center" class="text-lg" />
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M8 19h3v4h2v-4h3l-4-4-4 4zm8-14h-3V1h-2v4H8l4 4 4-4zM4 11v2h16v-2H4z" />
+            </svg>
           </button>
+
+          <!-- Align Bottom -->
           <button
             type="button"
             @click="store.alignVertical('bottom')"
-            class="flex items-center justify-center p-1.5 rounded hover:bg-slate-100 transition"
+            class="flex items-center justify-center p-2 rounded hover:bg-slate-100 transition"
             :class="{
-              'bg-indigo-100 text-indigo-700': store.currentProperties.verticalAlign === 'bottom',
+              'bg-indigo-100 text-indigo-700 font-bold': store.currentProperties.verticalAlign === 'bottom',
               'text-slate-600': store.currentProperties.verticalAlign !== 'bottom',
             }"
-            title="Align Bottom"
+            title="Align Bottom (Canvas)"
           >
-            <Icon name="mdi:format-vertical-align-bottom" class="text-lg" />
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M16 13h-3V3h-2v10H8l4 4 4-4zM4 19v2h16v-2H4z" />
+            </svg>
           </button>
         </div>
       </div>
@@ -146,8 +170,10 @@
           </div>
           <!-- Rotation -->
           <div class="border rounded flex items-center">
-            <span class="p-1 bg-gray-200 text-gray-700 w-8 text-center">
-              <Icon name="ph:angle-bold" class="text-base" />
+            <span class="p-1 bg-gray-200 text-gray-700 w-8 text-center flex items-center justify-center font-bold text-xs" title="Rotation Angle">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+              </svg>
             </span>
             <input
               type="number"
@@ -854,84 +880,130 @@
             class="flex items-center justify-between cursor-pointer"
             @click="toggleSection('textAlignment')"
           >
-            <div class="flex items-center">
-              <Icon
-                name="mdi:format-align-justify"
-                class="text-xl p-1 text-gray-600"
-              />
+            <div class="flex items-center gap-2">
+              <svg class="w-5 h-5 text-gray-600" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M3 21h18v-2H3v2zm0-4h18v-2H3v2zm0-4h18v-2H3v2zm0-4h18V7H3v2zm0-6v2h18V3H3z"/>
+              </svg>
               <span class="font-semibold text-gray-700">Text Alignment</span>
             </div>
-            <Icon
-              :name="
-                openSections.textAlignment
-                  ? 'mdi:chevron-up'
-                  : 'mdi:chevron-down'
-              "
-              class="text-gray-600"
-            />
+            <svg
+              class="w-4 h-4 text-gray-500 transition-transform duration-200"
+              :class="{ 'rotate-180': openSections.textAlignment }"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
           </div>
 
-          <div v-show="openSections.textAlignment" class="mt-2 flex gap-2">
-            <Icon
-              name="mdi:format-align-left"
-              class="p-1 text-xl cursor-pointer transition-colors"
-              @click="store.applyTextAlign('left')"
-              :class="
-                store.currentProperties.textAlign === 'left'
-                  ? 'bg-blue-500 text-white'
-                  : 'text-gray-600 hover:text-blue-600'
-              "
-            />
-            <Icon
-              name="mdi:format-align-center"
-              class="p-1 text-xl cursor-pointer transition-colors"
-              @click="store.applyTextAlign('center')"
-              :class="
-                store.currentProperties.textAlign === 'center'
-                  ? 'bg-blue-500 text-white'
-                  : 'text-gray-600 hover:text-blue-600'
-              "
-            />
-            <Icon
-              name="mdi:format-align-right"
-              class="p-1 text-xl cursor-pointer transition-colors"
-              @click="store.applyTextAlign('right')"
-              :class="
-                store.currentProperties.textAlign === 'right'
-                  ? 'bg-blue-500 text-white'
-                  : 'text-gray-600 hover:text-blue-600'
-              "
-            />
-            <Icon
-              name="mdi:format-align-top"
-              class="p-1 text-xl cursor-pointer transition-colors"
-              @click="store.applyVerticalAlign('top')"
-              :class="
-                store.currentProperties.verticalAlign === 'top'
-                  ? 'bg-blue-500 text-white'
-                  : 'text-gray-600 hover:text-blue-600'
-              "
-            />
-            <Icon
-              name="mdi:format-align-middle"
-              class="p-1 text-xl cursor-pointer transition-colors"
-              @click="store.applyVerticalAlign('middle')"
-              :class="
-                store.currentProperties.verticalAlign === 'middle'
-                  ? 'bg-blue-500 text-white'
-                  : 'text-gray-600 hover:text-blue-600'
-              "
-            />
-            <Icon
-              name="mdi:format-align-bottom"
-              class="p-1 text-xl cursor-pointer transition-colors"
-              @click="store.applyVerticalAlign('bottom')"
-              :class="
-                store.currentProperties.verticalAlign === 'bottom'
-                  ? 'bg-blue-500 text-white'
-                  : 'text-gray-600 hover:text-blue-600'
-              "
-            />
+          <div v-show="openSections.textAlignment" class="mt-3">
+            <div class="grid grid-cols-6 gap-1.5">
+              <!-- Text Align Left -->
+              <button
+                type="button"
+                @click="store.applyTextAlign('left')"
+                title="Align Text Left"
+                class="flex items-center justify-center p-2 rounded border transition"
+                :class="
+                  store.currentProperties.textAlign === 'left'
+                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                    : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                "
+              >
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M3 15h18v-2H3v2zm0 4h12v-2H3v2zm0-8h18V9H3v2zm0-6v2h18V5H3z"/>
+                </svg>
+              </button>
+
+              <!-- Text Align Center -->
+              <button
+                type="button"
+                @click="store.applyTextAlign('center')"
+                title="Align Text Center"
+                class="flex items-center justify-center p-2 rounded border transition"
+                :class="
+                  store.currentProperties.textAlign === 'center'
+                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                    : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                "
+              >
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M7 15v2h10v-2H7zm-4 6h18v-2H3v2zm0-8h18v-2H3v2zm4-6v2h10V7H7zM3 3v2h18V3H3z"/>
+                </svg>
+              </button>
+
+              <!-- Text Align Right -->
+              <button
+                type="button"
+                @click="store.applyTextAlign('right')"
+                title="Align Text Right"
+                class="flex items-center justify-center p-2 rounded border transition"
+                :class="
+                  store.currentProperties.textAlign === 'right'
+                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                    : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                "
+              >
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M3 21h18v-2H3v2zm6-4h12v-2H9v2zm-6-4h18v-2H3v2zm6-4h12V7H9v2zM3 3v2h18V3H3z"/>
+                </svg>
+              </button>
+
+              <!-- Text Vertical Align Top -->
+              <button
+                type="button"
+                @click="store.applyVerticalAlign('top')"
+                title="Align Text Top"
+                class="flex items-center justify-center p-2 rounded border transition"
+                :class="
+                  store.currentProperties.verticalAlign === 'top'
+                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                    : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                "
+              >
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M8 11h3v10h2V11h3l-4-4-4 4zM4 3v2h16V3H4z"/>
+                </svg>
+              </button>
+
+              <!-- Text Vertical Align Middle -->
+              <button
+                type="button"
+                @click="store.applyVerticalAlign('middle')"
+                title="Align Text Middle"
+                class="flex items-center justify-center p-2 rounded border transition"
+                :class="
+                  store.currentProperties.verticalAlign === 'middle'
+                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                    : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                "
+              >
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M8 19h3v4h2v-4h3l-4-4-4 4zm8-14h-3V1h-2v4H8l4 4 4-4zM4 11v2h16v-2H4z"/>
+                </svg>
+              </button>
+
+              <!-- Text Vertical Align Bottom -->
+              <button
+                type="button"
+                @click="store.applyVerticalAlign('bottom')"
+                title="Align Text Bottom"
+                class="flex items-center justify-center p-2 rounded border transition"
+                :class="
+                  store.currentProperties.verticalAlign === 'bottom'
+                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                    : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                "
+              >
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M16 13h-3V3h-2v10H8l4 4 4-4zM4 19v2h16v-2H4z"/>
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -973,7 +1045,7 @@
               "
               title="Normal / Original casing"
             >
-              <Icon name="mdi:format-color-text" class="text-base mb-0.5" />
+              <span class="text-sm font-bold leading-none mb-0.5">Aa</span>
               <span class="text-[10px]">Normal</span>
             </button>
             <button
@@ -987,7 +1059,7 @@
               "
               title="Capitalize Each Word"
             >
-              <Icon name="mdi:format-letter-case" class="text-base mb-0.5" />
+              <span class="text-sm font-bold leading-none mb-0.5">Ab</span>
               <span class="text-[10px]">Title</span>
             </button>
             <button
@@ -1001,7 +1073,7 @@
               "
               title="ALL UPPERCASE"
             >
-              <Icon name="mdi:format-letter-case-upper" class="text-base mb-0.5" />
+              <span class="text-sm font-bold uppercase leading-none mb-0.5">AA</span>
               <span class="text-[10px]">UPPER</span>
             </button>
             <button
@@ -1015,7 +1087,7 @@
               "
               title="all lowercase"
             >
-              <Icon name="mdi:format-letter-case-lower" class="text-base mb-0.5" />
+              <span class="text-sm font-bold lowercase leading-none mb-0.5">aa</span>
               <span class="text-[10px]">lower</span>
             </button>
           </div>
@@ -1048,36 +1120,53 @@
 
           <div v-show="openSections.textStyle" class="mt-2 space-y-2">
             <div class="flex gap-2">
-              <Icon
-                name="mdi:format-bold"
-                class="p-1 text-xl cursor-pointer transition-colors"
+              <button
+                type="button"
                 @click="store.toggleTextStyle('bold')"
+                title="Bold"
+                class="w-8 h-8 flex items-center justify-center rounded border transition"
                 :class="
                   store.currentProperties.fontWeight === 'bold'
-                    ? 'bg-blue-500 text-white'
-                    : 'text-gray-600 hover:text-blue-600'
+                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                    : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
                 "
-              />
-              <Icon
-                name="mdi:format-italic"
-                class="p-1 text-xl cursor-pointer transition-colors"
+              >
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M15.6 10.79c.97-.67 1.65-1.77 1.65-2.79 0-2.26-1.75-4-4-4H7v14h7.04c2.09 0 3.71-1.7 3.71-3.79 0-1.52-.86-2.82-2.15-3.42zM10 6.5h3c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5h-3v-3zm3.5 9H10v-3h3.5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5z"/>
+                </svg>
+              </button>
+
+              <button
+                type="button"
                 @click="store.toggleTextStyle('italic')"
+                title="Italic"
+                class="w-8 h-8 flex items-center justify-center rounded border transition"
                 :class="
                   store.currentProperties.fontStyle === 'italic'
-                    ? 'bg-blue-500 text-white'
-                    : 'text-gray-600 hover:text-blue-600'
+                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                    : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
                 "
-              />
-              <Icon
-                name="mdi:format-underline"
-                class="p-1 text-xl cursor-pointer transition-colors"
+              >
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M10 4v3h2.21l-3.42 8H6v3h8v-3h-2.21l3.42-8H18V4z"/>
+                </svg>
+              </button>
+
+              <button
+                type="button"
                 @click="store.toggleTextStyle('underline')"
+                title="Underline"
+                class="w-8 h-8 flex items-center justify-center rounded border transition"
                 :class="
                   store.currentProperties.textDecoration === 'underline'
-                    ? 'bg-blue-500 text-white'
-                    : 'text-gray-600 hover:text-blue-600'
+                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                    : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
                 "
-              />
+              >
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 17c3.31 0 6-2.69 6-6V3h-2.5v8c0 1.93-1.57 3.5-3.5 3.5S8.5 12.93 8.5 11V3H6v8c0 3.31 2.69 6 6 6zm-7 2v2h14v-2H5z"/>
+                </svg>
+              </button>
             </div>
 
             <div>
@@ -1153,6 +1242,10 @@ const store = useCanvasStore();
 const openSections = ref({
   geometry: true,
   avatar: true,
+  textAlignment: true,
+  textTransform: true,
+  textStyle: true,
+  qrcode: true,
 });
 
 function toggleSection(section) {

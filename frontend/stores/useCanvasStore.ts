@@ -524,12 +524,14 @@ export const useCanvasStore = defineStore("canvasStore", {
     updateProperties(newProps?: Partial<ElementProperties>) {
       if (this.selectedElement === null) {
         this.currentProperties = {};
+        this.selectedElementType = null;
         return;
       }
       const boxes =
         this.activeSide === "front" ? this.frontBoxes : this.backBoxes;
       const element = boxes.find((e) => e.id === this.selectedElement);
       if (!element) return;
+      this.selectedElementType = element.type;
 
       if (newProps) {
         Object.assign(element.properties, newProps);
