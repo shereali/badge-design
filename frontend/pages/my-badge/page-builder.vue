@@ -474,8 +474,11 @@ const captureCanvas = async (side = store.activeSide) => {
   );
 
   try {
-    const targetW = dropzone.value.offsetWidth || 397;
-    const targetH = dropzone.value.offsetHeight || 560;
+    const widthMM = pageStore.presetWidth || 105;
+    const heightMM = pageStore.presetHeight || 148;
+    // Standard 96 DPI CSS conversion: 1mm = 96 / 25.4 px ≈ 3.779528px
+    const targetW = Math.round(widthMM * 3.779528);
+    const targetH = Math.round(heightMM * 3.779528);
 
     const renderedCanvas = await html2canvasFn(dropzone.value, {
       scale: 3,
@@ -484,28 +487,71 @@ const captureCanvas = async (side = store.activeSide) => {
       backgroundColor: null,
       width: targetW,
       height: targetH,
-      windowWidth: targetW,
-      windowHeight: targetH,
       x: 0,
       y: 0,
       scrollX: 0,
       scrollY: 0,
+      windowWidth: targetW,
+      windowHeight: targetH,
       logging: false,
       onclone: (clonedDoc) => {
-        // Enforce clean 2D state in cloned document
         const clonedDropzone = clonedDoc.querySelector(".design-page");
-        if (clonedDropzone) {
-          clonedDropzone.style.transform = "none";
-          clonedDropzone.style.transition = "none";
-          clonedDropzone.style.boxShadow = "none";
+        if (!clonedDropzone) return;
+
+        // Reset all parent containers so clonedDropzone is completely unconstrained at (0, 0)
+        let parent = clonedDropzone.parentElement;
+        while (parent && parent !== clonedDoc.body) {
+          parent.style.padding = "0";
+          parent.style.margin = "0";
+          parent.style.width = "auto";
+          parent.style.minWidth = "0";
+          parent.style.maxWidth = "none";
+          parent.style.display = "block";
+          parent.style.overflow = "visible";
+          parent.style.position = "static";
+          parent = parent.parentElement;
         }
+        clonedDoc.body.style.padding = "0";
+        clonedDoc.body.style.margin = "0";
+        clonedDoc.body.style.width = `${targetW}px`;
+        clonedDoc.body.style.height = `${targetH}px`;
+        clonedDoc.body.style.overflow = "hidden";
+
+        // Enforce exact 1:1 dimensions without any margins, shadows, or rounded corners on export
+        clonedDropzone.style.position = "absolute";
+        clonedDropzone.style.top = "0";
+        clonedDropzone.style.left = "0";
+        clonedDropzone.style.width = `${targetW}px`;
+        clonedDropzone.style.height = `${targetH}px`;
+        clonedDropzone.style.minWidth = `${targetW}px`;
+        clonedDropzone.style.maxWidth = `${targetW}px`;
+        clonedDropzone.style.minHeight = `${targetH}px`;
+        clonedDropzone.style.maxHeight = `${targetH}px`;
+        clonedDropzone.style.margin = "0";
+        clonedDropzone.style.transform = "none";
+        clonedDropzone.style.transition = "none";
+        clonedDropzone.style.boxShadow = "none";
+        clonedDropzone.classList.remove("grid-overlay", "flipped");
+
         const clonedCard = clonedDoc.querySelector(".card");
         if (clonedCard) {
+          clonedCard.style.width = `${targetW}px`;
+          clonedCard.style.height = `${targetH}px`;
           clonedCard.style.transform = "none";
           clonedCard.style.transition = "none";
         }
+
+        const clonedFront = clonedDoc.querySelector(".front");
+        if (clonedFront) {
+          clonedFront.style.width = `${targetW}px`;
+          clonedFront.style.height = `${targetH}px`;
+          clonedFront.style.transform = "none";
+        }
+
         const clonedBack = clonedDoc.querySelector(".back");
         if (clonedBack) {
+          clonedBack.style.width = `${targetW}px`;
+          clonedBack.style.height = `${targetH}px`;
           clonedBack.style.transform = "none";
         }
 
@@ -591,7 +637,7 @@ const exportAs = async (format) => {
       });
 
       const imgData = canvas.toDataURL("image/png");
-      pdf.addImage(imgData, "PNG", 0, 0, widthMM, heightMM, undefined, "FAST");
+      pdf.addImage(imgData, "PNG", 0, 0, widthMM, heightMM, undefined, "SLOW");
 
       // If back side has content, capture and add page 2
       if (store.backBoxes && store.backBoxes.length > 0) {
@@ -604,7 +650,7 @@ const exportAs = async (format) => {
         if (backCanvas) {
           pdf.addPage([widthMM, heightMM], orientation);
           const backImgData = backCanvas.toDataURL("image/png");
-          pdf.addImage(backImgData, "PNG", 0, 0, widthMM, heightMM, undefined, "FAST");
+          pdf.addImage(backImgData, "PNG", 0, 0, widthMM, heightMM, undefined, "SLOW");
         }
       }
 
@@ -622,8 +668,7 @@ const exportAs = async (format) => {
 <style scoped>
 .design-page {
   position: relative;
-  width: 794px;
-  height: 1123px;
+  box-sizing: border-box;
 }
 .card {
   position: relative;

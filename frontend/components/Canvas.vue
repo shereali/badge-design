@@ -34,16 +34,16 @@
         <div class="punch-circle">
           <div
             v-if="store.punchCircle == 'circle-left-right'"
-            class="w-5 h-5 bg-transparent border border-gray-200 rounded-xl absolute top-5 left-5 z-10"
+            class="w-5 h-5 bg-transparent border border-white/60 rounded-full absolute top-5 left-5 z-10"
           ></div>
           <div
             v-if="store.punchCircle == 'circle-left-right'"
-            class="w-5 h-5 bg-transparent border border-gray-200 rounded-xl absolute top-5 right-5 z-10"
+            class="w-5 h-5 bg-transparent border border-white/60 rounded-full absolute top-5 right-5 z-10"
           ></div>
 
           <div
             v-if="store.punchCircle == 'circle-center'"
-            class="w-5 h-5 bg-transparent border border-gray-200 rounded-xl absolute top-5 left-1/2 -translate-x-1/2 z-10"
+            class="w-5 h-5 bg-transparent border border-white/60 rounded-full absolute top-5 left-1/2 -translate-x-1/2 z-10"
           ></div>
         </div>
       </div>

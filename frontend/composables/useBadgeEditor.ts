@@ -157,11 +157,19 @@ export function useBadgeEditor() {
           if (cfg.badgeOrientation) pageStore.badgeOrientation = cfg.badgeOrientation;
           if (cfg.customWidth) pageStore.customWidth = cfg.customWidth;
           if (cfg.customHeight) pageStore.customHeight = cfg.customHeight;
+          if (cfg.presetWidth) pageStore.presetWidth = cfg.presetWidth;
+          if (cfg.presetHeight) pageStore.presetHeight = cfg.presetHeight;
+          if (cfg.pageWidth) pageStore.pageWidth = cfg.pageWidth;
+          if (cfg.pageHeight) pageStore.pageHeight = cfg.pageHeight;
         } else if (badge.width && badge.height) {
           pageStore.customWidth = badge.width;
           pageStore.customHeight = badge.height;
           pageStore.badgeOrientation = badge.orientation || "portrait";
           pageStore.badgeSize = badge.size_preset || "A6";
+          if (badge.width < 500 && badge.height < 500) {
+            pageStore.presetWidth = badge.width;
+            pageStore.presetHeight = badge.height;
+          }
         }
 
         // Restore Canvas Boxes
