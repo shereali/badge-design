@@ -192,13 +192,68 @@ export function useBadgeEditor() {
       });
     } finally {
       loading.value = false;
+      setTimeout(() => {
+        isInitialLoaded.value = true;
+      }, 600);
     }
   };
 
+  const isInitialLoaded = ref(false);
+  const autoSaveStatus = ref<"idle" | "pending" | "saving" | "saved" | "error">("idle");
+  const lastSavedAt = ref<Date | null>(null);
+  let autoSaveTimeout: any = null;
+
+  // Auto-Save Trigger Debounce
+  const triggerAutoSave = () => {
+    if (!isInitialLoaded.value) return;
+    if (store.frontBoxes.length === 0 && store.backBoxes.length === 0) return;
+
+    autoSaveStatus.value = "pending";
+    if (autoSaveTimeout) clearTimeout(autoSaveTimeout);
+    autoSaveTimeout = setTimeout(async () => {
+      try {
+        await sendData(true);
+      } catch (e) {
+        // logged in sendData
+      }
+    }, 2500); // 2.5 second debounce after user stops editing
+  };
+
+  // Watch for state changes across elements & title to trigger auto-save
+  watch(
+    () => [
+      store.frontBoxes,
+      store.backBoxes,
+      store.frontBackground,
+      store.backBackground,
+      store.punchArea,
+      store.punchCircle,
+      store.punchLong,
+      badgeTitle.value,
+      pageStore.presetWidth,
+      pageStore.presetHeight,
+    ],
+    () => {
+      triggerAutoSave();
+    },
+    { deep: true }
+  );
+
+  // If new badge without query ID, enable auto-save after initial setup
+  if (!route.query.id) {
+    setTimeout(() => {
+      isInitialLoaded.value = true;
+    }, 1500);
+  }
+
   // Function to send data (Save to Laravel API)
-  const sendData = async (): Promise<any> => {
+  const sendData = async (isAutoSave = false): Promise<any> => {
     try {
-      loading.value = true;
+      if (isAutoSave) {
+        autoSaveStatus.value = "saving";
+      } else {
+        loading.value = true;
+      }
 
       const badgeJson = {
         page_config: {
@@ -267,24 +322,34 @@ export function useBadgeEditor() {
           body: payload,
         });
         if (res && res.data && res.data.id) {
+          currentBadgeId.value = res.data.id;
           router.replace({ query: { id: res.data.id } });
         }
       }
 
-      toast.success({
-        title: "Saved!",
-        message: "Badge saved successfully.",
-        position: "topRight",
-      });
+      autoSaveStatus.value = "saved";
+      lastSavedAt.value = new Date();
+
+      if (!isAutoSave) {
+        toast.success({
+          title: "Saved!",
+          message: "Badge saved successfully.",
+          position: "topRight",
+        });
+      }
 
       return res;
     } catch (err: any) {
       console.error("Error saving badge:", err);
-      toast.error({
-        title: "Save Failed",
-        message: err?.data?.message || err?.message || "Could not save badge.",
-        position: "topRight",
-      });
+      if (isAutoSave) {
+        autoSaveStatus.value = "error";
+      } else {
+        toast.error({
+          title: "Save Failed",
+          message: err?.data?.message || err?.message || "Could not save badge.",
+          position: "topRight",
+        });
+      }
       throw err;
     } finally {
       loading.value = false;
@@ -368,6 +433,8 @@ export function useBadgeEditor() {
     selectedElementType,
     badgeTitle,
     loading,
+    autoSaveStatus,
+    lastSavedAt,
 
     sendData,
     switchSideTab,

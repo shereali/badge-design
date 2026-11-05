@@ -148,25 +148,40 @@
             </div>
           </div>
 
+          <!-- Auto-Save Status Badge -->
+          <div class="hidden sm:flex items-center text-xs">
+            <span
+              v-if="autoSaveStatus === 'saving'"
+              class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-indigo-600 bg-indigo-50 border border-indigo-100 px-2.5 py-1.5 rounded-lg shadow-sm"
+            >
+              <Icon name="mdi:cloud-sync-outline" class="animate-spin text-sm" />
+              <span>Auto-saving...</span>
+            </span>
+            <span
+              v-else-if="autoSaveStatus === 'saved'"
+              class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1.5 rounded-lg shadow-sm"
+            >
+              <Icon name="mdi:cloud-check-outline" class="text-sm text-emerald-600" />
+              <span>All changes saved</span>
+            </span>
+            <span
+              v-else-if="autoSaveStatus === 'pending'"
+              class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1.5 rounded-lg shadow-sm"
+            >
+              <Icon name="mdi:cloud-upload-outline" class="text-sm text-amber-600" />
+              <span>Unsaved changes</span>
+            </span>
+          </div>
+
           <!-- Save Button -->
           <button
-            @click="sendData"
+            @click="sendData(false)"
             :disabled="loading"
             class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-sm shadow-indigo-300 transition focus:outline-none focus:ring-2 focus:ring-indigo-400 disabled:opacity-60"
           >
             <Icon v-if="loading" name="mdi:loading" class="animate-spin text-base" />
             <Icon v-else name="mdi:content-save-outline" class="text-base" />
             <span>Save</span>
-          </button>
-
-          <!-- Sidebar Collapse/Expand Toggle Button (Header) -->
-          <button
-            type="button"
-            @click="isSidebarCollapsed = !isSidebarCollapsed"
-            class="hidden md:inline-flex items-center justify-center w-8 h-8 rounded-lg border border-slate-300 hover:bg-slate-100 text-slate-600 transition"
-            :title="isSidebarCollapsed ? 'Open Sidebar' : 'Collapse Sidebar'"
-          >
-            <Icon :name="isSidebarCollapsed ? 'mdi:page-layout-sidebar-right' : 'mdi:chevron-right'" class="text-lg" />
           </button>
 
           <!-- Direct Builder Logout Button -->
@@ -217,16 +232,16 @@
       </div>
     </div>
 
-    <!-- Right Sidebar Container with Persistent Caret Button -->
+    <!-- Right Sidebar Container with Single Perfectly-Positioned Collapse Toggle -->
     <div
-      class="relative flex-shrink-0 transition-all duration-300 ease-in-out order-1 md:order-2 flex"
+      class="relative flex-shrink-0 transition-all duration-300 ease-in-out order-1 md:order-2 flex h-full"
       :class="isSidebarCollapsed ? 'w-0' : 'w-full md:w-80'"
     >
-      <!-- Always Visible Caret Toggle Button at the top-left of the sidebar -->
+      <!-- Perfectly Positioned Caret Button Attached to Sidebar Left Border -->
       <button
         type="button"
         @click="isSidebarCollapsed = !isSidebarCollapsed"
-        class="absolute top-4 -left-3.5 z-40 w-7 h-7 bg-white text-slate-700 hover:text-indigo-600 border border-slate-300 rounded-full shadow-md flex items-center justify-center transition hover:scale-110 active:scale-95 focus:outline-none"
+        class="absolute top-5 -left-3.5 z-40 w-7 h-7 bg-white text-slate-700 hover:text-indigo-600 border border-slate-300 rounded-full shadow-md flex items-center justify-center transition hover:scale-110 active:scale-95 focus:outline-none cursor-pointer"
         :title="isSidebarCollapsed ? 'Open Sidebar (Expand)' : 'Collapse Sidebar'"
       >
         <Icon
@@ -240,20 +255,6 @@
         class="w-full md:w-80 bg-white border-t md:border-t-0 md:border-l border-slate-200 overflow-y-auto flex flex-col h-full"
         :class="{ 'hidden md:hidden': isSidebarCollapsed }"
       >
-        <!-- Top bar with explicit caret and label -->
-        <div class="flex items-center justify-between px-3 pt-2.5 pb-1 border-b border-slate-100">
-          <button
-            type="button"
-            @click="isSidebarCollapsed = true"
-            class="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-indigo-600 p-1 rounded hover:bg-slate-100 transition"
-            title="Collapse Sidebar"
-          >
-            <Icon name="mdi:chevron-right" class="text-base" />
-            <span>Collapse</span>
-          </button>
-          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Properties & Tools</span>
-        </div>
-
         <Sidebar
           :selected-element="store.selectedElement"
           :selected-element-type="selectedElementType"
@@ -314,6 +315,8 @@ const {
   selectedElementType,
   badgeTitle,
   loading,
+  autoSaveStatus,
+  lastSavedAt,
 
   sendData,
   switchSideTab,

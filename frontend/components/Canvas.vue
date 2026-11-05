@@ -224,12 +224,12 @@
             @focus="handleTextFocus(box, $event)"
             @blur="handleTextBlur(box, $event)"
             @input="handleTextInput(box, $event)"
-          >{{ box.id === activeEditingId ? undefined : box.text }}</component>
+          >{{ box.text }}</component>
 
           <!-- Images -->
           <img
             v-if="box.type === 'img'"
-            :src="box.properties.src.url"
+            :src="box.properties.src?.url || box.properties.src || box.text"
             class="w-full h-full cursor-pointer select-none"
             :class="[objectPositionClass(box), objectFitPositionClass(box)]"
             @keydown="deleteItem($event)"
@@ -239,46 +239,28 @@
           <!-- Static Image -->
           <img
             v-if="box.type === 'background'"
-            :src="box.properties.src.url"
+            :src="box.properties.src?.url || box.properties.src || box.text"
             class="w-full h-full transition-all duration-300 cursor-pointer select-none"
             :class="[objectPositionClass(box), objectFitPositionClass(box)]"
             @keydown="deleteItem($event)"
             @error="handleImageError"
           />
 
-          <!-- Avatar -->
+          <!-- Avatar / Profile Photo -->
           <div
-            v-if="box.type === 'avatar' && box.key === 'avatar'"
+            v-if="box.type === 'avatar'"
+            class="overflow-hidden shadow-sm flex items-center justify-center bg-slate-100 w-full h-full select-none"
             :class="[
-              'overflow-hidden shadow-sm transition-transform hover:scale-[1.02] flex items-center justify-center bg-gray-100',
-              box.properties.avatar.showBorder ? 'border border-gray-300' : '',
-              box.properties.avatar.showRing
-                ? 'ring-2 ring-offset-2 ring-gray-400'
-                : '',
+              box.properties?.avatar?.showBorder ? 'border border-gray-300' : '',
+              box.properties?.avatar?.showRing ? 'ring-2 ring-offset-2 ring-gray-400' : '',
             ]"
-            :style="box.properties.avatar.containerStyle"
+            :style="avatarContainerStyle(box)"
           >
             <img
-              :src="box.properties.avatar.avatar_src"
-              class="object-cover"
-              :style="box.properties.avatar.imageStyle"
-            />
-          </div>
-          <div
-            v-if="box.type === 'avatar' && box.key === 'event_logo'"
-            :class="[
-              'overflow-hidden shadow-sm transition-transform hover:scale-[1.02] flex items-center justify-center bg-gray-100',
-              box.properties.avatar.showBorder ? 'border border-gray-300' : '',
-              box.properties.avatar.showRing
-                ? 'ring-2 ring-offset-2 ring-gray-400'
-                : '',
-            ]"
-            :style="box.properties.avatar.containerStyle"
-          >
-            <img
-              :src="box.text"
-              class="object-cover"
-              :style="box.properties.avatar.imageStyle"
+              :src="getAvatarSrc(box)"
+              class="w-full h-full object-cover select-none pointer-events-none"
+              :style="box.properties?.avatar?.imageStyle || { width: '100%', height: '100%', objectFit: 'cover' }"
+              @error="handleAvatarError($event)"
             />
           </div>
 
@@ -601,9 +583,63 @@ function handleTextBlur(box, event) {
   const el = event.target;
   const newText = el.innerText || "";
   activeEditingId.value = null;
+  box.text = newText;
+  box.properties.text = newText;
   store.updateElementText(box.id, newText);
   store.currentProperties.text = newText;
   store.updateProperties(store.currentProperties);
+}
+
+function avatarContainerStyle(box) {
+  const avatar = box.properties?.avatar || {};
+  const shape = avatar.shape || "circle";
+  const radius = avatar.radius !== undefined ? avatar.radius : 32;
+  const customClipPath = avatar.customClipPath || "";
+
+  const style = {
+    width: "100%",
+    height: "100%",
+    overflow: "hidden",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  };
+
+  if (shape === "circle") {
+    style.borderRadius = "50%";
+  } else if (shape === "rounded" || shape === "squircle") {
+    style.borderRadius = `${radius}px`;
+  } else if (shape === "diamond") {
+    style.clipPath = "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)";
+  } else if (shape === "hex") {
+    style.clipPath = "polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)";
+  } else if (shape === "triangle") {
+    style.clipPath = "polygon(50% 0%, 0% 100%, 100% 100%)";
+  } else if (shape === "custom" && customClipPath) {
+    style.clipPath = customClipPath;
+  }
+  return style;
+}
+
+function getAvatarSrc(box) {
+  const src =
+    box.properties?.avatar?.avatar_src ||
+    box.properties?.src?.url ||
+    box.properties?.src ||
+    box.text;
+  if (
+    src &&
+    typeof src === "string" &&
+    (src.startsWith("http") || src.startsWith("data:") || src.startsWith("/"))
+  ) {
+    return src;
+  }
+  return "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80";
+}
+
+function handleAvatarError(e) {
+  e.target.src =
+    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80";
 }
 
 function preserveCursorPosition(event) {
