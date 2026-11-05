@@ -94,8 +94,8 @@
             </button>
           </div>
           <div
-            v-for="item in group.items"
-            :key="item.type"
+            v-for="(item, itemIdx) in group.items"
+            :key="`${group.type}-${item.type}-${item.label || itemIdx}`"
             :draggable="
               item.type !== 'img' &&
               item.type !== 'background' &&

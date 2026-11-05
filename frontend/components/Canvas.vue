@@ -576,8 +576,12 @@ function handleTextFocus(box, event) {
 function handleTextInput(box, event) {
   const el = event.target;
   const newText = el.innerText || "";
+  box.text = newText;
   box.properties.text = newText;
-  store.currentProperties.text = newText;
+  store.updateElementText(box.id, newText);
+  if (store.selectedElement === box.id) {
+    store.currentProperties.text = newText;
+  }
 }
 
 function handleTextBlur(box, event) {
@@ -587,8 +591,9 @@ function handleTextBlur(box, event) {
   box.text = newText;
   box.properties.text = newText;
   store.updateElementText(box.id, newText);
-  store.currentProperties.text = newText;
-  store.updateProperties(store.currentProperties);
+  if (store.selectedElement === box.id) {
+    store.currentProperties.text = newText;
+  }
 }
 
 function avatarContainerStyle(box) {
@@ -745,28 +750,7 @@ function objectFitPositionClass(box) {
   }
 }
 
-watch(
-  () => store.selectedElement,
-  (newId) => {
-    if (newId) {
-      const box = store.boxes.find((b) => b.id === newId);
-      if (box && ["h1", "p"].includes(box.type)) {
-        nextTick(() => {
-          const el = textElements.value[newId];
-          if (el) {
-            el.focus();
-            const range = document.createRange();
-            const selection = window.getSelection();
-            range.selectNodeContents(el);
-            range.collapse(false);
-            selection.removeAllRanges();
-            selection.addRange(range);
-          }
-        });
-      }
-    }
-  }
-);
+
 </script>
 
 <style scoped>
