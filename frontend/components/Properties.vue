@@ -1,9 +1,79 @@
 <template>
   <div class="space-y-2">
-    <div v-if="!store.selectedElement">
-      <p class="text-gray-500">
-        Select an element to view and edit its properties.
-      </p>
+    <div v-if="!store.selectedElement" class="p-3.5 space-y-3.5">
+      <!-- Empty State Card -->
+      <div class="bg-gradient-to-b from-indigo-50/60 to-slate-50 border border-indigo-100 rounded-2xl p-5 text-center shadow-sm">
+        <div class="relative w-12 h-12 mx-auto mb-3 flex items-center justify-center">
+          <div class="absolute inset-0 bg-indigo-500/10 rounded-2xl rotate-6 transition-transform"></div>
+          <div class="relative w-11 h-11 bg-white rounded-xl shadow-sm border border-indigo-100 flex items-center justify-center text-indigo-600">
+            <Icon name="mdi:cursor-default-click-outline" class="text-2xl" />
+          </div>
+        </div>
+        <h4 class="text-sm font-bold text-slate-800 mb-1">No Element Selected</h4>
+        <p class="text-xs text-slate-500 leading-relaxed max-w-[220px] mx-auto">
+          Click any element on the badge canvas to customize its typography, colors, size, and alignment.
+        </p>
+      </div>
+
+      <!-- Quick Canvas Element Selector (if badge has elements) -->
+      <div v-if="store.boxes && store.boxes.length > 0" class="space-y-2">
+        <div class="flex items-center justify-between px-1">
+          <span class="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+            Current Side Elements
+          </span>
+          <span class="text-[10px] font-semibold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">
+            {{ store.boxes.length }} items
+          </span>
+        </div>
+        <div class="space-y-1.5 max-h-56 overflow-y-auto pr-1">
+          <button
+            v-for="box in store.boxes"
+            :key="box.id"
+            type="button"
+            @click="selectElementFromEmptyState(box.id)"
+            class="w-full flex items-center gap-2.5 px-3 py-2 text-left rounded-xl bg-white border border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/50 shadow-sm transition group cursor-pointer"
+          >
+            <div class="w-6 h-6 rounded-lg bg-slate-100 group-hover:bg-indigo-100 text-slate-600 group-hover:text-indigo-600 flex items-center justify-center flex-shrink-0 transition">
+              <Icon :name="getElementBadgeIcon(box.type)" class="text-sm" />
+            </div>
+            <div class="flex-1 truncate">
+              <div class="text-xs font-semibold text-slate-700 group-hover:text-indigo-600 truncate transition">
+                {{ getElementShortLabel(box) }}
+              </div>
+              <div class="text-[10px] text-slate-400 capitalize">
+                {{ box.type === 'avatar' ? 'Photo' : box.type === 'qrcode' ? 'QR Code' : 'Text' }} &bull; (x: {{ Math.round(box.position?.left || 0) }}, y: {{ Math.round(box.position?.top || 0) }})
+              </div>
+            </div>
+            <Icon name="mdi:chevron-right" class="text-slate-300 group-hover:text-indigo-500 transition text-sm" />
+          </button>
+        </div>
+      </div>
+
+      <!-- Pro Tips & Keyboard Shortcuts -->
+      <div class="bg-white border border-slate-200 rounded-xl p-3.5 space-y-2">
+        <div class="flex items-center gap-1.5 text-xs font-bold text-slate-700">
+          <Icon name="mdi:lightbulb-on-outline" class="text-amber-500 text-sm" />
+          <span>Quick Canvas Tips</span>
+        </div>
+        <ul class="text-[11px] text-slate-500 space-y-1.5">
+          <li class="flex items-start gap-2">
+            <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5 flex-shrink-0"></span>
+            <span><strong class="text-slate-700">Double click</strong> text to edit inline on canvas</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5 flex-shrink-0"></span>
+            <span><kbd class="px-1 py-0.5 bg-slate-100 border border-slate-300 rounded text-[10px] text-slate-700 font-mono">Ctrl+Z</kbd> Undo / <kbd class="px-1 py-0.5 bg-slate-100 border border-slate-300 rounded text-[10px] text-slate-700 font-mono">Ctrl+Y</kbd> Redo</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5 flex-shrink-0"></span>
+            <span>Drag element handles to resize or rotate</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5 flex-shrink-0"></span>
+            <span>Center snap guidelines appear during drag</span>
+          </li>
+        </ul>
+      </div>
     </div>
 
     <template v-else>
@@ -1389,5 +1459,33 @@ const filteredFonts = computed(() => {
 // Toggle dropdown
 function toggleDropdown() {
   store.dropdownOpen = !store.dropdownOpen;
+}
+
+function selectElementFromEmptyState(boxId) {
+  store.selectedElement = boxId;
+  const targetBox = store.boxes.find((b) => b.id === boxId);
+  if (targetBox) {
+    store.selectedElementType = targetBox.type;
+  }
+  store.updateProperties();
+}
+
+function getElementBadgeIcon(type) {
+  if (type === "avatar") return "mdi:account-circle";
+  if (type === "qrcode") return "mdi:qrcode";
+  if (type === "img" || type === "background") return "mdi:image";
+  return "mdi:format-text";
+}
+
+function getElementShortLabel(box) {
+  if (box.label) return box.label;
+  if (box.text) {
+    const textStr = String(box.text).trim();
+    if (textStr) return textStr.length > 22 ? textStr.slice(0, 20) + "..." : textStr;
+  }
+  if (box.type === "avatar") return "Profile Photo";
+  if (box.type === "qrcode") return "QR Code";
+  if (box.type === "img" || box.type === "background") return "Badge Image";
+  return `Element (${box.type})`;
 }
 </script>

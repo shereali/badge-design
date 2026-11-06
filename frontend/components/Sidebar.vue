@@ -288,17 +288,56 @@
     <div v-if="store.activeTab === 'themes'" class="space-y-3 p-1">
       <div class="flex items-center justify-between pb-1 border-b border-slate-100">
         <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Ready-Made Badge Themes</h3>
-        <span class="text-[10px] bg-indigo-50 text-indigo-700 font-bold px-2 py-0.5 rounded-full">{{ badgeThemes.length }} Themes</span>
+        <span class="text-[10px] bg-indigo-50 text-indigo-700 font-bold px-2 py-0.5 rounded-full">
+          {{ filteredBadgeThemes.length }} / {{ badgeThemes.length }} Themes
+        </span>
       </div>
       <p class="text-xs text-slate-500">
-        Select a pre-designed template to instantly style your badge with matching fonts, colors, punch holes, and layout.
+        Industry-standard templates tailored for real-world conferences, business expos, summits, and workshops.
       </p>
 
-      <div class="space-y-3">
+      <!-- Search & Category Filter Navigation -->
+      <div class="space-y-2">
+        <!-- Search Input -->
+        <div class="relative">
+          <Icon name="mdi:magnify" class="absolute left-2.5 top-2.5 text-slate-400 text-sm" />
+          <input
+            v-model="themeSearch"
+            type="text"
+            placeholder="Search events (e.g. AI, Climate, Gala)..."
+            class="w-full pl-8 pr-7 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:bg-white transition"
+          />
+          <button
+            v-if="themeSearch"
+            type="button"
+            @click="themeSearch = ''"
+            class="absolute right-2 top-2 text-slate-400 hover:text-slate-600 text-xs cursor-pointer"
+          >
+            <Icon name="mdi:close-circle" class="text-sm" />
+          </button>
+        </div>
+
+        <!-- Category Horizontal Pills -->
+        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none text-[11px]">
+          <button
+            v-for="cat in themeCategories"
+            :key="cat.id"
+            type="button"
+            @click="activeCategory = cat.id"
+            class="px-2.5 py-1 rounded-full whitespace-nowrap font-medium transition cursor-pointer flex-shrink-0"
+            :class="activeCategory === cat.id ? 'bg-indigo-600 text-white font-bold shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+          >
+            {{ cat.label }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Themes Grid / List -->
+      <div v-if="filteredBadgeThemes.length > 0" class="space-y-3">
         <div
-          v-for="theme in badgeThemes"
+          v-for="theme in filteredBadgeThemes"
           :key="theme.id"
-          class="group border border-slate-200 hover:border-indigo-400 rounded-xl overflow-hidden shadow-sm hover:shadow transition bg-white cursor-pointer"
+          class="group border border-slate-200 hover:border-indigo-400 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition bg-white cursor-pointer"
           @click="applyBadgeTheme(theme)"
         >
           <!-- Theme Preview Banner -->
@@ -307,14 +346,23 @@
             :style="{ background: theme.previewBg }"
           >
             <div class="flex items-center justify-between z-10">
-              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider backdrop-blur-sm bg-black/30">
-                {{ theme.badge }}
-              </span>
-              <span v-if="theme.punchArea && theme.punchArea !== 'none'" class="w-3.5 h-3.5 rounded-full bg-white/70 shadow-inner"></span>
+              <div class="flex items-center gap-1.5">
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider backdrop-blur-sm bg-black/40 border border-white/20">
+                  {{ theme.badge }}
+                </span>
+                <span class="text-[9px] font-semibold px-1.5 py-0.5 rounded backdrop-blur-sm bg-white/20 text-white/90">
+                  {{ theme.categoryLabel }}
+                </span>
+              </div>
+              <span
+                v-if="theme.punchArea && theme.punchArea !== 'none'"
+                class="w-3.5 h-3.5 rounded-full bg-white/80 shadow-inner flex items-center justify-center border border-black/20"
+                title="Punch Hole Included"
+              ></span>
             </div>
 
             <div class="z-10 flex items-center gap-2.5">
-              <div class="w-9 h-9 rounded-full border-2 border-white/80 overflow-hidden flex-shrink-0 bg-white/20">
+              <div class="w-9 h-9 rounded-full border-2 border-white/80 overflow-hidden flex-shrink-0 bg-white/20 shadow">
                 <img :src="theme.previewAvatar" class="w-full h-full object-cover" />
               </div>
               <div class="truncate">
@@ -324,20 +372,34 @@
             </div>
           </div>
 
-          <!-- Theme Details -->
+          <!-- Theme Details Footer -->
           <div class="p-3 bg-white flex items-center justify-between">
-            <div>
-              <div class="text-xs font-bold text-slate-800">{{ theme.name }}</div>
-              <div class="text-[11px] text-slate-500">{{ theme.description }}</div>
+            <div class="pr-2 truncate">
+              <div class="text-xs font-bold text-slate-800 truncate">{{ theme.name }}</div>
+              <div class="text-[11px] text-slate-500 line-clamp-1">{{ theme.description }}</div>
             </div>
             <button
               type="button"
-              class="px-2.5 py-1 text-xs font-bold text-indigo-600 bg-indigo-50 group-hover:bg-indigo-600 group-hover:text-white rounded-lg transition"
+              class="px-2.5 py-1 text-xs font-bold text-indigo-600 bg-indigo-50 group-hover:bg-indigo-600 group-hover:text-white rounded-lg transition flex-shrink-0 cursor-pointer"
             >
               Apply
             </button>
           </div>
         </div>
+      </div>
+
+      <!-- No Results State -->
+      <div v-else class="text-center py-8 px-4 bg-slate-50 border border-dashed border-slate-200 rounded-xl space-y-2">
+        <Icon name="mdi:filter-remove-outline" class="text-2xl text-slate-400 mx-auto" />
+        <div class="text-xs font-bold text-slate-700">No themes found</div>
+        <p class="text-[11px] text-slate-400">Try searching with a different keyword or select "All Events".</p>
+        <button
+          type="button"
+          @click="activeCategory = 'all'; themeSearch = ''"
+          class="text-xs font-semibold text-indigo-600 hover:underline cursor-pointer"
+        >
+          Reset filters
+        </button>
       </div>
     </div>
 
@@ -384,11 +446,26 @@
 import { useCanvasStore } from "@/stores/useCanvasStore";
 import { usePageStore } from "@/stores/usePageStore";
 import { useQRCodeStore } from "@/stores/useQRCodeStore";
-import { ref } from "vue";
+import { ref, computed } from "vue";
 
 const pageStore = usePageStore();
 const qrcodeStore = useQRCodeStore();
 const store = useCanvasStore();
+
+const themeSearch = ref("");
+const activeCategory = ref("all");
+
+const themeCategories = [
+  { id: "all", label: "All Events" },
+  { id: "tech", label: "Tech & AI" },
+  { id: "corporate", label: "Corporate" },
+  { id: "course", label: "Courses & Sprints" },
+  { id: "academic", label: "Academic & Medical" },
+  { id: "diplomacy", label: "Diplomacy" },
+  { id: "green", label: "Green Energy" },
+  { id: "social", label: "Gala & Charity" },
+  { id: "media", label: "Media & Arts" },
+];
 
 defineProps({
   selectedElement: [String, Number, null],
@@ -648,19 +725,22 @@ const makeThemeBox = (
 });
 
 const badgeThemes = [
+  // --- TECH & AI ---
   {
     id: "modern-conference",
-    name: "Modern Tech Conference",
-    description: "Vibrant blue gradient with round hole punch and keynote speaker layout",
-    badge: "CONFERENCE",
+    name: "TechCon Global Summit",
+    category: "tech",
+    categoryLabel: "Tech & AI",
+    description: "Vibrant blue gradient with round lanyard punch and keynote speaker layout",
+    badge: "TECH SUMMIT",
     previewBg: "linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #06b6d4 100%)",
     previewAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80",
-    previewName: "John Doe",
+    previewName: "Elena Rostova",
     previewRole: "Keynote Speaker",
     punchArea: "circle-center",
     frontBackground: "linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #06b6d4 100%)",
     buildFrontBoxes: (canvasW) => [
-      makeThemeBox(1, "h1", "Event Title", "TECHCON SUMMIT 2026", Math.round((canvasW - 300) / 2), 55, 300, 32, {
+      makeThemeBox(1, "h1", "Event Title", "TECHCON GLOBAL SUMMIT 2026", Math.round((canvasW - 320) / 2), 52, 320, 32, {
         fontSize: "13px",
         fontWeight: "bold",
         color: "#ffffff",
@@ -669,7 +749,7 @@ const badgeThemes = [
         avatarShape: "circle",
         avatarSrc: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80",
       }),
-      makeThemeBox(3, "h1", "Full Name", "John Doe", Math.round((canvasW - 320) / 2), 205, 320, 36, {
+      makeThemeBox(3, "h1", "Full Name", "Elena Rostova", Math.round((canvasW - 320) / 2), 204, 320, 36, {
         fontSize: "22px",
         fontWeight: "bold",
         color: "#ffffff",
@@ -680,12 +760,12 @@ const badgeThemes = [
         color: "#a5f3fc",
         textTransform: "uppercase",
       }),
-      makeThemeBox(5, "p", "Company", "Google DeepMind", Math.round((canvasW - 300) / 2), 268, 300, 28, {
-        fontSize: 12,
+      makeThemeBox(5, "p", "Company", "OpenAI Research Labs", Math.round((canvasW - 300) / 2), 268, 300, 26, {
+        fontSize: "12px",
         color: "#e2e8f0",
       }),
       makeThemeBox(6, "qrcode", "QR Code", "", Math.round((canvasW - 95) / 2), 302, 95, 95, {
-        qrValue: "https://porichoyid.softcredible.com/verify/1001",
+        qrValue: "https://porichoyid.softcredible.com/verify/tech-1001",
         qrWhiteColor: "#ffffff",
       }),
       makeThemeBox(7, "p", "Access Tag", "★ ALL ACCESS VIP PASS ★", Math.round((canvasW - 280) / 2), 412, 280, 26, {
@@ -696,183 +776,1024 @@ const badgeThemes = [
     ],
   },
   {
-    id: "corporate-id",
-    name: "Corporate Employee ID",
-    description: "Clean modern company badge with employee ID, slot punch, and clear branding",
-    badge: "CORPORATE ID",
-    previewBg: "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%)",
+    id: "ai-robotics-congress",
+    name: "World AI & Robotics Congress",
+    category: "tech",
+    categoryLabel: "Tech & AI",
+    description: "Deep cyber-violet theme with neon magenta accents and slot punch",
+    badge: "AI SUMMIT",
+    previewBg: "linear-gradient(135deg, #090d16 0%, #31104b 55%, #701a75 100%)",
     previewAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80",
-    previewName: "Sarah Ahmed",
-    previewRole: "Software Architect",
+    previewName: "Dr. Marcus Vance",
+    previewRole: "Principal AI Scientist",
     punchArea: "long-center",
-    frontBackground: "#f8fafc",
+    frontBackground: "linear-gradient(135deg, #090d16 0%, #31104b 55%, #701a75 100%)",
     buildFrontBoxes: (canvasW) => [
-      makeThemeBox(1, "h1", "Company Name", "SOFTCREDIBLE TECHNOLOGIES", Math.round((canvasW - 320) / 2), 48, 320, 32, {
-        fontSize: "14px",
+      makeThemeBox(1, "h1", "Event Title", "WORLD AI & ROBOTICS CONGRESS", Math.round((canvasW - 320) / 2), 52, 320, 32, {
+        fontSize: "12px",
         fontWeight: "bold",
-        color: "#0f172a",
+        color: "#f472b6",
       }),
-      makeThemeBox(2, "p", "Sub-tag", "Official Staff Identity", Math.round((canvasW - 260) / 2), 74, 260, 22, {
-        fontSize: "10px",
-        fontWeight: "bold",
-        color: "#64748b",
-        textTransform: "uppercase",
-      }),
-      makeThemeBox(3, "avatar", "Profile Photo", "", Math.round((canvasW - 105) / 2), 102, 105, 105, {
-        avatarShape: "rounded",
-        avatarRadius: 20,
+      makeThemeBox(2, "avatar", "Profile Photo", "", Math.round((canvasW - 96) / 2), 92, 96, 96, {
+        avatarShape: "circle",
         avatarSrc: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80",
       }),
-      makeThemeBox(4, "h1", "Full Name", "Sarah Ahmed", Math.round((canvasW - 320) / 2), 220, 320, 36, {
-        fontSize: "22px",
+      makeThemeBox(3, "h1", "Full Name", "Dr. Marcus Vance", Math.round((canvasW - 320) / 2), 202, 320, 36, {
+        fontSize: "21px",
         fontWeight: "bold",
-        color: "#0f172a",
+        color: "#ffffff",
       }),
-      makeThemeBox(5, "p", "Designation", "Lead Software Architect", Math.round((canvasW - 300) / 2), 254, 300, 26, {
-        fontSize: "13px",
-        color: "#475569",
+      makeThemeBox(4, "p", "Designation", "PRINCIPAL AI SCIENTIST", Math.round((canvasW - 300) / 2), 240, 300, 26, {
+        fontSize: "12px",
+        fontWeight: "bold",
+        color: "#fbcfe8",
+        textTransform: "uppercase",
       }),
-      makeThemeBox(6, "p", "Employee ID", "EMP ID: SC-9048", Math.round((canvasW - 260) / 2), 282, 260, 24, {
+      makeThemeBox(5, "p", "Company", "DeepMind Autonomous Robotics", Math.round((canvasW - 300) / 2), 266, 300, 26, {
+        fontSize: "12px",
+        color: "#cbd5e1",
+      }),
+      makeThemeBox(6, "qrcode", "QR Code", "", Math.round((canvasW - 95) / 2), 302, 95, 95, {
+        qrValue: "https://porichoyid.softcredible.com/verify/ai-2026",
+        qrWhiteColor: "#ffffff",
+      }),
+      makeThemeBox(7, "p", "Access Tag", "◆ EXECUTOR & PRESENTER PASS ◆", Math.round((canvasW - 280) / 2), 412, 280, 26, {
         fontSize: "11px",
         fontWeight: "bold",
-        color: "#4f46e5",
-      }),
-      makeThemeBox(7, "qrcode", "QR Code", "", Math.round((canvasW - 95) / 2), 316, 95, 95, {
-        qrValue: "https://porichoyid.softcredible.com/staff/SC-9048",
-        qrWhiteColor: "#ffffff",
+        color: "#f472b6",
       }),
     ],
   },
   {
-    id: "vip-executive",
-    name: "Executive VIP Gala",
-    description: "Dark luxury gold accent badge for executives, investors, and VIP guests",
-    badge: "VIP PASS",
-    previewBg: "linear-gradient(145deg, #09090b 0%, #18181b 50%, #27272a 100%)",
+    id: "cyber-sentinel-con",
+    name: "CyberSentinel Threat Defense Summit",
+    category: "tech",
+    categoryLabel: "Tech & AI",
+    description: "Terminal slate & matrix emerald with high security clearance tags",
+    badge: "CYBERSEC",
+    previewBg: "linear-gradient(135deg, #022c22 0%, #064e3b 60%, #0f172a 100%)",
+    previewAvatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&auto=format&fit=crop&q=80",
+    previewName: "Kavita Rao",
+    previewRole: "Threat Intel Architect",
+    punchArea: "circle-center",
+    frontBackground: "linear-gradient(135deg, #022c22 0%, #064e3b 60%, #0f172a 100%)",
+    buildFrontBoxes: (canvasW) => [
+      makeThemeBox(1, "h1", "Event Title", "CYBERSENTINEL DEFENSE 2026", Math.round((canvasW - 320) / 2), 52, 320, 32, {
+        fontSize: "12px",
+        fontWeight: "bold",
+        color: "#34d399",
+      }),
+      makeThemeBox(2, "avatar", "Profile Photo", "", Math.round((canvasW - 96) / 2), 92, 96, 96, {
+        avatarShape: "square",
+        avatarRadius: 12,
+        avatarSrc: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&auto=format&fit=crop&q=80",
+      }),
+      makeThemeBox(3, "h1", "Full Name", "Kavita Rao", Math.round((canvasW - 320) / 2), 202, 320, 36, {
+        fontSize: "22px",
+        fontWeight: "bold",
+        color: "#ffffff",
+      }),
+      makeThemeBox(4, "p", "Designation", "THREAT INTEL ARCHITECT", Math.round((canvasW - 300) / 2), 240, 300, 26, {
+        fontSize: "12px",
+        fontWeight: "bold",
+        color: "#6ee7b7",
+        textTransform: "uppercase",
+      }),
+      makeThemeBox(5, "p", "Company", "ZeroTrust Global SOC", Math.round((canvasW - 300) / 2), 266, 300, 26, {
+        fontSize: "12px",
+        color: "#94a3b8",
+      }),
+      makeThemeBox(6, "qrcode", "QR Code", "", Math.round((canvasW - 95) / 2), 302, 95, 95, {
+        qrValue: "https://porichoyid.softcredible.com/sec/kavita",
+        qrWhiteColor: "#ffffff",
+      }),
+      makeThemeBox(7, "p", "Access Tag", "[ CLEARANCE LEVEL: TS-ALPHA ]", Math.round((canvasW - 280) / 2), 412, 280, 26, {
+        fontSize: "11px",
+        fontWeight: "bold",
+        color: "#34d399",
+      }),
+    ],
+  },
+  {
+    id: "web3-devcon",
+    name: "Web3 & Blockchain Protocol Devcon",
+    category: "tech",
+    categoryLabel: "Tech & AI",
+    description: "Electric cyan and dark void gradient for decentralized builders",
+    badge: "WEB3 DEV",
+    previewBg: "linear-gradient(135deg, #030712 0%, #111827 50%, #0369a1 100%)",
+    previewAvatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80",
+    previewName: "Arjun Nair",
+    previewRole: "Core Protocol Engineer",
+    punchArea: "long-center",
+    frontBackground: "linear-gradient(135deg, #030712 0%, #111827 50%, #0369a1 100%)",
+    buildFrontBoxes: (canvasW) => [
+      makeThemeBox(1, "h1", "Event Title", "WEB3 PROTOCOL DEVCON '26", Math.round((canvasW - 320) / 2), 52, 320, 32, {
+        fontSize: "13px",
+        fontWeight: "bold",
+        color: "#38bdf8",
+      }),
+      makeThemeBox(2, "avatar", "Profile Photo", "", Math.round((canvasW - 96) / 2), 92, 96, 96, {
+        avatarShape: "circle",
+        avatarSrc: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&auto=format&fit=crop&q=80",
+      }),
+      makeThemeBox(3, "h1", "Full Name", "Arjun Nair", Math.round((canvasW - 320) / 2), 202, 320, 36, {
+        fontSize: "22px",
+        fontWeight: "bold",
+        color: "#ffffff",
+      }),
+      makeThemeBox(4, "p", "Designation", "CORE PROTOCOL ENGINEER", Math.round((canvasW - 300) / 2), 240, 300, 26, {
+        fontSize: "12px",
+        fontWeight: "bold",
+        color: "#7dd3fc",
+        textTransform: "uppercase",
+      }),
+      makeThemeBox(5, "p", "Company", "Ethereum Foundation Hub", Math.round((canvasW - 300) / 2), 266, 300, 26, {
+        fontSize: "12px",
+        color: "#94a3b8",
+      }),
+      makeThemeBox(6, "qrcode", "QR Code", "", Math.round((canvasW - 95) / 2), 302, 95, 95, {
+        qrValue: "https://porichoyid.softcredible.com/web3/arjun",
+        qrWhiteColor: "#ffffff",
+      }),
+      makeThemeBox(7, "p", "Access Tag", "BUILDER BADGE ⚡ HACKER ACCESS", Math.round((canvasW - 280) / 2), 412, 280, 26, {
+        fontSize: "11px",
+        fontWeight: "bold",
+        color: "#38bdf8",
+      }),
+    ],
+  },
+
+  // --- CORPORATE & BUSINESS ---
+  {
+    id: "corporate-executive",
+    name: "Corporate Executive Staff ID",
+    category: "corporate",
+    categoryLabel: "Corporate",
+    description: "Crisp corporate navy & platinum with slot punch and employee ID barcode",
+    badge: "ENTERPRISE",
+    previewBg: "linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #334155 100%)",
+    previewAvatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=100&auto=format&fit=crop&q=80",
+    previewName: "Sarah Ahmed",
+    previewRole: "VP of Engineering",
+    punchArea: "long-center",
+    frontBackground: "linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #334155 100%)",
+    buildFrontBoxes: (canvasW) => [
+      makeThemeBox(1, "h1", "Company", "APEX GLOBAL HOLDINGS", Math.round((canvasW - 320) / 2), 52, 320, 32, {
+        fontSize: "13px",
+        fontWeight: "bold",
+        color: "#94a3b8",
+      }),
+      makeThemeBox(2, "avatar", "Photo", "", Math.round((canvasW - 100) / 2), 92, 100, 100, {
+        avatarShape: "square",
+        avatarRadius: 8,
+        avatarSrc: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=200&auto=format&fit=crop&q=80",
+      }),
+      makeThemeBox(3, "h1", "Full Name", "Sarah Ahmed", Math.round((canvasW - 320) / 2), 204, 320, 36, {
+        fontSize: "22px",
+        fontWeight: "bold",
+        color: "#ffffff",
+      }),
+      makeThemeBox(4, "p", "Designation", "VP OF ENGINEERING", Math.round((canvasW - 300) / 2), 242, 300, 26, {
+        fontSize: "12px",
+        fontWeight: "bold",
+        color: "#60a5fa",
+        textTransform: "uppercase",
+      }),
+      makeThemeBox(5, "p", "ID", "EMPLOYEE ID: APX-99420", Math.round((canvasW - 300) / 2), 268, 300, 26, {
+        fontSize: "12px",
+        color: "#cbd5e1",
+      }),
+      makeThemeBox(6, "qrcode", "QR Code", "", Math.round((canvasW - 95) / 2), 304, 95, 95, {
+        qrValue: "https://porichoyid.softcredible.com/staff/sarah-ahmed",
+        qrWhiteColor: "#ffffff",
+      }),
+      makeThemeBox(7, "p", "Tag", "HEADQUARTERS ALL-FLOORS ACCESS", Math.round((canvasW - 300) / 2), 412, 300, 26, {
+        fontSize: "10px",
+        fontWeight: "bold",
+        color: "#94a3b8",
+      }),
+    ],
+  },
+  {
+    id: "fintech-banking-expo",
+    name: "FinTech & Digital Banking Expo",
+    category: "corporate",
+    categoryLabel: "Corporate",
+    description: "Royal blue and sharp gold accents for banking and investment summits",
+    badge: "FINTECH",
+    previewBg: "linear-gradient(135deg, #1e3a8a 0%, #172554 60%, #0f172a 100%)",
+    previewAvatar: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=100&auto=format&fit=crop&q=80",
+    previewName: "David Sterling",
+    previewRole: "Head of Digital Assets",
+    punchArea: "long-center",
+    frontBackground: "linear-gradient(135deg, #1e3a8a 0%, #172554 60%, #0f172a 100%)",
+    buildFrontBoxes: (canvasW) => [
+      makeThemeBox(1, "h1", "Event Title", "GLOBAL FINTECH EXPO 2026", Math.round((canvasW - 320) / 2), 52, 320, 32, {
+        fontSize: "12px",
+        fontWeight: "bold",
+        color: "#f59e0b",
+      }),
+      makeThemeBox(2, "avatar", "Photo", "", Math.round((canvasW - 96) / 2), 92, 96, 96, {
+        avatarShape: "circle",
+        avatarSrc: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=200&auto=format&fit=crop&q=80",
+      }),
+      makeThemeBox(3, "h1", "Full Name", "David Sterling", Math.round((canvasW - 320) / 2), 202, 320, 36, {
+        fontSize: "22px",
+        fontWeight: "bold",
+        color: "#ffffff",
+      }),
+      makeThemeBox(4, "p", "Designation", "HEAD OF DIGITAL ASSETS", Math.round((canvasW - 300) / 2), 240, 300, 26, {
+        fontSize: "12px",
+        fontWeight: "bold",
+        color: "#fbbf24",
+        textTransform: "uppercase",
+      }),
+      makeThemeBox(5, "p", "Company", "Morgan & Croft Financial", Math.round((canvasW - 300) / 2), 266, 300, 26, {
+        fontSize: "12px",
+        color: "#cbd5e1",
+      }),
+      makeThemeBox(6, "qrcode", "QR Code", "", Math.round((canvasW - 95) / 2), 302, 95, 95, {
+        qrValue: "https://porichoyid.softcredible.com/fintech/david",
+        qrWhiteColor: "#ffffff",
+      }),
+      makeThemeBox(7, "p", "Tag", "★ EXECUTIVE ROUNDTABLE DELEGATE ★", Math.round((canvasW - 300) / 2), 412, 300, 26, {
+        fontSize: "10px",
+        fontWeight: "bold",
+        color: "#f59e0b",
+      }),
+    ],
+  },
+  {
+    id: "venture-capital-forum",
+    name: "Venture Capital & Investor Conclave",
+    category: "corporate",
+    categoryLabel: "Corporate",
+    description: "Obsidian black and warm champagne gold for high-net-worth investor galas",
+    badge: "INVESTOR",
+    previewBg: "linear-gradient(135deg, #18181b 0%, #27272a 60%, #000000 100%)",
     previewAvatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80",
     previewName: "Alexander Sterling",
     previewRole: "Managing Director",
-    punchArea: "circle-center",
-    frontBackground: "linear-gradient(145deg, #09090b 0%, #18181b 50%, #27272a 100%)",
+    punchArea: "long-center",
+    frontBackground: "linear-gradient(135deg, #18181b 0%, #27272a 60%, #000000 100%)",
     buildFrontBoxes: (canvasW) => [
-      makeThemeBox(1, "h1", "VIP Header", "★ VIP EXECUTIVE GUEST ★", Math.round((canvasW - 300) / 2), 55, 300, 30, {
+      makeThemeBox(1, "h1", "Event Title", "VENTURE CAPITAL CONCLAVE", Math.round((canvasW - 320) / 2), 52, 320, 32, {
         fontSize: "12px",
         fontWeight: "bold",
         color: "#fbbf24",
       }),
-      makeThemeBox(2, "avatar", "Profile Photo", "", Math.round((canvasW - 105) / 2), 92, 105, 105, {
+      makeThemeBox(2, "avatar", "Photo", "", Math.round((canvasW - 96) / 2), 92, 96, 96, {
         avatarShape: "circle",
         avatarSrc: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&auto=format&fit=crop&q=80",
       }),
-      makeThemeBox(3, "h1", "Full Name", "Alexander Sterling", Math.round((canvasW - 320) / 2), 210, 320, 36, {
+      makeThemeBox(3, "h1", "Full Name", "Alexander Sterling", Math.round((canvasW - 320) / 2), 202, 320, 36, {
         fontSize: "22px",
         fontWeight: "bold",
-        color: "#f8fafc",
+        color: "#ffffff",
       }),
-      makeThemeBox(4, "p", "Designation", "CHIEF EXECUTIVE OFFICER", Math.round((canvasW - 300) / 2), 246, 300, 26, {
+      makeThemeBox(4, "p", "Designation", "MANAGING GENERAL PARTNER", Math.round((canvasW - 300) / 2), 240, 300, 26, {
         fontSize: "12px",
         fontWeight: "bold",
         color: "#fde047",
         textTransform: "uppercase",
       }),
-      makeThemeBox(5, "p", "Company", "Sterling Capital Group", Math.round((canvasW - 300) / 2), 272, 300, 24, {
+      makeThemeBox(5, "p", "Company", "Sterling Horizon Capital", Math.round((canvasW - 300) / 2), 266, 300, 26, {
         fontSize: "12px",
-        color: "#cbd5e1",
+        color: "#e4e4e7",
       }),
-      makeThemeBox(6, "qrcode", "QR Code", "", Math.round((canvasW - 95) / 2), 310, 95, 95, {
-        qrValue: "https://porichoyid.softcredible.com/vip/sterling",
+      makeThemeBox(6, "qrcode", "QR Code", "", Math.round((canvasW - 95) / 2), 302, 95, 95, {
+        qrValue: "https://porichoyid.softcredible.com/vc/sterling",
         qrWhiteColor: "#ffffff",
+      }),
+      makeThemeBox(7, "p", "Tag", "★ GENERAL PARTNER VIP BADGE ★", Math.round((canvasW - 300) / 2), 412, 300, 26, {
+        fontSize: "11px",
+        fontWeight: "bold",
+        color: "#fbbf24",
       }),
     ],
   },
+
+  // --- COURSES, BOOTCAMPS & SPRINTS ---
   {
-    id: "minimal-seminar",
-    name: "Minimal Seminar",
-    description: "High-contrast clean typography for academic, seminar, and research badges",
-    badge: "SEMINAR",
-    previewBg: "linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)",
-    previewAvatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&auto=format&fit=crop&q=80",
-    previewName: "Dr. Farhan Tanvir",
-    previewRole: "Research Fellow",
-    punchArea: "none",
-    frontBackground: "#ffffff",
-    buildFrontBoxes: (canvasW) => [
-      makeThemeBox(1, "h1", "Event Title", "INTERNATIONAL RESEARCH SUMMIT", Math.round((canvasW - 340) / 2), 45, 340, 32, {
-        fontSize: "13px",
-        fontWeight: "bold",
-        color: "#4f46e5",
-      }),
-      makeThemeBox(2, "avatar", "Profile Photo", "", Math.round((canvasW - 105) / 2), 88, 105, 105, {
-        avatarShape: "squircle",
-        avatarRadius: 28,
-        avatarSrc: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&auto=format&fit=crop&q=80",
-      }),
-      makeThemeBox(3, "h1", "Full Name", "Dr. Farhan Tanvir", Math.round((canvasW - 320) / 2), 208, 320, 36, {
-        fontSize: "22px",
-        fontWeight: "bold",
-        color: "#1e293b",
-      }),
-      makeThemeBox(4, "p", "Designation", "Research Fellow & Speaker", Math.round((canvasW - 300) / 2), 244, 300, 26, {
-        fontSize: "13px",
-        fontWeight: "bold",
-        color: "#4f46e5",
-      }),
-      makeThemeBox(5, "p", "Company", "Institute of Advanced Studies", Math.round((canvasW - 300) / 2), 272, 300, 24, {
-        fontSize: "12px",
-        color: "#64748b",
-      }),
-      makeThemeBox(6, "qrcode", "QR Code", "", Math.round((canvasW - 95) / 2), 310, 95, 95, {
-        qrValue: "https://porichoyid.softcredible.com/speaker/farhan",
-        qrWhiteColor: "#ffffff",
-      }),
-    ],
-  },
-  {
-    id: "creative-summit",
-    name: "Creative Festival",
-    description: "Vibrant pink-violet gradient for design festivals, workshops, and creative meetups",
-    badge: "CREATIVE",
-    previewBg: "linear-gradient(135deg, #ec4899 0%, #8b5cf6 50%, #3b82f6 100%)",
-    previewAvatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80",
-    previewName: "Nadia Islam",
-    previewRole: "Workshop Leader",
+    id: "fullstack-bootcamp",
+    name: "Full-Stack Dev Bootcamp Sprint",
+    category: "course",
+    categoryLabel: "Courses & Sprints",
+    description: "Modern indigo & violet gradient for coding academies and hackathon fellows",
+    badge: "DEV FELLOW",
+    previewBg: "linear-gradient(135deg, #312e81 0%, #4338ca 50%, #6366f1 100%)",
+    previewAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80",
+    previewName: "Tanzim Hasan",
+    previewRole: "Full-Stack Engineer Fellow",
     punchArea: "circle-center",
-    frontBackground: "linear-gradient(135deg, #ec4899 0%, #8b5cf6 50%, #3b82f6 100%)",
+    frontBackground: "linear-gradient(135deg, #312e81 0%, #4338ca 50%, #6366f1 100%)",
     buildFrontBoxes: (canvasW) => [
-      makeThemeBox(1, "h1", "Header", "✦ DESIGN & CREATIVE SUMMIT ✦", Math.round((canvasW - 320) / 2), 55, 320, 30, {
+      makeThemeBox(1, "h1", "Course Title", "FULL-STACK MASTERY SPRINT", Math.round((canvasW - 320) / 2), 52, 320, 32, {
         fontSize: "13px",
         fontWeight: "bold",
         color: "#ffffff",
       }),
-      makeThemeBox(2, "avatar", "Profile Photo", "", Math.round((canvasW - 105) / 2), 92, 105, 105, {
+      makeThemeBox(2, "avatar", "Photo", "", Math.round((canvasW - 96) / 2), 92, 96, 96, {
+        avatarShape: "circle",
+        avatarSrc: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80",
+      }),
+      makeThemeBox(3, "h1", "Full Name", "Tanzim Hasan", Math.round((canvasW - 320) / 2), 202, 320, 36, {
+        fontSize: "22px",
+        fontWeight: "bold",
+        color: "#ffffff",
+      }),
+      makeThemeBox(4, "p", "Role", "ENGINEERING FELLOW", Math.round((canvasW - 300) / 2), 240, 300, 26, {
+        fontSize: "12px",
+        fontWeight: "bold",
+        color: "#93c5fd",
+        textTransform: "uppercase",
+      }),
+      makeThemeBox(5, "p", "Cohort", "Cohort 14 • Deshicoder Academy", Math.round((canvasW - 300) / 2), 266, 300, 26, {
+        fontSize: "12px",
+        color: "#e0e7ff",
+      }),
+      makeThemeBox(6, "qrcode", "QR Code", "", Math.round((canvasW - 95) / 2), 302, 95, 95, {
+        qrValue: "https://porichoyid.softcredible.com/cohort/tanzim",
+        qrWhiteColor: "#ffffff",
+      }),
+      makeThemeBox(7, "p", "Tag", "CERTIFIED DEVELOPER CANDIDATE", Math.round((canvasW - 300) / 2), 412, 300, 26, {
+        fontSize: "11px",
+        fontWeight: "bold",
+        color: "#a5b4fc",
+      }),
+    ],
+  },
+  {
+    id: "ux-design-sprint",
+    name: "UI/UX Product Design Sprint",
+    category: "course",
+    categoryLabel: "Courses & Sprints",
+    description: "Coral, crimson & warm sun gradient for creative designers and design sprint workshops",
+    badge: "DESIGN SPRINT",
+    previewBg: "linear-gradient(135deg, #881337 0%, #be123c 50%, #f43f5e 100%)",
+    previewAvatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80",
+    previewName: "Maya Lin",
+    previewRole: "Senior Product Designer",
+    punchArea: "circle-center",
+    frontBackground: "linear-gradient(135deg, #881337 0%, #be123c 50%, #f43f5e 100%)",
+    buildFrontBoxes: (canvasW) => [
+      makeThemeBox(1, "h1", "Course Title", "UI/UX PRODUCT DESIGN SPRINT", Math.round((canvasW - 320) / 2), 52, 320, 32, {
+        fontSize: "12px",
+        fontWeight: "bold",
+        color: "#fecdd3",
+      }),
+      makeThemeBox(2, "avatar", "Photo", "", Math.round((canvasW - 96) / 2), 92, 96, 96, {
         avatarShape: "circle",
         avatarSrc: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&auto=format&fit=crop&q=80",
       }),
-      makeThemeBox(3, "h1", "Full Name", "Nadia Islam", Math.round((canvasW - 320) / 2), 210, 320, 36, {
+      makeThemeBox(3, "h1", "Full Name", "Maya Lin", Math.round((canvasW - 320) / 2), 202, 320, 36, {
         fontSize: "22px",
         fontWeight: "bold",
         color: "#ffffff",
       }),
-      makeThemeBox(4, "p", "Designation", "WORKSHOP LEADER", Math.round((canvasW - 300) / 2), 246, 300, 26, {
-        fontSize: "13px",
+      makeThemeBox(4, "p", "Role", "PRODUCT DESIGN MENTOR", Math.round((canvasW - 300) / 2), 240, 300, 26, {
+        fontSize: "12px",
         fontWeight: "bold",
         color: "#fef08a",
         textTransform: "uppercase",
       }),
-      makeThemeBox(5, "p", "Studio", "Pixel & Canvas Collective", Math.round((canvasW - 300) / 2), 272, 300, 24, {
+      makeThemeBox(5, "p", "Studio", "Figma Design Collective", Math.round((canvasW - 300) / 2), 266, 300, 26, {
         fontSize: "12px",
-        color: "#f1f5f9",
+        color: "#ffe4e6",
       }),
-      makeThemeBox(6, "qrcode", "QR Code", "", Math.round((canvasW - 95) / 2), 310, 95, 95, {
-        qrValue: "https://porichoyid.softcredible.com/workshop/nadia",
+      makeThemeBox(6, "qrcode", "QR Code", "", Math.round((canvasW - 95) / 2), 302, 95, 95, {
+        qrValue: "https://porichoyid.softcredible.com/design/maya",
         qrWhiteColor: "#ffffff",
+      }),
+      makeThemeBox(7, "p", "Tag", "✦ MASTERCLASS LAB ACCESS ✦", Math.round((canvasW - 300) / 2), 412, 300, 26, {
+        fontSize: "11px",
+        fontWeight: "bold",
+        color: "#fef08a",
+      }),
+    ],
+  },
+  {
+    id: "data-science-mastery",
+    name: "Applied AI & Data Science Lab",
+    category: "course",
+    categoryLabel: "Courses & Sprints",
+    description: "Dark teal & aqua green theme for intensive data labs and AI researchers",
+    badge: "AI LAB",
+    previewBg: "linear-gradient(135deg, #042f2e 0%, #0f766e 60%, #14b8a6 100%)",
+    previewAvatar: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100&auto=format&fit=crop&q=80",
+    previewName: "Rahim Chowdhury",
+    previewRole: "Data Science Fellow",
+    punchArea: "circle-center",
+    frontBackground: "linear-gradient(135deg, #042f2e 0%, #0f766e 60%, #14b8a6 100%)",
+    buildFrontBoxes: (canvasW) => [
+      makeThemeBox(1, "h1", "Course Title", "APPLIED DATA SCIENCE LAB", Math.round((canvasW - 320) / 2), 52, 320, 32, {
+        fontSize: "12px",
+        fontWeight: "bold",
+        color: "#5eead4",
+      }),
+      makeThemeBox(2, "avatar", "Photo", "", Math.round((canvasW - 96) / 2), 92, 96, 96, {
+        avatarShape: "square",
+        avatarRadius: 16,
+        avatarSrc: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=200&auto=format&fit=crop&q=80",
+      }),
+      makeThemeBox(3, "h1", "Full Name", "Rahim Chowdhury", Math.round((canvasW - 320) / 2), 202, 320, 36, {
+        fontSize: "22px",
+        fontWeight: "bold",
+        color: "#ffffff",
+      }),
+      makeThemeBox(4, "p", "Role", "DATA SCIENCE FELLOW", Math.round((canvasW - 300) / 2), 240, 300, 26, {
+        fontSize: "12px",
+        fontWeight: "bold",
+        color: "#99f6e4",
+        textTransform: "uppercase",
+      }),
+      makeThemeBox(5, "p", "Lab", "National Computing Center", Math.round((canvasW - 300) / 2), 266, 300, 26, {
+        fontSize: "12px",
+        color: "#ccfbf1",
+      }),
+      makeThemeBox(6, "qrcode", "QR Code", "", Math.round((canvasW - 95) / 2), 302, 95, 95, {
+        qrValue: "https://porichoyid.softcredible.com/lab/rahim",
+        qrWhiteColor: "#ffffff",
+      }),
+      makeThemeBox(7, "p", "Tag", "RESEARCH SPRINT CREDENTIAL", Math.round((canvasW - 300) / 2), 412, 300, 26, {
+        fontSize: "11px",
+        fontWeight: "bold",
+        color: "#5eead4",
+      }),
+    ],
+  },
+
+  // --- ACADEMIC & MEDICAL ---
+  {
+    id: "world-medical-congress",
+    name: "World Medical & Health Summit",
+    category: "academic",
+    categoryLabel: "Academic & Medical",
+    description: "Clean medical cyan and navy with surgeon and doctor credentials",
+    badge: "MEDICAL",
+    previewBg: "linear-gradient(135deg, #0e7490 0%, #0369a1 50%, #1e3a8a 100%)",
+    previewAvatar: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=100&auto=format&fit=crop&q=80",
+    previewName: "Dr. Farah Tanvir",
+    previewRole: "Chief Neurosurgeon",
+    punchArea: "circle-center",
+    frontBackground: "linear-gradient(135deg, #0e7490 0%, #0369a1 50%, #1e3a8a 100%)",
+    buildFrontBoxes: (canvasW) => [
+      makeThemeBox(1, "h1", "Congress Title", "WORLD MEDICAL SUMMIT 2026", Math.round((canvasW - 320) / 2), 52, 320, 32, {
+        fontSize: "12px",
+        fontWeight: "bold",
+        color: "#a5f3fc",
+      }),
+      makeThemeBox(2, "avatar", "Photo", "", Math.round((canvasW - 96) / 2), 92, 96, 96, {
+        avatarShape: "circle",
+        avatarSrc: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=200&auto=format&fit=crop&q=80",
+      }),
+      makeThemeBox(3, "h1", "Full Name", "Dr. Farah Tanvir", Math.round((canvasW - 320) / 2), 202, 320, 36, {
+        fontSize: "22px",
+        fontWeight: "bold",
+        color: "#ffffff",
+      }),
+      makeThemeBox(4, "p", "Role", "CHIEF NEUROSURGEON", Math.round((canvasW - 300) / 2), 240, 300, 26, {
+        fontSize: "12px",
+        fontWeight: "bold",
+        color: "#bae6fd",
+        textTransform: "uppercase",
+      }),
+      makeThemeBox(5, "p", "Hospital", "Johns Hopkins Medical Mission", Math.round((canvasW - 300) / 2), 266, 300, 26, {
+        fontSize: "12px",
+        color: "#e0f2fe",
+      }),
+      makeThemeBox(6, "qrcode", "QR Code", "", Math.round((canvasW - 95) / 2), 302, 95, 95, {
+        qrValue: "https://porichoyid.softcredible.com/med/farah",
+        qrWhiteColor: "#ffffff",
+      }),
+      makeThemeBox(7, "p", "Tag", "✚ DELEGATE • CLINICAL FELLOW ✚", Math.round((canvasW - 300) / 2), 412, 300, 26, {
+        fontSize: "11px",
+        fontWeight: "bold",
+        color: "#a5f3fc",
+      }),
+    ],
+  },
+  {
+    id: "academic-research-colloquium",
+    name: "Science & Research Colloquium",
+    category: "academic",
+    categoryLabel: "Academic & Medical",
+    description: "Oxford deep burgundy & cream gold for university researchers and professors",
+    badge: "ACADEMIC",
+    previewBg: "linear-gradient(135deg, #450a0a 0%, #7f1d1d 60%, #991b1b 100%)",
+    previewAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80",
+    previewName: "Prof. Arthur Pendelton",
+    previewRole: "Chair of Astrophysics",
+    punchArea: "circle-center",
+    frontBackground: "linear-gradient(135deg, #450a0a 0%, #7f1d1d 60%, #991b1b 100%)",
+    buildFrontBoxes: (canvasW) => [
+      makeThemeBox(1, "h1", "Congress Title", "SCIENCE & RESEARCH COLLOQUIUM", Math.round((canvasW - 320) / 2), 52, 320, 32, {
+        fontSize: "11px",
+        fontWeight: "bold",
+        color: "#fef08a",
+      }),
+      makeThemeBox(2, "avatar", "Photo", "", Math.round((canvasW - 96) / 2), 92, 96, 96, {
+        avatarShape: "circle",
+        avatarSrc: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80",
+      }),
+      makeThemeBox(3, "h1", "Full Name", "Prof. Arthur Pendelton", Math.round((canvasW - 320) / 2), 202, 320, 36, {
+        fontSize: "21px",
+        fontWeight: "bold",
+        color: "#ffffff",
+      }),
+      makeThemeBox(4, "p", "Role", "CHAIR OF ASTROPHYSICS", Math.round((canvasW - 300) / 2), 240, 300, 26, {
+        fontSize: "12px",
+        fontWeight: "bold",
+        color: "#fef08a",
+        textTransform: "uppercase",
+      }),
+      makeThemeBox(5, "p", "University", "Oxford Institute of Physics", Math.round((canvasW - 300) / 2), 266, 300, 26, {
+        fontSize: "12px",
+        color: "#fee2e2",
+      }),
+      makeThemeBox(6, "qrcode", "QR Code", "", Math.round((canvasW - 95) / 2), 302, 95, 95, {
+        qrValue: "https://porichoyid.softcredible.com/edu/arthur",
+        qrWhiteColor: "#ffffff",
+      }),
+      makeThemeBox(7, "p", "Tag", "FACULTY & KEYNOTE HONOREE", Math.round((canvasW - 300) / 2), 412, 300, 26, {
+        fontSize: "11px",
+        fontWeight: "bold",
+        color: "#fef08a",
+      }),
+    ],
+  },
+  {
+    id: "dental-biotech-symposium",
+    name: "Dental & Clinical Biotech Expo",
+    category: "academic",
+    categoryLabel: "Academic & Medical",
+    description: "Emerald mint and crisp white for clinical practitioners and dental specialists",
+    badge: "CLINICAL",
+    previewBg: "linear-gradient(135deg, #064e3b 0%, #047857 60%, #059669 100%)",
+    previewAvatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&auto=format&fit=crop&q=80",
+    previewName: "Dr. Nadia Haque",
+    previewRole: "Clinical Director",
+    punchArea: "circle-center",
+    frontBackground: "linear-gradient(135deg, #064e3b 0%, #047857 60%, #059669 100%)",
+    buildFrontBoxes: (canvasW) => [
+      makeThemeBox(1, "h1", "Congress Title", "DENTAL BIOTECH EXPO 2026", Math.round((canvasW - 320) / 2), 52, 320, 32, {
+        fontSize: "12px",
+        fontWeight: "bold",
+        color: "#a7f3d0",
+      }),
+      makeThemeBox(2, "avatar", "Photo", "", Math.round((canvasW - 96) / 2), 92, 96, 96, {
+        avatarShape: "circle",
+        avatarSrc: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&auto=format&fit=crop&q=80",
+      }),
+      makeThemeBox(3, "h1", "Full Name", "Dr. Nadia Haque", Math.round((canvasW - 320) / 2), 202, 320, 36, {
+        fontSize: "22px",
+        fontWeight: "bold",
+        color: "#ffffff",
+      }),
+      makeThemeBox(4, "p", "Role", "CLINICAL ORTHODONTIST", Math.round((canvasW - 300) / 2), 240, 300, 26, {
+        fontSize: "12px",
+        fontWeight: "bold",
+        color: "#6ee7b7",
+        textTransform: "uppercase",
+      }),
+      makeThemeBox(5, "p", "Hospital", "Apex Dental Healthcare", Math.round((canvasW - 300) / 2), 266, 300, 26, {
+        fontSize: "12px",
+        color: "#d1fae5",
+      }),
+      makeThemeBox(6, "qrcode", "QR Code", "", Math.round((canvasW - 95) / 2), 302, 95, 95, {
+        qrValue: "https://porichoyid.softcredible.com/dent/nadia",
+        qrWhiteColor: "#ffffff",
+      }),
+      makeThemeBox(7, "p", "Tag", "CERTIFIED PRACTITIONER PASS", Math.round((canvasW - 300) / 2), 412, 300, 26, {
+        fontSize: "11px",
+        fontWeight: "bold",
+        color: "#a7f3d0",
+      }),
+    ],
+  },
+
+  // --- DIPLOMACY & POLITICAL ---
+  {
+    id: "un-diplomatic-mission",
+    name: "Model United Nations (MUN)",
+    category: "diplomacy",
+    categoryLabel: "Diplomacy",
+    description: "Official UN blue & diplomatic gold for delegates and ambassadors",
+    badge: "MUN DELEGATE",
+    previewBg: "linear-gradient(135deg, #0c4a6e 0%, #0284c7 60%, #0369a1 100%)",
+    previewAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80",
+    previewName: "Ambassador S. Rahman",
+    previewRole: "Permanent Representative",
+    punchArea: "circle-center",
+    frontBackground: "linear-gradient(135deg, #0c4a6e 0%, #0284c7 60%, #0369a1 100%)",
+    buildFrontBoxes: (canvasW) => [
+      makeThemeBox(1, "h1", "Mission Title", "MODEL UNITED NATIONS 2026", Math.round((canvasW - 320) / 2), 52, 320, 32, {
+        fontSize: "12px",
+        fontWeight: "bold",
+        color: "#fef08a",
+      }),
+      makeThemeBox(2, "avatar", "Photo", "", Math.round((canvasW - 96) / 2), 92, 96, 96, {
+        avatarShape: "circle",
+        avatarSrc: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80",
+      }),
+      makeThemeBox(3, "h1", "Full Name", "Ambassador S. Rahman", Math.round((canvasW - 320) / 2), 202, 320, 36, {
+        fontSize: "21px",
+        fontWeight: "bold",
+        color: "#ffffff",
+      }),
+      makeThemeBox(4, "p", "Role", "CHIEF DIPLOMATIC DELEGATE", Math.round((canvasW - 300) / 2), 240, 300, 26, {
+        fontSize: "12px",
+        fontWeight: "bold",
+        color: "#fef08a",
+        textTransform: "uppercase",
+      }),
+      makeThemeBox(5, "p", "Country", "General Assembly Delegation", Math.round((canvasW - 300) / 2), 266, 300, 26, {
+        fontSize: "12px",
+        color: "#e0f2fe",
+      }),
+      makeThemeBox(6, "qrcode", "QR Code", "", Math.round((canvasW - 95) / 2), 302, 95, 95, {
+        qrValue: "https://porichoyid.softcredible.com/mun/rahman",
+        qrWhiteColor: "#ffffff",
+      }),
+      makeThemeBox(7, "p", "Tag", "★ GENERAL ASSEMBLY FLOOR ACCESS ★", Math.round((canvasW - 300) / 2), 412, 300, 26, {
+        fontSize: "10px",
+        fontWeight: "bold",
+        color: "#fef08a",
+      }),
+    ],
+  },
+  {
+    id: "smart-governance-summit",
+    name: "Governance & Smart Cities Assembly",
+    category: "diplomacy",
+    categoryLabel: "Diplomacy",
+    description: "Formal slate & bronze gold for parliamentary and ministry summits",
+    badge: "GOVERNANCE",
+    previewBg: "linear-gradient(135deg, #1e293b 0%, #334155 60%, #475569 100%)",
+    previewAvatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=100&auto=format&fit=crop&q=80",
+    previewName: "Hon. Yasmin Kamal",
+    previewRole: "Ministry Policy Delegate",
+    punchArea: "long-center",
+    frontBackground: "linear-gradient(135deg, #1e293b 0%, #334155 60%, #475569 100%)",
+    buildFrontBoxes: (canvasW) => [
+      makeThemeBox(1, "h1", "Summit Title", "SMART GOVERNANCE SUMMIT", Math.round((canvasW - 320) / 2), 52, 320, 32, {
+        fontSize: "12px",
+        fontWeight: "bold",
+        color: "#fbbf24",
+      }),
+      makeThemeBox(2, "avatar", "Photo", "", Math.round((canvasW - 96) / 2), 92, 96, 96, {
+        avatarShape: "square",
+        avatarRadius: 8,
+        avatarSrc: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=200&auto=format&fit=crop&q=80",
+      }),
+      makeThemeBox(3, "h1", "Full Name", "Hon. Yasmin Kamal", Math.round((canvasW - 320) / 2), 202, 320, 36, {
+        fontSize: "21px",
+        fontWeight: "bold",
+        color: "#ffffff",
+      }),
+      makeThemeBox(4, "p", "Role", "PUBLIC POLICY DIRECTOR", Math.round((canvasW - 300) / 2), 240, 300, 26, {
+        fontSize: "12px",
+        fontWeight: "bold",
+        color: "#fde68a",
+        textTransform: "uppercase",
+      }),
+      makeThemeBox(5, "p", "Ministry", "Ministry of Digital Transformation", Math.round((canvasW - 300) / 2), 266, 300, 26, {
+        fontSize: "12px",
+        color: "#cbd5e1",
+      }),
+      makeThemeBox(6, "qrcode", "QR Code", "", Math.round((canvasW - 95) / 2), 302, 95, 95, {
+        qrValue: "https://porichoyid.softcredible.com/gov/yasmin",
+        qrWhiteColor: "#ffffff",
+      }),
+      makeThemeBox(7, "p", "Tag", "MINISTERIAL PLENARY PASS", Math.round((canvasW - 300) / 2), 412, 300, 26, {
+        fontSize: "11px",
+        fontWeight: "bold",
+        color: "#fbbf24",
+      }),
+    ],
+  },
+
+  // --- GREEN ENERGY & ENVIRONMENTAL ---
+  {
+    id: "earth-climate-cop",
+    name: "COP30 Climate Action Summit",
+    category: "green",
+    categoryLabel: "Green Energy",
+    description: "Deep forest emerald & sunny amber for climate delegates and NGO leaders",
+    badge: "CLIMATE ACTION",
+    previewBg: "linear-gradient(135deg, #064e3b 0%, #065f46 50%, #047857 100%)",
+    previewAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80",
+    previewName: "Amina Al-Mansoor",
+    previewRole: "Sustainability Director",
+    punchArea: "circle-center",
+    frontBackground: "linear-gradient(135deg, #064e3b 0%, #065f46 50%, #047857 100%)",
+    buildFrontBoxes: (canvasW) => [
+      makeThemeBox(1, "h1", "Summit Title", "COP30 CLIMATE ACTION SUMMIT", Math.round((canvasW - 320) / 2), 52, 320, 32, {
+        fontSize: "12px",
+        fontWeight: "bold",
+        color: "#fef08a",
+      }),
+      makeThemeBox(2, "avatar", "Photo", "", Math.round((canvasW - 96) / 2), 92, 96, 96, {
+        avatarShape: "circle",
+        avatarSrc: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80",
+      }),
+      makeThemeBox(3, "h1", "Full Name", "Amina Al-Mansoor", Math.round((canvasW - 320) / 2), 202, 320, 36, {
+        fontSize: "22px",
+        fontWeight: "bold",
+        color: "#ffffff",
+      }),
+      makeThemeBox(4, "p", "Role", "SUSTAINABILITY DIRECTOR", Math.round((canvasW - 300) / 2), 240, 300, 26, {
+        fontSize: "12px",
+        fontWeight: "bold",
+        color: "#a7f3d0",
+        textTransform: "uppercase",
+      }),
+      makeThemeBox(5, "p", "Org", "Global Earth Foundation", Math.round((canvasW - 300) / 2), 266, 300, 26, {
+        fontSize: "12px",
+        color: "#d1fae5",
+      }),
+      makeThemeBox(6, "qrcode", "QR Code", "", Math.round((canvasW - 95) / 2), 302, 95, 95, {
+        qrValue: "https://porichoyid.softcredible.com/cop/amina",
+        qrWhiteColor: "#ffffff",
+      }),
+      makeThemeBox(7, "p", "Tag", "🌱 OFFICIAL NGO DELEGATE 🌱", Math.round((canvasW - 300) / 2), 412, 300, 26, {
+        fontSize: "11px",
+        fontWeight: "bold",
+        color: "#fef08a",
+      }),
+    ],
+  },
+  {
+    id: "cleantech-energy-expo",
+    name: "CleanTech & Solar Global Expo",
+    category: "green",
+    categoryLabel: "Green Energy",
+    description: "Vibrant solar lime and forest green for clean energy engineers and exhibitors",
+    badge: "CLEANTECH",
+    previewBg: "linear-gradient(135deg, #14532d 0%, #15803d 50%, #16a34a 100%)",
+    previewAvatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80",
+    previewName: "Felix Chen",
+    previewRole: "Renewable Energy Architect",
+    punchArea: "long-center",
+    frontBackground: "linear-gradient(135deg, #14532d 0%, #15803d 50%, #16a34a 100%)",
+    buildFrontBoxes: (canvasW) => [
+      makeThemeBox(1, "h1", "Expo Title", "CLEANTECH & SOLAR WORLD EXPO", Math.round((canvasW - 320) / 2), 52, 320, 32, {
+        fontSize: "12px",
+        fontWeight: "bold",
+        color: "#fde047",
+      }),
+      makeThemeBox(2, "avatar", "Photo", "", Math.round((canvasW - 96) / 2), 92, 96, 96, {
+        avatarShape: "circle",
+        avatarSrc: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&auto=format&fit=crop&q=80",
+      }),
+      makeThemeBox(3, "h1", "Full Name", "Felix Chen", Math.round((canvasW - 320) / 2), 202, 320, 36, {
+        fontSize: "22px",
+        fontWeight: "bold",
+        color: "#ffffff",
+      }),
+      makeThemeBox(4, "p", "Role", "RENEWABLE ENERGY ARCHITECT", Math.round((canvasW - 300) / 2), 240, 300, 26, {
+        fontSize: "12px",
+        fontWeight: "bold",
+        color: "#bbf7d0",
+        textTransform: "uppercase",
+      }),
+      makeThemeBox(5, "p", "Company", "Solaria Global Tech", Math.round((canvasW - 300) / 2), 266, 300, 26, {
+        fontSize: "12px",
+        color: "#dcfce7",
+      }),
+      makeThemeBox(6, "qrcode", "QR Code", "", Math.round((canvasW - 95) / 2), 302, 95, 95, {
+        qrValue: "https://porichoyid.softcredible.com/cleantech/felix",
+        qrWhiteColor: "#ffffff",
+      }),
+      makeThemeBox(7, "p", "Tag", "⚡ SOLAR PAVILION EXHIBITOR ⚡", Math.round((canvasW - 300) / 2), 412, 300, 26, {
+        fontSize: "11px",
+        fontWeight: "bold",
+        color: "#fde047",
+      }),
+    ],
+  },
+
+  // --- GALA, CHARITY & SOCIAL ---
+  {
+    id: "hope-charity-gala",
+    name: "Hope Foundation Charity Gala",
+    category: "social",
+    categoryLabel: "Gala & Charity",
+    description: "Royal midnight navy & champagne gold for philanthropy and foundation dinners",
+    badge: "CHARITY GALA",
+    previewBg: "linear-gradient(135deg, #090d16 0%, #1e1b4b 60%, #31104b 100%)",
+    previewAvatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80",
+    previewName: "Victoria Beaumont",
+    previewRole: "Platinum Philanthropist",
+    punchArea: "circle-center",
+    frontBackground: "linear-gradient(135deg, #090d16 0%, #1e1b4b 60%, #31104b 100%)",
+    buildFrontBoxes: (canvasW) => [
+      makeThemeBox(1, "h1", "Gala Title", "HOPE FOUNDATION CHARITY GALA", Math.round((canvasW - 320) / 2), 52, 320, 32, {
+        fontSize: "12px",
+        fontWeight: "bold",
+        color: "#f59e0b",
+      }),
+      makeThemeBox(2, "avatar", "Photo", "", Math.round((canvasW - 96) / 2), 92, 96, 96, {
+        avatarShape: "circle",
+        avatarSrc: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&auto=format&fit=crop&q=80",
+      }),
+      makeThemeBox(3, "h1", "Full Name", "Victoria Beaumont", Math.round((canvasW - 320) / 2), 202, 320, 36, {
+        fontSize: "22px",
+        fontWeight: "bold",
+        color: "#ffffff",
+      }),
+      makeThemeBox(4, "p", "Role", "PLATINUM PATRON", Math.round((canvasW - 300) / 2), 240, 300, 26, {
+        fontSize: "12px",
+        fontWeight: "bold",
+        color: "#fde68a",
+        textTransform: "uppercase",
+      }),
+      makeThemeBox(5, "p", "Org", "Beaumont Endowment Fund", Math.round((canvasW - 300) / 2), 266, 300, 26, {
+        fontSize: "12px",
+        color: "#e2e8f0",
+      }),
+      makeThemeBox(6, "qrcode", "QR Code", "", Math.round((canvasW - 95) / 2), 302, 95, 95, {
+        qrValue: "https://porichoyid.softcredible.com/gala/victoria",
+        qrWhiteColor: "#ffffff",
+      }),
+      makeThemeBox(7, "p", "Tag", "★ VIP TABLE • HONORED GUEST ★", Math.round((canvasW - 300) / 2), 412, 300, 26, {
+        fontSize: "11px",
+        fontWeight: "bold",
+        color: "#f59e0b",
+      }),
+    ],
+  },
+  {
+    id: "humanitarian-fellowship",
+    name: "Humanitarian Rotary Fellowship",
+    category: "social",
+    categoryLabel: "Gala & Charity",
+    description: "Deep burgundy & rose for community leaders, fellowship, and rotary assemblies",
+    badge: "FELLOWSHIP",
+    previewBg: "linear-gradient(135deg, #4c0519 0%, #831843 60%, #9f1239 100%)",
+    previewAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80",
+    previewName: "Engr. Rezaul Karim",
+    previewRole: "Distinguished Fellow",
+    punchArea: "circle-center",
+    frontBackground: "linear-gradient(135deg, #4c0519 0%, #831843 60%, #9f1239 100%)",
+    buildFrontBoxes: (canvasW) => [
+      makeThemeBox(1, "h1", "Gala Title", "ROTARY HUMANITARIAN FELLOWSHIP", Math.round((canvasW - 320) / 2), 52, 320, 32, {
+        fontSize: "11px",
+        fontWeight: "bold",
+        color: "#fecdd3",
+      }),
+      makeThemeBox(2, "avatar", "Photo", "", Math.round((canvasW - 96) / 2), 92, 96, 96, {
+        avatarShape: "circle",
+        avatarSrc: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80",
+      }),
+      makeThemeBox(3, "h1", "Full Name", "Engr. Rezaul Karim", Math.round((canvasW - 320) / 2), 202, 320, 36, {
+        fontSize: "21px",
+        fontWeight: "bold",
+        color: "#ffffff",
+      }),
+      makeThemeBox(4, "p", "Role", "DISTINGUISHED FELLOW", Math.round((canvasW - 300) / 2), 240, 300, 26, {
+        fontSize: "12px",
+        fontWeight: "bold",
+        color: "#fde047",
+        textTransform: "uppercase",
+      }),
+      makeThemeBox(5, "p", "Club", "Rotary Club International", Math.round((canvasW - 300) / 2), 266, 300, 26, {
+        fontSize: "12px",
+        color: "#ffe4e6",
+      }),
+      makeThemeBox(6, "qrcode", "QR Code", "", Math.round((canvasW - 95) / 2), 302, 95, 95, {
+        qrValue: "https://porichoyid.softcredible.com/rotary/karim",
+        qrWhiteColor: "#ffffff",
+      }),
+      makeThemeBox(7, "p", "Tag", "DISTRICT 3281 • HONORARY LIFE MEMBER", Math.round((canvasW - 300) / 2), 412, 300, 26, {
+        fontSize: "10px",
+        fontWeight: "bold",
+        color: "#fecdd3",
+      }),
+    ],
+  },
+
+  // --- MEDIA, ARTS & FESTIVALS ---
+  {
+    id: "indie-film-arts",
+    name: "Horizon International Film Festival",
+    category: "media",
+    categoryLabel: "Media & Arts",
+    description: "Cinematic noir obsidian & neon amber for directors, jury members, and press",
+    badge: "FILM FEST",
+    previewBg: "linear-gradient(135deg, #09090b 0%, #18181b 50%, #27272a 100%)",
+    previewAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80",
+    previewName: "Soraya Vane",
+    previewRole: "Jury President / Director",
+    punchArea: "long-center",
+    frontBackground: "linear-gradient(135deg, #09090b 0%, #18181b 50%, #27272a 100%)",
+    buildFrontBoxes: (canvasW) => [
+      makeThemeBox(1, "h1", "Fest Title", "HORIZON FILM FESTIVAL 2026", Math.round((canvasW - 320) / 2), 52, 320, 32, {
+        fontSize: "12px",
+        fontWeight: "bold",
+        color: "#f59e0b",
+      }),
+      makeThemeBox(2, "avatar", "Photo", "", Math.round((canvasW - 96) / 2), 92, 96, 96, {
+        avatarShape: "square",
+        avatarRadius: 8,
+        avatarSrc: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80",
+      }),
+      makeThemeBox(3, "h1", "Full Name", "Soraya Vane", Math.round((canvasW - 320) / 2), 202, 320, 36, {
+        fontSize: "22px",
+        fontWeight: "bold",
+        color: "#ffffff",
+      }),
+      makeThemeBox(4, "p", "Role", "JURY PRESIDENT & DIRECTOR", Math.round((canvasW - 300) / 2), 240, 300, 26, {
+        fontSize: "12px",
+        fontWeight: "bold",
+        color: "#fbbf24",
+        textTransform: "uppercase",
+      }),
+      makeThemeBox(5, "p", "Studio", "CineWorld Guild", Math.round((canvasW - 300) / 2), 266, 300, 26, {
+        fontSize: "12px",
+        color: "#e4e4e7",
+      }),
+      makeThemeBox(6, "qrcode", "QR Code", "", Math.round((canvasW - 95) / 2), 302, 95, 95, {
+        qrValue: "https://porichoyid.softcredible.com/film/soraya",
+        qrWhiteColor: "#ffffff",
+      }),
+      makeThemeBox(7, "p", "Tag", "🎬 ALL ACCESS PRESS & RED CARPET 🎬", Math.round((canvasW - 300) / 2), 412, 300, 26, {
+        fontSize: "10px",
+        fontWeight: "bold",
+        color: "#f59e0b",
+      }),
+    ],
+  },
+  {
+    id: "soundwave-music-fest",
+    name: "SoundWave Live Music Festival",
+    category: "media",
+    categoryLabel: "Media & Arts",
+    description: "Vibrant electric magenta & deep purple with artist all-access credentials",
+    badge: "MUSIC FEST",
+    previewBg: "linear-gradient(135deg, #581c87 0%, #be185d 50%, #f43f5e 100%)",
+    previewAvatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80",
+    previewName: "Leo Valen",
+    previewRole: "Headlining Artist",
+    punchArea: "circle-center",
+    frontBackground: "linear-gradient(135deg, #581c87 0%, #be185d 50%, #f43f5e 100%)",
+    buildFrontBoxes: (canvasW) => [
+      makeThemeBox(1, "h1", "Fest Title", "SOUNDWAVE MUSIC FESTIVAL", Math.round((canvasW - 320) / 2), 52, 320, 32, {
+        fontSize: "12px",
+        fontWeight: "bold",
+        color: "#fde047",
+      }),
+      makeThemeBox(2, "avatar", "Photo", "", Math.round((canvasW - 96) / 2), 92, 96, 96, {
+        avatarShape: "circle",
+        avatarSrc: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&auto=format&fit=crop&q=80",
+      }),
+      makeThemeBox(3, "h1", "Full Name", "Leo Valen", Math.round((canvasW - 320) / 2), 202, 320, 36, {
+        fontSize: "22px",
+        fontWeight: "bold",
+        color: "#ffffff",
+      }),
+      makeThemeBox(4, "p", "Role", "HEADLINING ARTIST", Math.round((canvasW - 300) / 2), 240, 300, 26, {
+        fontSize: "12px",
+        fontWeight: "bold",
+        color: "#fde047",
+        textTransform: "uppercase",
+      }),
+      makeThemeBox(5, "p", "Stage", "Neon Main Stage • Backstage VIP", Math.round((canvasW - 300) / 2), 266, 300, 26, {
+        fontSize: "12px",
+        color: "#fae8ff",
+      }),
+      makeThemeBox(6, "qrcode", "QR Code", "", Math.round((canvasW - 95) / 2), 302, 95, 95, {
+        qrValue: "https://porichoyid.softcredible.com/artist/leo",
+        qrWhiteColor: "#ffffff",
+      }),
+      makeThemeBox(7, "p", "Tag", "🎸 ARTIST ALL-ACCESS BACKSTAGE PASS 🎸", Math.round((canvasW - 300) / 2), 412, 300, 26, {
+        fontSize: "10px",
+        fontWeight: "bold",
+        color: "#fde047",
       }),
     ],
   },
 ];
 
+const filteredBadgeThemes = computed(() => {
+  return badgeThemes.filter((t) => {
+    const matchesCat =
+      activeCategory.value === "all" || t.category === activeCategory.value;
+    if (!matchesCat) return false;
+    if (!themeSearch.value.trim()) return true;
+    const query = themeSearch.value.toLowerCase().trim();
+    return (
+      t.name.toLowerCase().includes(query) ||
+      t.description.toLowerCase().includes(query) ||
+      t.badge.toLowerCase().includes(query) ||
+      (t.categoryLabel && t.categoryLabel.toLowerCase().includes(query))
+    );
+  });
+});
+
 function applyBadgeTheme(theme) {
-  const canvasW = store.dropzone?.offsetWidth || pageStore.presetWidth * 3.78 || 396;
+  const canvasW = 397;
   const boxes = theme.buildFrontBoxes(canvasW);
   store.applyTheme({
     name: theme.name,
