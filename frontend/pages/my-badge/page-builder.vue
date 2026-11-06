@@ -318,11 +318,11 @@
           ? 'translate-x-full md:translate-x-0 md:w-0'
           : 'translate-x-0 w-[88vw] max-w-sm md:w-80 md:max-w-none'"
       >
-        <!-- Perfectly Positioned Caret Button Attached to Sidebar Left Border -->
+        <!-- Perfectly Positioned Caret Button Attached to Sidebar Left Border - Aligned with Tabs -->
         <button
           type="button"
           @click="isSidebarCollapsed = !isSidebarCollapsed"
-          class="hidden md:flex absolute top-16 z-40 items-center justify-center transition-all duration-200 focus:outline-none cursor-pointer group"
+          class="hidden md:flex absolute top-3 z-40 items-center justify-center transition-all duration-200 focus:outline-none cursor-pointer group"
           :class="isSidebarCollapsed
             ? '-left-8 w-8 h-8 bg-white hover:bg-indigo-50 text-indigo-600 hover:text-indigo-700 border-2 border-indigo-300 hover:border-indigo-500 rounded-full shadow-lg'
             : '-left-3.5 w-7 h-7 bg-white hover:bg-slate-50 text-slate-700 hover:text-indigo-600 border border-slate-300 rounded-full shadow-md'"
