@@ -111,6 +111,7 @@
             "
             @dragstart="(e) => startSidebarDrag(e, item)"
             @dragend="(e) => emitDragEnd(e, item)"
+            @click="handleSidebarItemClick(item)"
             class="draggable-item flex items-center p-2 bg-white rounded hover:bg-slate-100 max-w-sm"
             :class="{
               'cursor-move':
@@ -476,7 +477,7 @@ defineProps({
   displayOption: String,
 });
 
-const emit = defineEmits(["drag-start", "drag-end"]);
+const emit = defineEmits(["drag-start", "drag-end", "item-added"]);
 
 function startLayerDrag(event, index) {
   event.dataTransfer.setData("text/plain", index);
@@ -601,6 +602,30 @@ function emitDragEnd(event, item) {
   const x = event.clientX;
   const y = event.clientY;
   emit("drag-end", { item, x, y });
+}
+
+function handleSidebarItemClick(item) {
+  if (
+    item.type === "img" ||
+    item.type === "background" ||
+    item.type === "gradient" ||
+    item.type === "color" ||
+    item.type === "none" ||
+    item.type === "circle-center" ||
+    item.type === "circle-left-right" ||
+    item.type === "long-center" ||
+    item.type === "long-left-right"
+  ) {
+    return;
+  }
+  const canvasW = store.dropzone?.offsetWidth || pageStore.presetWidth * 3.78 || 397;
+  const canvasH = store.dropzone?.offsetHeight || pageStore.presetHeight * 3.78 || 560;
+  const elW = item.type === "avatar" || item.type === "qrcode" ? 95 : 200;
+  const elH = item.type === "avatar" || item.type === "qrcode" ? 95 : (item.type === "line" ? 4 : 32);
+  const left = Math.round((canvasW - elW) / 2);
+  const top = Math.round((canvasH - elH) / 2);
+  store.addElementFromDrag(item, { left, top });
+  emit("item-added", item);
 }
 
 function toggleGroup(groupType) {

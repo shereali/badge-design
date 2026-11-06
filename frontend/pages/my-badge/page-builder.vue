@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col md:flex-row h-screen bg-slate-100 overflow-hidden">
     <!-- Main Content Area -->
-    <div class="flex-1 flex flex-col items-center p-3 sm:p-4 order-2 md:order-1 overflow-hidden">
+    <div class="flex-1 flex flex-col items-center p-2 sm:p-4 w-full h-full overflow-hidden relative">
       <!-- Top Controls Bar -->
       <header class="w-full bg-white rounded-xl shadow-sm border border-slate-200/80 p-2.5 sm:px-4 flex flex-wrap items-center justify-between gap-3">
         <!-- Left: Back Button & Title -->
@@ -252,18 +252,76 @@
           </div>
         </div>
       </div>
+
+      <!-- Mobile Bottom Navigation Bar (Visible only on mobile screens < 768px) -->
+      <nav class="md:hidden w-full bg-white border-t border-slate-200 px-2 py-1.5 flex items-center justify-around z-30 shadow-md flex-shrink-0 mt-auto">
+        <button
+          type="button"
+          @click="openMobileTab('design')"
+          class="flex flex-col items-center gap-0.5 px-2.5 py-1 rounded-lg text-[10px] font-semibold transition cursor-pointer"
+          :class="store.activeTab === 'design' && !isSidebarCollapsed ? 'text-indigo-600 font-bold bg-indigo-50' : 'text-slate-600'"
+        >
+          <Icon name="mdi:palette-swatch-outline" class="text-lg" />
+          <span>Design</span>
+        </button>
+        <button
+          type="button"
+          @click="openMobileTab('themes')"
+          class="flex flex-col items-center gap-0.5 px-2.5 py-1 rounded-lg text-[10px] font-semibold transition cursor-pointer"
+          :class="store.activeTab === 'themes' && !isSidebarCollapsed ? 'text-indigo-600 font-bold bg-indigo-50' : 'text-slate-600'"
+        >
+          <Icon name="mdi:star-outline" class="text-lg" />
+          <span>Themes</span>
+        </button>
+        <button
+          type="button"
+          @click="openMobileTab('properties')"
+          class="flex flex-col items-center gap-0.5 px-2.5 py-1 rounded-lg text-[10px] font-semibold transition cursor-pointer"
+          :class="store.activeTab === 'properties' && !isSidebarCollapsed ? 'text-indigo-600 font-bold bg-indigo-50' : 'text-slate-600'"
+        >
+          <Icon name="mdi:tune-vertical" class="text-lg" />
+          <span>Properties</span>
+        </button>
+        <button
+          type="button"
+          @click="openMobileTab('layers')"
+          class="flex flex-col items-center gap-0.5 px-2.5 py-1 rounded-lg text-[10px] font-semibold transition cursor-pointer"
+          :class="store.activeTab === 'layers' && !isSidebarCollapsed ? 'text-indigo-600 font-bold bg-indigo-50' : 'text-slate-600'"
+        >
+          <Icon name="mdi:layers-outline" class="text-lg" />
+          <span>Layers</span>
+        </button>
+        <button
+          type="button"
+          @click="switchSideTab(store.activeSide === 'front' ? 'back' : 'front')"
+          class="flex flex-col items-center gap-0.5 px-2.5 py-1 rounded-lg text-[10px] font-semibold text-slate-700 hover:text-indigo-600 transition cursor-pointer"
+        >
+          <Icon name="mdi:flip-horizontal" class="text-lg text-indigo-600" />
+          <span>{{ store.activeSide === 'front' ? 'Flip Back' : 'Flip Front' }}</span>
+        </button>
+      </nav>
     </div>
 
-    <!-- Right Sidebar Container with Single Perfectly-Positioned Collapse Toggle -->
+    <!-- Mobile Backdrop Blur Overlay when Drawer is Open on Mobile -->
     <div
-      class="relative flex-shrink-0 transition-all duration-300 ease-in-out order-1 md:order-2 flex h-full"
-      :class="isSidebarCollapsed ? 'w-0' : 'w-full md:w-80'"
+      v-if="!isSidebarCollapsed"
+      class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-40 md:hidden transition-opacity"
+      @click="isSidebarCollapsed = true"
+    ></div>
+
+    <!-- Right Sidebar Container: Slide-over Drawer on Mobile, Docked Collapsible on Desktop -->
+    <div
+      class="fixed inset-y-0 right-0 z-50 md:relative md:inset-auto md:z-auto transition-all duration-300 ease-in-out flex flex-col h-full bg-white shadow-2xl md:shadow-none flex-shrink-0"
+      :class="isSidebarCollapsed
+        ? 'translate-x-full md:translate-x-0 md:w-0'
+        : 'translate-x-0 w-[88vw] max-w-sm md:w-80 md:max-w-none'"
     >
       <!-- Perfectly Positioned Caret Button Attached to Sidebar Left Border -->
       <button
         type="button"
         @click="isSidebarCollapsed = !isSidebarCollapsed"
-        class="absolute top-5 -left-3.5 z-40 w-7 h-7 bg-white text-slate-700 hover:text-indigo-600 border border-slate-300 rounded-full shadow-md flex items-center justify-center transition hover:scale-110 active:scale-95 focus:outline-none cursor-pointer"
+        class="hidden md:flex absolute top-[118px] z-40 w-7 h-7 bg-white text-slate-700 hover:text-indigo-600 border border-slate-300 rounded-full shadow-md items-center justify-center transition-all hover:scale-110 active:scale-95 focus:outline-none cursor-pointer"
+        :class="isSidebarCollapsed ? '-left-8' : '-left-3.5'"
         :title="isSidebarCollapsed ? 'Open Sidebar (Expand)' : 'Collapse Sidebar'"
       >
         <Icon
@@ -272,9 +330,27 @@
         />
       </button>
 
+      <!-- Mobile-only Drawer Header with Close Button -->
+      <div class="md:hidden flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-slate-50 flex-shrink-0">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-indigo-600"></span>
+          <span class="text-xs font-bold text-slate-800 uppercase tracking-wider capitalize">
+            {{ store.activeTab }} Panel
+          </span>
+        </div>
+        <button
+          type="button"
+          @click="isSidebarCollapsed = true"
+          class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold text-slate-600 hover:text-slate-900 bg-white border border-slate-200 rounded-lg shadow-xs hover:bg-slate-100 transition cursor-pointer"
+        >
+          <Icon name="mdi:close" class="text-sm" />
+          <span>Close</span>
+        </button>
+      </div>
+
       <!-- Sidebar Body -->
       <div
-        class="w-full md:w-80 bg-white border-t md:border-t-0 md:border-l border-slate-200 overflow-y-auto flex flex-col h-full"
+        class="w-full bg-white md:border-l border-slate-200 overflow-y-auto flex-1 flex flex-col h-full"
         :class="{ 'hidden md:hidden': isSidebarCollapsed }"
       >
         <Sidebar
@@ -286,6 +362,7 @@
           :display-option="displayOption"
           @drag-start="onDragStart"
           @drag-end="onDragEnd"
+          @item-added="onMobileItemAdded"
         />
       </div>
     </div>
@@ -357,6 +434,31 @@ const isSidebarCollapsed = ref(false);
 const isExporting = ref(false);
 const isExportMenuOpen = ref(false);
 const exportDropdownRef = ref(null);
+
+const openMobileTab = (tabName) => {
+  store.activeTab = tabName;
+  isSidebarCollapsed.value = false;
+};
+
+const onMobileItemAdded = () => {
+  if (process.client && window.innerWidth < 768) {
+    store.activeTab = "properties";
+  }
+};
+
+// Auto-adjust zoom and collapse sidebar on mobile upon initial load
+if (process.client) {
+  onMounted(() => {
+    if (window.innerWidth < 768) {
+      isSidebarCollapsed.value = true;
+      const availableW = window.innerWidth - 24;
+      if (availableW < 397) {
+        const fitPercent = Math.max(50, Math.min(100, Math.floor((availableW / 397) * 100)));
+        zoomLevel.value = fitPercent;
+      }
+    }
+  });
+}
 
 // Keyboard shortcuts (Undo: Ctrl+Z / Cmd+Z, Redo: Ctrl+Y / Ctrl+Shift+Z / Cmd+Shift+Z)
 if (process.client) {

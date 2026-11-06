@@ -118,6 +118,7 @@
             boxSizing: 'border-box',
           }"
           @mousedown.stop="activateElement(index, $event)"
+          @touchstart.stop="activateElement(index, $event)"
           @dblclick="handleDoubleClick(box, index)"
           @keydown="deleteItem($event)"
         >
@@ -184,6 +185,7 @@
             <div
               class="rotate-icon"
               @mousedown.stop.prevent="startRotate(index, $event)"
+              @touchstart.stop.prevent="startRotate(index, $event)"
             >
               <Icon name="line-md:rotate-270" class="text-blue-600" />
             </div>
@@ -193,7 +195,8 @@
               v-for="dir in directions"
               :key="dir"
               :class="['handle', dir]"
-              @mousedown.stop.prevent="startResize(index, dir)"
+              @mousedown.stop.prevent="startResize(index, dir, $event)"
+              @touchstart.stop.prevent="startResize(index, dir, $event)"
             ></div>
           </template>
 
@@ -436,16 +439,42 @@ watch(
 
 function startDrag(index, event) {
   const box = store.boxes[index];
-  dragOffset.x = event.clientX - box.position.left;
-  dragOffset.y = event.clientY - box.position.top;
+  const clientX =
+    event.clientX !== undefined
+      ? event.clientX
+      : event.touches?.[0]?.clientX;
+  const clientY =
+    event.clientY !== undefined
+      ? event.clientY
+      : event.touches?.[0]?.clientY;
+  if (clientX === undefined || clientY === undefined) return;
+
+  dragOffset.x = clientX - box.position.left;
+  dragOffset.y = clientY - box.position.top;
   box.isDragging = true;
   document.addEventListener("mousemove", onDrag);
   document.addEventListener("mouseup", stopActions);
+  document.addEventListener("touchmove", onDrag, { passive: false });
+  document.addEventListener("touchend", stopActions);
 }
 
 function onDrag(event) {
   const box = store.boxes[selectedBoxIndex];
   if (!box) return;
+
+  const clientX =
+    event.clientX !== undefined
+      ? event.clientX
+      : event.touches?.[0]?.clientX;
+  const clientY =
+    event.clientY !== undefined
+      ? event.clientY
+      : event.touches?.[0]?.clientY;
+  if (clientX === undefined || clientY === undefined) return;
+
+  if (event.cancelable && event.touches) {
+    event.preventDefault();
+  }
 
   const canvasRect = canvas.value.getBoundingClientRect();
   const canvasW = canvasRect.width;
@@ -453,8 +482,8 @@ function onDrag(event) {
   const boxW = box.properties.size.width;
   const boxH = box.properties.size.height;
 
-  let rawLeft = event.clientX - dragOffset.x;
-  let rawTop = event.clientY - dragOffset.y;
+  let rawLeft = clientX - dragOffset.x;
+  let rawTop = clientY - dragOffset.y;
 
   // Snapping threshold (pixels)
   const threshold = 8;
@@ -494,18 +523,45 @@ function onDrag(event) {
   store.updateProperties(store.currentProperties);
 }
 
-function startResize(index, dir) {
+let lastTouchResize = { x: 0, y: 0 };
+function startResize(index, dir, event) {
   selectedBoxIndex = index;
   resizeDir = dir;
+  const clientX =
+    event?.clientX !== undefined
+      ? event.clientX
+      : event?.touches?.[0]?.clientX;
+  const clientY =
+    event?.clientY !== undefined
+      ? event.clientY
+      : event?.touches?.[0]?.clientY;
+  lastTouchResize = { x: clientX || 0, y: clientY || 0 };
+
   document.addEventListener("mousemove", onResize);
   document.addEventListener("mouseup", stopActions);
+  document.addEventListener("touchmove", onResize, { passive: false });
+  document.addEventListener("touchend", stopActions);
 }
 
 function onResize(event) {
   const box = store.boxes[selectedBoxIndex];
-  const minSize = 40;
-  const dx = event.movementX;
-  const dy = event.movementY;
+  if (!box) return;
+  const minSize = 20;
+
+  let dx = event.movementX;
+  let dy = event.movementY;
+
+  if (event.touches) {
+    if (event.cancelable) event.preventDefault();
+    const curX = event.touches[0].clientX;
+    const curY = event.touches[0].clientY;
+    dx = curX - lastTouchResize.x;
+    dy = curY - lastTouchResize.y;
+    lastTouchResize = { x: curX, y: curY };
+  }
+
+  if (dx === undefined || isNaN(dx)) dx = 0;
+  if (dy === undefined || isNaN(dy)) dy = 0;
 
   let newWidth = box.properties.size.width;
   let newHeight = box.properties.size.height;
@@ -550,8 +606,11 @@ function startRotate(index, event) {
   const centerX = box.position.left + box.properties.size.width / 2;
   const centerY = box.position.top + box.properties.size.height / 2;
 
-  const startX = event.clientX;
-  const startY = event.clientY;
+  const startX =
+    event.clientX !== undefined ? event.clientX : event.touches?.[0]?.clientX;
+  const startY =
+    event.clientY !== undefined ? event.clientY : event.touches?.[0]?.clientY;
+  if (startX === undefined || startY === undefined) return;
 
   const dxStart = startX - centerX;
   const dyStart = startY - centerY;
@@ -559,8 +618,15 @@ function startRotate(index, event) {
   const initialRotation = box.properties.rotation;
 
   function rotate(e) {
-    const dx = e.clientX - centerX;
-    const dy = e.clientY - centerY;
+    if (e.cancelable && e.touches) e.preventDefault();
+    const curX =
+      e.clientX !== undefined ? e.clientX : e.touches?.[0]?.clientX;
+    const curY =
+      e.clientY !== undefined ? e.clientY : e.touches?.[0]?.clientY;
+    if (curX === undefined || curY === undefined) return;
+
+    const dx = curX - centerX;
+    const dy = curY - centerY;
     const currentAngle = Math.atan2(dy, dx) * (360 / Math.PI);
 
     const delta = (currentAngle - startAngle) * 12;
@@ -576,11 +642,15 @@ function startRotate(index, event) {
   function stopRotate() {
     document.removeEventListener("mousemove", rotate);
     document.removeEventListener("mouseup", stopRotate);
+    document.removeEventListener("touchmove", rotate);
+    document.removeEventListener("touchend", stopRotate);
     store.recordHistory();
   }
 
   document.addEventListener("mousemove", rotate);
   document.addEventListener("mouseup", stopRotate);
+  document.addEventListener("touchmove", rotate, { passive: false });
+  document.addEventListener("touchend", stopRotate);
 }
 
 function stopActions() {
@@ -590,6 +660,9 @@ function stopActions() {
   document.removeEventListener("mousemove", onDrag);
   document.removeEventListener("mousemove", onResize);
   document.removeEventListener("mouseup", stopActions);
+  document.removeEventListener("touchmove", onDrag);
+  document.removeEventListener("touchmove", onResize);
+  document.removeEventListener("touchend", stopActions);
   store.recordHistory();
 }
 
