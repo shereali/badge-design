@@ -1,369 +1,372 @@
 <template>
-  <div class="flex flex-col md:flex-row h-screen bg-slate-100 overflow-hidden">
-    <!-- Main Content Area -->
-    <div class="flex-1 flex flex-col items-center p-2 sm:p-4 w-full h-full overflow-hidden relative">
-      <!-- Top Controls Bar -->
-      <header class="w-full bg-white rounded-xl shadow-sm border border-slate-200/80 p-2.5 sm:px-4 flex flex-wrap items-center justify-between gap-3">
-        <!-- Left: Back Button & Title -->
-        <div class="flex items-center gap-3">
-          <NuxtLink
-            to="/my-badge"
-            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 border border-slate-200 transition"
-          >
-            <Icon name="mdi:arrow-left" class="text-base" />
-            <span>Badges</span>
-          </NuxtLink>
+  <div class="flex flex-col h-screen bg-slate-100 overflow-hidden">
+    <!-- Top Controls Bar (Full width across top, aligned with main menu) -->
+    <header class="w-full bg-white border-b border-slate-200/80 px-3 sm:px-5 py-2 sm:py-2.5 flex flex-wrap items-center justify-between gap-2 sm:gap-3 z-30 flex-shrink-0 shadow-xs">
+      <!-- Left: Back Button & Title -->
+      <div class="flex items-center gap-3">
+        <NuxtLink
+          to="/my-badge"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 border border-slate-200 transition"
+        >
+          <Icon name="mdi:arrow-left" class="text-base" />
+          <span>Badges</span>
+        </NuxtLink>
 
-          <NuxtLink
-            to="/profile"
-            class="hidden sm:inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 border border-slate-200 transition"
-            title="My Profile & Subscription Plan"
-          >
-            <Icon name="mdi:account-cog-outline" class="text-sm text-indigo-600" />
-            <span>Profile</span>
-          </NuxtLink>
+        <NuxtLink
+          to="/profile"
+          class="hidden sm:inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 border border-slate-200 transition"
+          title="My Profile & Subscription Plan"
+        >
+          <Icon name="mdi:account-cog-outline" class="text-sm text-indigo-600" />
+          <span>Profile</span>
+        </NuxtLink>
 
-          <div class="flex items-center gap-2">
-            <input
-              v-model="badgeTitle"
-              type="text"
-              placeholder="Badge Title..."
-              class="font-bold text-sm text-slate-900 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-600 focus:outline-none px-1 py-0.5 max-w-[200px] sm:max-w-[280px]"
-            />
-          </div>
-        </div>
-
-        <!-- Center: Front / Back Side Switcher -->
-        <div class="flex border border-slate-200 rounded-lg overflow-hidden shadow-sm bg-slate-50">
-          <button
-            class="px-4 py-1.5 text-xs font-bold transition-colors"
-            :class="{
-              'bg-indigo-600 text-white shadow-sm': store.activeSide === 'front',
-              'text-slate-600 hover:bg-slate-200': store.activeSide !== 'front',
-            }"
-            @click="switchSideTab('front')"
-            :disabled="isFlipping"
-          >
-            Front Side
-          </button>
-          <button
-            class="px-4 py-1.5 text-xs font-bold transition-colors"
-            :class="{
-              'bg-indigo-600 text-white shadow-sm': store.activeSide === 'back',
-              'text-slate-600 hover:bg-slate-200': store.activeSide !== 'back',
-            }"
-            @click="switchSideTab('back')"
-            :disabled="isFlipping"
-          >
-            Back Side
-          </button>
-        </div>
-
-        <!-- Right Controls: Undo/Redo, Zoom, Grid & Save -->
         <div class="flex items-center gap-2">
-          <!-- Undo / Redo Controls -->
-          <div class="flex items-center space-x-0.5 bg-slate-50 border border-slate-200 rounded-lg p-0.5">
-            <button
-              type="button"
-              class="w-7 h-7 flex items-center justify-center text-slate-700 hover:bg-white rounded transition disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
-              @click="store.undo()"
-              :disabled="!store.canUndo"
-              title="Undo (Ctrl+Z)"
-            >
-              <Icon name="mdi:undo" class="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              class="w-7 h-7 flex items-center justify-center text-slate-700 hover:bg-white rounded transition disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
-              @click="store.redo()"
-              :disabled="!store.canRedo"
-              title="Redo (Ctrl+Y / Ctrl+Shift+Z)"
-            >
-              <Icon name="mdi:redo" class="w-4 h-4" />
-            </button>
-          </div>
+          <input
+            v-model="badgeTitle"
+            type="text"
+            placeholder="Badge Title..."
+            class="font-bold text-sm text-slate-900 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-600 focus:outline-none px-1 py-0.5 max-w-[200px] sm:max-w-[280px]"
+          />
+        </div>
+      </div>
 
-          <!-- Zoom & Grid Controls -->
-          <div class="flex items-center space-x-1 bg-slate-50 border border-slate-200 rounded-lg p-0.5">
-            <button
-              class="w-7 h-7 flex items-center justify-center text-slate-600 hover:bg-white rounded transition"
-              @click="zoom(-10)"
-              title="Zoom Out"
-            >
-              <Icon name="mdi:minus" class="w-4 h-4" />
-            </button>
-            <span class="w-10 text-center text-xs font-bold text-slate-700">
-              {{ zoomLevel }}%
-            </span>
-            <button
-              class="w-7 h-7 flex items-center justify-center text-slate-600 hover:bg-white rounded transition"
-              @click="zoom(10)"
-              title="Zoom In"
-            >
-              <Icon name="mdi:plus" class="w-4 h-4" />
-            </button>
-            <button
-              class="w-7 h-7 flex items-center justify-center rounded transition"
-              :class="showGrid ? 'text-indigo-600 bg-white shadow-sm font-bold' : 'text-slate-500 hover:bg-white'"
-              @click="toggleGrid"
-              title="Toggle Grid Alignment"
-            >
-              <Icon name="mdi:grid" class="w-4 h-4" />
-            </button>
-          </div>
+      <!-- Center: Front / Back Side Switcher -->
+      <div class="flex border border-slate-200 rounded-lg overflow-hidden shadow-sm bg-slate-50">
+        <button
+          class="px-4 py-1.5 text-xs font-bold transition-colors"
+          :class="{
+            'bg-indigo-600 text-white shadow-sm': store.activeSide === 'front',
+            'text-slate-600 hover:bg-slate-200': store.activeSide !== 'front',
+          }"
+          @click="switchSideTab('front')"
+          :disabled="isFlipping"
+        >
+          Front Side
+        </button>
+        <button
+          class="px-4 py-1.5 text-xs font-bold transition-colors"
+          :class="{
+            'bg-indigo-600 text-white shadow-sm': store.activeSide === 'back',
+            'text-slate-600 hover:bg-slate-200': store.activeSide !== 'back',
+          }"
+          @click="switchSideTab('back')"
+          :disabled="isFlipping"
+        >
+          Back Side
+        </button>
+      </div>
 
-          <!-- Export Dropdown -->
-          <div class="relative" ref="exportDropdownRef">
-            <button
-              type="button"
-              @click="isExportMenuOpen = !isExportMenuOpen"
-              :disabled="isExporting"
-              class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-lg shadow-sm transition focus:outline-none disabled:opacity-60"
-            >
-              <Icon v-if="isExporting" name="mdi:loading" class="animate-spin text-base text-indigo-600" />
-              <Icon v-else name="mdi:download-outline" class="text-base text-indigo-600" />
-              <span>Export</span>
-              <Icon name="mdi:chevron-down" class="text-sm text-slate-400" />
-            </button>
-
-            <!-- Dropdown Menu -->
-            <div
-              v-if="isExportMenuOpen"
-              class="absolute right-0 mt-1.5 w-52 bg-white border border-slate-200 rounded-xl shadow-xl z-50 p-1.5 space-y-1"
-            >
-              <div class="px-2 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                Download Badge
-              </div>
-              <button
-                type="button"
-                @click="exportAs('pdf')"
-                class="w-full flex items-center gap-2.5 px-2.5 py-2 text-xs font-semibold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition text-left"
-              >
-                <Icon name="mdi:file-pdf-box" class="text-lg text-red-500" />
-                <div>
-                  <div class="font-bold">PDF Document (.pdf)</div>
-                  <div class="text-[10px] text-slate-400">Print-ready standard</div>
-                </div>
-              </button>
-              <button
-                type="button"
-                @click="exportAs('png')"
-                class="w-full flex items-center gap-2.5 px-2.5 py-2 text-xs font-semibold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition text-left"
-              >
-                <Icon name="mdi:file-image" class="text-lg text-blue-500" />
-                <div>
-                  <div class="font-bold">PNG Image (.png)</div>
-                  <div class="text-[10px] text-slate-400">High-resolution lossless</div>
-                </div>
-              </button>
-              <button
-                type="button"
-                @click="exportAs('jpg')"
-                class="w-full flex items-center gap-2.5 px-2.5 py-2 text-xs font-semibold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition text-left"
-              >
-                <Icon name="mdi:file-jpg-box" class="text-lg text-emerald-500" />
-                <div>
-                  <div class="font-bold">JPG / JPEG Image (.jpg)</div>
-                  <div class="text-[10px] text-slate-400">Standard web image</div>
-                </div>
-              </button>
-            </div>
-          </div>
-
-          <!-- Auto-Save Status Badge -->
-          <div class="hidden sm:flex items-center text-xs">
-            <span
-              v-if="autoSaveStatus === 'saving'"
-              class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-indigo-600 bg-indigo-50 border border-indigo-100 px-2.5 py-1.5 rounded-lg shadow-sm"
-            >
-              <Icon name="mdi:cloud-sync-outline" class="animate-spin text-sm" />
-              <span>Auto-saving...</span>
-            </span>
-            <span
-              v-else-if="autoSaveStatus === 'saved'"
-              class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1.5 rounded-lg shadow-sm"
-            >
-              <Icon name="mdi:cloud-check-outline" class="text-sm text-emerald-600" />
-              <span>All changes saved</span>
-            </span>
-            <span
-              v-else-if="autoSaveStatus === 'pending'"
-              class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1.5 rounded-lg shadow-sm"
-            >
-              <Icon name="mdi:cloud-upload-outline" class="text-sm text-amber-600" />
-              <span>Unsaved changes</span>
-            </span>
-          </div>
-
-          <!-- Save Button -->
-          <button
-            @click="sendData(false)"
-            :disabled="loading"
-            class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-sm shadow-indigo-300 transition focus:outline-none focus:ring-2 focus:ring-indigo-400 disabled:opacity-60"
-          >
-            <Icon v-if="loading" name="mdi:loading" class="animate-spin text-base" />
-            <Icon v-else name="mdi:content-save-outline" class="text-base" />
-            <span>Save</span>
-          </button>
-
-          <!-- Direct Builder Logout Button -->
+      <!-- Right Controls: Undo/Redo, Zoom, Grid & Save -->
+      <div class="flex items-center gap-2">
+        <!-- Undo / Redo Controls -->
+        <div class="flex items-center space-x-0.5 bg-slate-50 border border-slate-200 rounded-lg p-0.5">
           <button
             type="button"
-            @click="handleBuilderLogout"
-            class="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-slate-200 hover:border-red-300 text-slate-400 hover:text-red-600 hover:bg-red-50 transition"
-            title="Log Out"
+            class="w-7 h-7 flex items-center justify-center text-slate-700 hover:bg-white rounded transition disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+            @click="store.undo()"
+            :disabled="!store.canUndo"
+            title="Undo (Ctrl+Z)"
           >
-            <Icon name="mdi:logout" class="text-base" />
+            <Icon name="mdi:undo" class="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            class="w-7 h-7 flex items-center justify-center text-slate-700 hover:bg-white rounded transition disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+            @click="store.redo()"
+            :disabled="!store.canRedo"
+            title="Redo (Ctrl+Y / Ctrl+Shift+Z)"
+          >
+            <Icon name="mdi:redo" class="w-4 h-4" />
           </button>
         </div>
-      </header>
 
-      <!-- Design Canvas Dropzone Container -->
-      <div class="flex-1 w-full flex justify-center items-start overflow-auto p-4 mt-2">
-        <div
-          ref="dropzone"
-          class="design-page bg-white shadow-xl rounded-lg"
-          :style="{
-            width: `${pageStore.presetWidth}mm`,
-            height: `${pageStore.presetHeight}mm`,
-            transform: `scale(${zoomScale})`,
-            transformOrigin: 'center top',
-          }"
-          :class="{
-            'grid-overlay': showGrid,
-            flipped: store.activeSide === 'back',
-          }"
-          @dragover.prevent
-          @drop="handleDrop"
-        >
-          <div class="card w-full h-full relative">
-            <div class="front w-full h-full absolute top-0 left-0">
-              <Canvas
-                v-if="store.activeSide === 'front'"
-                :modelValue="store.frontBoxes"
-              />
+        <!-- Zoom & Grid Controls -->
+        <div class="flex items-center space-x-1 bg-slate-50 border border-slate-200 rounded-lg p-0.5">
+          <button
+            class="w-7 h-7 flex items-center justify-center text-slate-600 hover:bg-white rounded transition"
+            @click="zoom(-10)"
+            title="Zoom Out"
+          >
+            <Icon name="mdi:minus" class="w-4 h-4" />
+          </button>
+          <span class="w-10 text-center text-xs font-bold text-slate-700">
+            {{ zoomLevel }}%
+          </span>
+          <button
+            class="w-7 h-7 flex items-center justify-center text-slate-600 hover:bg-white rounded transition"
+            @click="zoom(10)"
+            title="Zoom In"
+          >
+            <Icon name="mdi:plus" class="w-4 h-4" />
+          </button>
+          <button
+            class="w-7 h-7 flex items-center justify-center rounded transition"
+            :class="showGrid ? 'text-indigo-600 bg-white shadow-sm font-bold' : 'text-slate-500 hover:bg-white'"
+            @click="toggleGrid"
+            title="Toggle Grid Alignment"
+          >
+            <Icon name="mdi:grid" class="w-4 h-4" />
+          </button>
+        </div>
+
+        <!-- Export Dropdown -->
+        <div class="relative" ref="exportDropdownRef">
+          <button
+            type="button"
+            @click="isExportMenuOpen = !isExportMenuOpen"
+            :disabled="isExporting"
+            class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-lg shadow-sm transition focus:outline-none disabled:opacity-60"
+          >
+            <Icon v-if="isExporting" name="mdi:loading" class="animate-spin text-base text-indigo-600" />
+            <Icon v-else name="mdi:download-outline" class="text-base text-indigo-600" />
+            <span>Export</span>
+            <Icon name="mdi:chevron-down" class="text-sm text-slate-400" />
+          </button>
+
+          <!-- Dropdown Menu -->
+          <div
+            v-if="isExportMenuOpen"
+            class="absolute right-0 mt-1.5 w-52 bg-white border border-slate-200 rounded-xl shadow-xl z-50 p-1.5 space-y-1"
+          >
+            <div class="px-2 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              Download Badge
             </div>
-            <div class="back w-full h-full absolute top-0 left-0">
-              <Canvas
-                v-if="store.activeSide === 'back'"
-                :modelValue="store.backBoxes"
-              />
+            <button
+              type="button"
+              @click="exportAs('pdf')"
+              class="w-full flex items-center gap-2.5 px-2.5 py-2 text-xs font-semibold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition text-left"
+            >
+              <Icon name="mdi:file-pdf-box" class="text-lg text-red-500" />
+              <div>
+                <div class="font-bold">PDF Document (.pdf)</div>
+                <div class="text-[10px] text-slate-400">Print-ready standard</div>
+              </div>
+            </button>
+            <button
+              type="button"
+              @click="exportAs('png')"
+              class="w-full flex items-center gap-2.5 px-2.5 py-2 text-xs font-semibold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition text-left"
+            >
+              <Icon name="mdi:file-image" class="text-lg text-blue-500" />
+              <div>
+                <div class="font-bold">PNG Image (.png)</div>
+                <div class="text-[10px] text-slate-400">High-resolution lossless</div>
+              </div>
+            </button>
+            <button
+              type="button"
+              @click="exportAs('jpg')"
+              class="w-full flex items-center gap-2.5 px-2.5 py-2 text-xs font-semibold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition text-left"
+            >
+              <Icon name="mdi:file-jpg-box" class="text-lg text-emerald-500" />
+              <div>
+                <div class="font-bold">JPG / JPEG Image (.jpg)</div>
+                <div class="text-[10px] text-slate-400">Standard web image</div>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Auto-Save Status Badge -->
+        <div class="hidden sm:flex items-center text-xs">
+          <span
+            v-if="autoSaveStatus === 'saving'"
+            class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-indigo-600 bg-indigo-50 border border-indigo-100 px-2.5 py-1.5 rounded-lg shadow-sm"
+          >
+            <Icon name="mdi:cloud-sync-outline" class="animate-spin text-sm" />
+            <span>Auto-saving...</span>
+          </span>
+          <span
+            v-else-if="autoSaveStatus === 'saved'"
+            class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1.5 rounded-lg shadow-sm"
+          >
+            <Icon name="mdi:cloud-check-outline" class="text-sm text-emerald-600" />
+            <span>All changes saved</span>
+          </span>
+          <span
+            v-else-if="autoSaveStatus === 'pending'"
+            class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1.5 rounded-lg shadow-sm"
+          >
+            <Icon name="mdi:cloud-upload-outline" class="text-sm text-amber-600" />
+            <span>Unsaved changes</span>
+          </span>
+        </div>
+
+        <!-- Save Button -->
+        <button
+          @click="sendData(false)"
+          :disabled="loading"
+          class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-sm shadow-indigo-300 transition focus:outline-none focus:ring-2 focus:ring-indigo-400 disabled:opacity-60"
+        >
+          <Icon v-if="loading" name="mdi:loading" class="animate-spin text-base" />
+          <Icon v-else name="mdi:content-save-outline" class="text-base" />
+          <span>Save</span>
+        </button>
+
+        <!-- Direct Builder Logout Button -->
+        <button
+          type="button"
+          @click="handleBuilderLogout"
+          class="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-slate-200 hover:border-red-300 text-slate-400 hover:text-red-600 hover:bg-red-50 transition"
+          title="Log Out"
+        >
+          <Icon name="mdi:logout" class="text-base" />
+        </button>
+      </div>
+    </header>
+
+    <!-- Workspace Container (Below Main Menu) -->
+    <div class="flex-1 flex flex-row w-full overflow-hidden relative">
+      <!-- Main Content Area: Canvas & Dropzone -->
+      <div class="flex-1 flex flex-col items-center justify-between w-full h-full overflow-hidden relative">
+        <!-- Design Canvas Dropzone Container -->
+        <div class="flex-1 w-full flex justify-center items-center overflow-auto p-2 sm:p-4">
+          <div
+            ref="dropzone"
+            class="design-page bg-white shadow-xl rounded-lg"
+            :style="{
+              width: `${pageStore.presetWidth}mm`,
+              height: `${pageStore.presetHeight}mm`,
+              transform: `scale(${zoomScale})`,
+              transformOrigin: 'center top',
+            }"
+            :class="{
+              'grid-overlay': showGrid,
+              flipped: store.activeSide === 'back',
+            }"
+            @dragover.prevent
+            @drop="handleDrop"
+          >
+            <div class="card w-full h-full relative">
+              <div class="front w-full h-full absolute top-0 left-0">
+                <Canvas
+                  v-if="store.activeSide === 'front'"
+                  :modelValue="store.frontBoxes"
+                />
+              </div>
+              <div class="back w-full h-full absolute top-0 left-0">
+                <Canvas
+                  v-if="store.activeSide === 'back'"
+                  :modelValue="store.backBoxes"
+                />
+              </div>
             </div>
           </div>
         </div>
+
+        <!-- Mobile Bottom Navigation Bar (Visible only on mobile screens < 768px) -->
+        <nav class="md:hidden w-full bg-white border-t border-slate-200 px-2 py-1.5 flex items-center justify-around z-30 shadow-md flex-shrink-0 mt-auto">
+          <button
+            type="button"
+            @click="openMobileTab('design')"
+            class="flex flex-col items-center gap-0.5 px-2.5 py-1 rounded-lg text-[10px] font-semibold transition cursor-pointer"
+            :class="store.activeTab === 'design' && !isSidebarCollapsed ? 'text-indigo-600 font-bold bg-indigo-50' : 'text-slate-600'"
+          >
+            <Icon name="mdi:palette-swatch-outline" class="text-lg" />
+            <span>Design</span>
+          </button>
+          <button
+            type="button"
+            @click="openMobileTab('themes')"
+            class="flex flex-col items-center gap-0.5 px-2.5 py-1 rounded-lg text-[10px] font-semibold transition cursor-pointer"
+            :class="store.activeTab === 'themes' && !isSidebarCollapsed ? 'text-indigo-600 font-bold bg-indigo-50' : 'text-slate-600'"
+          >
+            <Icon name="mdi:star-outline" class="text-lg" />
+            <span>Themes</span>
+          </button>
+          <button
+            type="button"
+            @click="openMobileTab('properties')"
+            class="flex flex-col items-center gap-0.5 px-2.5 py-1 rounded-lg text-[10px] font-semibold transition cursor-pointer"
+            :class="store.activeTab === 'properties' && !isSidebarCollapsed ? 'text-indigo-600 font-bold bg-indigo-50' : 'text-slate-600'"
+          >
+            <Icon name="mdi:tune-vertical" class="text-lg" />
+            <span>Properties</span>
+          </button>
+          <button
+            type="button"
+            @click="openMobileTab('layers')"
+            class="flex flex-col items-center gap-0.5 px-2.5 py-1 rounded-lg text-[10px] font-semibold transition cursor-pointer"
+            :class="store.activeTab === 'layers' && !isSidebarCollapsed ? 'text-indigo-600 font-bold bg-indigo-50' : 'text-slate-600'"
+          >
+            <Icon name="mdi:layers-outline" class="text-lg" />
+            <span>Layers</span>
+          </button>
+          <button
+            type="button"
+            @click="switchSideTab(store.activeSide === 'front' ? 'back' : 'front')"
+            class="flex flex-col items-center gap-0.5 px-2.5 py-1 rounded-lg text-[10px] font-semibold text-slate-700 hover:text-indigo-600 transition cursor-pointer"
+          >
+            <Icon name="mdi:flip-horizontal" class="text-lg text-indigo-600" />
+            <span>{{ store.activeSide === 'front' ? 'Flip Back' : 'Flip Front' }}</span>
+          </button>
+        </nav>
       </div>
 
-      <!-- Mobile Bottom Navigation Bar (Visible only on mobile screens < 768px) -->
-      <nav class="md:hidden w-full bg-white border-t border-slate-200 px-2 py-1.5 flex items-center justify-around z-30 shadow-md flex-shrink-0 mt-auto">
-        <button
-          type="button"
-          @click="openMobileTab('design')"
-          class="flex flex-col items-center gap-0.5 px-2.5 py-1 rounded-lg text-[10px] font-semibold transition cursor-pointer"
-          :class="store.activeTab === 'design' && !isSidebarCollapsed ? 'text-indigo-600 font-bold bg-indigo-50' : 'text-slate-600'"
-        >
-          <Icon name="mdi:palette-swatch-outline" class="text-lg" />
-          <span>Design</span>
-        </button>
-        <button
-          type="button"
-          @click="openMobileTab('themes')"
-          class="flex flex-col items-center gap-0.5 px-2.5 py-1 rounded-lg text-[10px] font-semibold transition cursor-pointer"
-          :class="store.activeTab === 'themes' && !isSidebarCollapsed ? 'text-indigo-600 font-bold bg-indigo-50' : 'text-slate-600'"
-        >
-          <Icon name="mdi:star-outline" class="text-lg" />
-          <span>Themes</span>
-        </button>
-        <button
-          type="button"
-          @click="openMobileTab('properties')"
-          class="flex flex-col items-center gap-0.5 px-2.5 py-1 rounded-lg text-[10px] font-semibold transition cursor-pointer"
-          :class="store.activeTab === 'properties' && !isSidebarCollapsed ? 'text-indigo-600 font-bold bg-indigo-50' : 'text-slate-600'"
-        >
-          <Icon name="mdi:tune-vertical" class="text-lg" />
-          <span>Properties</span>
-        </button>
-        <button
-          type="button"
-          @click="openMobileTab('layers')"
-          class="flex flex-col items-center gap-0.5 px-2.5 py-1 rounded-lg text-[10px] font-semibold transition cursor-pointer"
-          :class="store.activeTab === 'layers' && !isSidebarCollapsed ? 'text-indigo-600 font-bold bg-indigo-50' : 'text-slate-600'"
-        >
-          <Icon name="mdi:layers-outline" class="text-lg" />
-          <span>Layers</span>
-        </button>
-        <button
-          type="button"
-          @click="switchSideTab(store.activeSide === 'front' ? 'back' : 'front')"
-          class="flex flex-col items-center gap-0.5 px-2.5 py-1 rounded-lg text-[10px] font-semibold text-slate-700 hover:text-indigo-600 transition cursor-pointer"
-        >
-          <Icon name="mdi:flip-horizontal" class="text-lg text-indigo-600" />
-          <span>{{ store.activeSide === 'front' ? 'Flip Back' : 'Flip Front' }}</span>
-        </button>
-      </nav>
-    </div>
-
-    <!-- Mobile Backdrop Blur Overlay when Drawer is Open on Mobile -->
-    <div
-      v-if="!isSidebarCollapsed"
-      class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-40 md:hidden transition-opacity"
-      @click="isSidebarCollapsed = true"
-    ></div>
-
-    <!-- Right Sidebar Container: Slide-over Drawer on Mobile, Docked Collapsible on Desktop -->
-    <div
-      class="fixed inset-y-0 right-0 z-50 md:relative md:inset-auto md:z-auto transition-all duration-300 ease-in-out flex flex-col h-full bg-white shadow-2xl md:shadow-none flex-shrink-0"
-      :class="isSidebarCollapsed
-        ? 'translate-x-full md:translate-x-0 md:w-0'
-        : 'translate-x-0 w-[88vw] max-w-sm md:w-80 md:max-w-none'"
-    >
-      <!-- Perfectly Positioned Caret Button Attached to Sidebar Left Border -->
-      <button
-        type="button"
-        @click="isSidebarCollapsed = !isSidebarCollapsed"
-        class="hidden md:flex absolute top-[118px] z-40 w-7 h-7 bg-white text-slate-700 hover:text-indigo-600 border border-slate-300 rounded-full shadow-md items-center justify-center transition-all hover:scale-110 active:scale-95 focus:outline-none cursor-pointer"
-        :class="isSidebarCollapsed ? '-left-8' : '-left-3.5'"
-        :title="isSidebarCollapsed ? 'Open Sidebar (Expand)' : 'Collapse Sidebar'"
-      >
-        <Icon
-          :name="isSidebarCollapsed ? 'mdi:chevron-left' : 'mdi:chevron-right'"
-          class="text-lg"
-        />
-      </button>
-
-      <!-- Mobile-only Drawer Header with Close Button -->
-      <div class="md:hidden flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-slate-50 flex-shrink-0">
-        <div class="flex items-center gap-2">
-          <span class="w-2 h-2 rounded-full bg-indigo-600"></span>
-          <span class="text-xs font-bold text-slate-800 uppercase tracking-wider capitalize">
-            {{ store.activeTab }} Panel
-          </span>
-        </div>
-        <button
-          type="button"
-          @click="isSidebarCollapsed = true"
-          class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold text-slate-600 hover:text-slate-900 bg-white border border-slate-200 rounded-lg shadow-xs hover:bg-slate-100 transition cursor-pointer"
-        >
-          <Icon name="mdi:close" class="text-sm" />
-          <span>Close</span>
-        </button>
-      </div>
-
-      <!-- Sidebar Body -->
+      <!-- Mobile Backdrop Blur Overlay when Drawer is Open on Mobile -->
       <div
-        class="w-full bg-white md:border-l border-slate-200 overflow-y-auto flex-1 flex flex-col h-full"
-        :class="{ 'hidden md:hidden': isSidebarCollapsed }"
+        v-if="!isSidebarCollapsed"
+        class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-40 md:hidden transition-opacity"
+        @click="isSidebarCollapsed = true"
+      ></div>
+
+      <!-- Right Sidebar Container: Sits directly below Main Menu on Desktop -->
+      <div
+        class="fixed inset-y-0 right-0 z-50 md:relative md:inset-auto md:z-auto transition-all duration-300 ease-in-out flex flex-col h-full bg-white md:border-l border-slate-200 shadow-2xl md:shadow-none flex-shrink-0"
+        :class="isSidebarCollapsed
+          ? 'translate-x-full md:translate-x-0 md:w-0'
+          : 'translate-x-0 w-[88vw] max-w-sm md:w-80 md:max-w-none'"
       >
-        <Sidebar
-          :selected-element="store.selectedElement"
-          :selected-element-type="selectedElementType"
-          :layers="layers"
-          :selected-layer="selectedLayer"
-          :current-properties="store.currentProperties"
-          :display-option="displayOption"
-          @drag-start="onDragStart"
-          @drag-end="onDragEnd"
-          @item-added="onMobileItemAdded"
-        />
+        <!-- Perfectly Positioned Caret Button Attached to Sidebar Left Border -->
+        <button
+          type="button"
+          @click="isSidebarCollapsed = !isSidebarCollapsed"
+          class="hidden md:flex absolute top-16 z-40 w-7 h-7 bg-white text-slate-700 hover:text-indigo-600 border border-slate-300 rounded-full shadow-md items-center justify-center transition-all hover:scale-110 active:scale-95 focus:outline-none cursor-pointer"
+          :class="isSidebarCollapsed ? '-left-8' : '-left-3.5'"
+          :title="isSidebarCollapsed ? 'Open Sidebar (Expand)' : 'Collapse Sidebar'"
+        >
+          <Icon
+            :name="isSidebarCollapsed ? 'mdi:chevron-left' : 'mdi:chevron-right'"
+            class="text-lg"
+          />
+        </button>
+
+        <!-- Mobile-only Drawer Header with Close Button -->
+        <div class="md:hidden flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-slate-50 flex-shrink-0">
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-indigo-600"></span>
+            <span class="text-xs font-bold text-slate-800 uppercase tracking-wider capitalize">
+              {{ store.activeTab }} Panel
+            </span>
+          </div>
+          <button
+            type="button"
+            @click="isSidebarCollapsed = true"
+            class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold text-slate-600 hover:text-slate-900 bg-white border border-slate-200 rounded-lg shadow-xs hover:bg-slate-100 transition cursor-pointer"
+          >
+            <Icon name="mdi:close" class="text-sm" />
+            <span>Close</span>
+          </button>
+        </div>
+
+        <!-- Sidebar Body -->
+        <div
+          class="w-full bg-white overflow-y-auto flex-1 flex flex-col h-full"
+          :class="{ 'hidden md:hidden': isSidebarCollapsed }"
+        >
+          <Sidebar
+            :selected-element="store.selectedElement"
+            :selected-element-type="selectedElementType"
+            :layers="layers"
+            :selected-layer="selectedLayer"
+            :current-properties="store.currentProperties"
+            :display-option="displayOption"
+            @drag-start="onDragStart"
+            @drag-end="onDragEnd"
+            @item-added="onMobileItemAdded"
+          />
+        </div>
       </div>
     </div>
 

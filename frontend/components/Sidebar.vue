@@ -1,6 +1,6 @@
 <template>
   <div v-if="sidebarInfo?.data?.designGroups?.length">
-    <div class="flex mb-3 border-b border-gray-200 bg-gray-100 p-1 rounded-xl">
+    <div class="flex m-2 mb-3 border border-slate-200/80 bg-slate-100 p-1 rounded-xl">
       <button
         class="flex-1 py-1.5 px-2 text-xs font-bold rounded-lg transition"
         :class="store.activeTab === 'design' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'"
