@@ -559,18 +559,32 @@ const captureCanvas = async (side = store.activeSide) => {
         const grid = clonedDoc.querySelector(".grid-overlay");
         if (grid) grid.classList.remove("grid-overlay");
 
-        // Ensure all text elements have strictly identical line-height and no UA margins
-        const textElements = clonedDoc.querySelectorAll(
-          "h1, h2, h3, h4, h6, p, span, a"
+        // Copy all active font stylesheets & styles into cloned document head
+        const currentStyles = document.querySelectorAll(
+          "link[rel='stylesheet'], style"
         );
-        textElements.forEach((el) => {
-          el.style.margin = "0";
-          el.style.padding = "0";
-          el.style.boxSizing = "border-box";
-          if (!el.style.lineHeight || el.style.lineHeight === "normal") {
-            el.style.lineHeight = "1.2";
+        currentStyles.forEach((styleTag) => {
+          clonedDoc.head.appendChild(styleTag.cloneNode(true));
+        });
+
+        // Ensure text elements never get clipped by bounding boxes and retain proper typography
+        const textWrappers = clonedDoc.querySelectorAll(".group");
+        textWrappers.forEach((boxEl) => {
+          boxEl.style.overflow = "visible";
+          const comp = boxEl.querySelector("h1, h2, h3, h4, h6, p, span, a");
+          if (comp) {
+            comp.style.margin = "0";
+            comp.style.padding = "0";
+            comp.style.boxSizing = "border-box";
+            comp.style.outline = "none";
+            comp.style.overflow = "visible";
+            // Allow container to expand if text needs a few extra pixels, avoiding any clipping
+            if (comp.scrollHeight > boxEl.offsetHeight) {
+              const newHeight = comp.scrollHeight + 4;
+              boxEl.style.height = `${newHeight}px`;
+              comp.style.height = `${newHeight}px`;
+            }
           }
-          el.style.outline = "none";
         });
       },
     });

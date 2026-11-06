@@ -692,8 +692,10 @@ const selectedBox = computed(() => store.boxes.find((b) => b.isSelected));
 
 function textStyles(box) {
   let fontSize = "16px";
-  if (box.properties.fontSize && box.properties.fontSize !== "Auto") {
-    fontSize = `${box.properties.fontSize}px`;
+  const rawSize = box.properties?.fontSize;
+  if (rawSize && String(rawSize).toLowerCase() !== "auto") {
+    const num = parseFloat(rawSize);
+    fontSize = isNaN(num) ? "16px" : `${num}px`;
   } else if (box.type === "h1") {
     fontSize = "20px";
   } else if (box.type === "p") {
@@ -701,19 +703,19 @@ function textStyles(box) {
   }
 
   const textAlign =
-    box.properties.horizontalAlign || box.properties.textAlign || "center";
+    box.properties?.horizontalAlign || box.properties?.textAlign || "center";
 
   return {
     fontSize,
-    lineHeight: box.properties.lineHeight || "1.2",
-    fontFamily: box.properties.font || "Poppins, sans-serif",
+    lineHeight: box.properties?.lineHeight || "1.3",
+    fontFamily: box.properties?.font || '"Cairo", sans-serif',
     fontWeight:
-      box.properties.fontWeight || (box.type === "h1" ? "bold" : "normal"),
-    fontStyle: box.properties.fontStyle || "normal",
-    textDecoration: box.properties.textDecoration || "none",
-    textTransform: box.properties.textTransform || "none",
-    color: box.properties.color || "black",
-    direction: box.properties.direction || "ltr",
+      box.properties?.fontWeight || (box.type === "h1" ? "bold" : "normal"),
+    fontStyle: box.properties?.fontStyle || "normal",
+    textDecoration: box.properties?.textDecoration || "none",
+    textTransform: box.properties?.textTransform || "none",
+    color: box.properties?.color || "black",
+    direction: box.properties?.direction || "ltr",
     textAlign,
     margin: "0",
     padding: "0",

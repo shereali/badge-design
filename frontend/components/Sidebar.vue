@@ -680,8 +680,8 @@ const badgeThemes = [
         color: "#a5f3fc",
         textTransform: "uppercase",
       }),
-      makeThemeBox(5, "p", "Company", "Google DeepMind", Math.round((canvasW - 300) / 2), 268, 300, 24, {
-        fontSize: "12px",
+      makeThemeBox(5, "p", "Company", "Google DeepMind", Math.round((canvasW - 300) / 2), 268, 300, 28, {
+        fontSize: 12,
         color: "#e2e8f0",
       }),
       makeThemeBox(6, "qrcode", "QR Code", "", Math.round((canvasW - 95) / 2), 302, 95, 95, {
