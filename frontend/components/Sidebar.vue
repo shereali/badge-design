@@ -68,7 +68,7 @@
           <span class="leading-none">{{ group.label }}</span>
           <Icon
             name="mdi:chevron-down"
-            class="ml-auto text-2xl"
+            class="ml-auto text-2xl text-slate-500"
             :class="{
               'transform rotate-180': sidebarInfo.data.openGroups[group.type],
             }"

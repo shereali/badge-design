@@ -322,14 +322,28 @@
         <button
           type="button"
           @click="isSidebarCollapsed = !isSidebarCollapsed"
-          class="hidden md:flex absolute top-16 z-40 w-7 h-7 bg-white text-slate-700 hover:text-indigo-600 border border-slate-300 rounded-full shadow-md items-center justify-center transition-all hover:scale-110 active:scale-95 focus:outline-none cursor-pointer"
-          :class="isSidebarCollapsed ? '-left-8' : '-left-3.5'"
+          class="hidden md:flex absolute top-16 z-40 items-center justify-center transition-all duration-200 focus:outline-none cursor-pointer group"
+          :class="isSidebarCollapsed
+            ? '-left-8 w-8 h-8 bg-white hover:bg-indigo-50 text-indigo-600 hover:text-indigo-700 border-2 border-indigo-300 hover:border-indigo-500 rounded-full shadow-lg'
+            : '-left-3.5 w-7 h-7 bg-white hover:bg-slate-50 text-slate-700 hover:text-indigo-600 border border-slate-300 rounded-full shadow-md'"
           :title="isSidebarCollapsed ? 'Open Sidebar (Expand)' : 'Collapse Sidebar'"
+          aria-label="Toggle Sidebar"
         >
-          <Icon
-            :name="isSidebarCollapsed ? 'mdi:chevron-left' : 'mdi:chevron-right'"
-            class="text-lg"
-          />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="w-4 h-4 transition-transform duration-300 transform pointer-events-none"
+            :class="isSidebarCollapsed
+              ? 'rotate-180 text-indigo-600 group-hover:text-indigo-700'
+              : 'text-slate-700 group-hover:text-indigo-600'"
+          >
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
         </button>
 
         <!-- Mobile-only Drawer Header with Close Button -->
